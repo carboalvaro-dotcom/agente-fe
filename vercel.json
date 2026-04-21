@@ -1,1 +1,7 @@
-{}
+{
+    "functions": {
+          "api/call-notes.js": {
+                  "maxDuration": 120
+          }
+    }
+}
