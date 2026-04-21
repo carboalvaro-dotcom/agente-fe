@@ -509,7 +509,6 @@ function toast(m,t){const e=document.getElementById('tst');e.textContent=m;e.cla
 // ── POST-CALL: fetch transcript from Vapi and auto-fill notes ──
 const BACKEND_URL='https://agente-fe.vercel.app/api/call-notes';
 
-const BACKEND_URL='https://agente-fe.vercel.app/api/call-notes';
 
 async function fetchCallNotes(callId, contactId){
   if(!callId) return;
