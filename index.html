@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+✓á<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -229,7 +229,7 @@ textarea.nt:focus{border-color:var(--ac);}textarea.nt::placeholder{color:var(--m
             <button class="rbtn r-nc" onclick="setRes('noContesta',this)">✕ No contesta</button>
             <button class="rbtn r-ni" onclick="setRes('noInteresa',this)">— No interesa</button>
           </div>
-          <textarea class="nt" id="notas" placeholder="Notas: objeciones, observaciones, mejor hora para llamar..."></textarea>
+          <textarea class="nt" <div id="rec-link" style="margin-bottom:6px;min-height:18px;"></div><textarea class="nt" id="notas" placeholder="Notas: objeciones, observaciones, mejor hora para llamar..."></textarea>
           <div class="svb">
             <button class="btn bg sm" onclick="clearRes()">Limpiar</button>
             <button class="btn bp sm" onclick="saveRes()">Guardar resultado</button>
@@ -248,7 +248,7 @@ const RAW=[{"id":999,"nombre":"PRUEBAS CARBÓ SL","nif":"TEST","telefono":"+3461
 let C=[],curId=null,curF='todos',curR=null,iv=null,sec=0;
 
 function init(){
-  try{const s=JSON.parse(localStorage.getItem(SK)||'[]');C=RAW.map(r=>{const x=s.find(y=>y.id===r.id);return x?{...r,estado:x.estado,notas:x.notas,contactName:x.contactName||'',email:x.email||r.email||'',visitDate:x.visitDate||'',cups:x.cups||''}:{...r,estado:'pendiente',notas:'',contactName:'',visitDate:'',cups:''};});}
+  try{const s=JSON.parse(localStorage.getItem(SK)||'[]');C=RAW.map(r=>{const x=s.find(y=>y.id===r.id);return x?{...r,estado:x.estado,notas:x.notas,contactName:x.contactName||'',email:x.email||r.email||'',recordingUrl:x.recordingUrl||'',visitDate:x.visitDate||'',cups:x.cups||''}:{...r,estado:'pendiente',notas:'',contactName:'',visitDate:'',cups:''};});}
   catch{C=RAW.map(r=>({...r,estado:'pendiente',notas:''}));}
   const ak=localStorage.getItem(AK)||'96d7565b-f657-42e2-b144-670153ff65eb';
   const pk=localStorage.getItem(PK)||'vapi';
@@ -262,7 +262,7 @@ function init(){
   else document.getElementById('voice-prov').value=localStorage.getItem('fe_mgt_vprov');
   upStats();renderList();
 }
-function save(){localStorage.setItem(SK,JSON.stringify(C.map(c=>({id:c.id,estado:c.estado,notas:c.notas,contactName:c.contactName||'',email:c.email||'',visitDate:c.visitDate||'',cups:c.cups||''}))));}
+function save(){localStorage.setItem(SK,JSON.stringify(C.map(c=>({id:c.id,estado:c.estado,notas:c.notas,contactName:c.contactName||'',email:c.email||'',visitDate:c.visitDate||'',cups:c.cups||'',recordingUrl:c.recordingUrl||''}))));}
 function upStats(){
   document.getElementById('sv').textContent=C.filter(c=>c.estado==='visitaOK').length;
   document.getElementById('sr').textContent=C.filter(c=>c.estado==='rellamar').length;
@@ -302,7 +302,7 @@ function sel(id){
   document.getElementById('fc-nombre').value=c.contactName||'';
   document.getElementById('fc-email').value=c.email||'';
   document.getElementById('fc-visita').value=c.visitDate||'';
-  document.getElementById('fc-cups').value=c.cups||'';
+  document.getElementById('fc-cups').value=c.cups||'';  const recDiv=document.getElementById('rec-link');  if(recDiv) recDiv.innerHTML=c.recordingUrl?`<a href="${c.recordingUrl}" target="_blank" style="color:#7eb3ff;font-size:12px;">🎧 Escuchar grabación</a>`:'';   const recDiv=document.getElementById('rec-link');
   document.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('on'));
   const m={visitaOK:'r-ok',rellamar:'r-cb',noContesta:'r-nc',noInteresa:'r-ni'};
   if(c.estado!=='pendiente'&&m[c.estado])document.querySelectorAll('.'+m[c.estado]).forEach(b=>b.classList.add('on'));
@@ -528,8 +528,36 @@ async function fetchCallNotes(callId, contactId){
     console.error('fetchCallNotes error:',e);
     toast('Error al obtener notas: '+e.message,'err');
   }
+function applyCallNotes(data, contactId){
+    const c=C.find(x=>x.id===contactId);
+    if(!c) return;
+    if(data.notas) c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
+    if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
+    if(data.nombreContacto&&!c.contactName) c.contactName=data.nombreContacto;
+    if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
+    if(data.emailContacto&&!c.email) c.email=data.emailContacto;
+    if(data.recordingUrl) c.recordingUrl=data.recordingUrl;
+    save();upStats();renderList();
+    if(curId===contactId){
+          document.getElementById('notas').value=c.notas||'';
+          document.getElementById('fc-nombre').value=c.contactName||'';
+          document.getElementById('fc-email').value=c.email||'';
+          document.getElementById('fc-visita').value=c.visitDate||'';
+          const SL={pendiente:'● Pendiente',visitaOK:'✓ Visita OK',noInteresa:'✕ No interesa',rellamar:'↺ Rellamar',noContesta:'— No contesta',llamando:'◎ Llamando'};
+          const st=document.getElementById('dstag');
+          st.className='stag '+c.estado;st.textContent=SL[c.estado]||c.estado;
+          const m={visitaOK:'r-ok',rellamar:'r-cb',noContesta:'r-nc',noInteresa:'r-ni'};
+          document.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('on'));
+          if(m[c.estado])document.querySelectorAll('.'+m[c.estado]).forEach(b=>b.classList.add('on'));
+          // Show recording link if available
+          const recDiv=document.getElementById('rec-link');
+          if(recDiv){
+                  if(c.recordingUrl) recDiv.innerHTML=`<a href="${c.recordingUrl}" target="_blank" style="color:#7eb3ff;font-size:12px;">🎧 Escuchar grabación</a>`;
+                  else recDiv.innerHTML='';
+          }
+    }
+    toast('✓ Guardado automáticamente','ok');
 }
-
 function applyCallNotes(data, contactId){
   const c=C.find(x=>x.id===contactId);
   if(!c) return;
