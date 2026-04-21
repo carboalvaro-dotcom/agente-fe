@@ -507,7 +507,7 @@ function copyScript(){
 function toast(m,t){const e=document.getElementById('tst');e.textContent=m;e.className='tst '+(t||'')+' show';setTimeout(()=>e.classList.remove('show'),3000);}
 
 // ── POST-CALL: fetch transcript from Vapi and auto-fill notes ──
-const BACKEND_URL='https://agente-fe.vercel.app/api/call-notes';
+const BACKEND_URL='https://agente-fe-peach.vercel.app/api/call-notes';
 
 
 async function fetchCallNotes(callId, contactId){
