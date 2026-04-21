@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Agente Llamadas — Montgat 08390</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+:root{
+  --bg:#eef2f7;--s1:#ffffff;--s2:#f0f4f9;
+  --bd:rgba(30,80,160,.12);--bd2:rgba(30,80,160,.22);
+  --tx:#1a2a4a;--mt:#6b7fa3;
+  --ac:#1e50a0;--acg:rgba(30,80,160,.1);
+  --gr:#0e9e5a;--grb:rgba(14,158,90,.1);
+  --rd:#d93025;--rdb:rgba(217,48,37,.08);
+  --am:#d97706;--amb:rgba(217,119,6,.1);
+  --pu:#6d4fc2;
+  --fn:'DM Sans',sans-serif;--mo:'DM Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;display:flex;flex-direction:column;overflow:hidden;font-size:14px;}
+.tb{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:52px;background:#1e50a0;border-bottom:1px solid rgba(255,255,255,.15);flex-shrink:0;box-shadow:0 2px 8px rgba(30,80,160,.3);}
+.logo{font-size:13px;font-weight:600;color:#fff;}.logo em{color:#7eb3ff;font-style:normal;}
+.bds{display:flex;gap:7px;align-items:center;}
+.bd-ac{font-size:11px;font-weight:500;padding:2px 9px;border-radius:20px;font-family:var(--mo);background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;}
+.bd-gr{font-size:11px;font-weight:500;padding:2px 9px;border-radius:20px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);color:#c8e6ff;}
+.stats{display:flex;gap:20px;}
+.st{text-align:center;}.st-v{font-size:16px;font-weight:600;font-family:var(--mo);color:#fff;}.st-l{font-size:10px;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:.06em;}
+.main{display:flex;flex:1;overflow:hidden;}
+.lp{width:315px;flex-shrink:0;border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;background:#f5f8fd;}
+.lp-h{padding:10px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:7px;flex-shrink:0;background:#fff;}
+.lp-h h2{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--mt);flex:1;}
+.fts{display:flex;gap:3px;}
+.ftab{font-size:10px;padding:2px 7px;border-radius:4px;border:1px solid var(--bd);background:none;color:var(--mt);cursor:pointer;font-family:var(--fn);transition:all .15s;}
+.ftab.on{background:var(--acg);border-color:rgba(59,127,255,.3);color:var(--ac);}
+.sr{padding:7px 12px;border-bottom:1px solid var(--bd);flex-shrink:0;}
+.sr input{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:6px 10px;color:var(--tx);font-size:12px;font-family:var(--fn);outline:none;}
+.sr input:focus{border-color:var(--ac);}.sr input::placeholder{color:var(--mt);}
+.cl{flex:1;overflow-y:auto;}
+.cl::-webkit-scrollbar{width:4px;}.cl::-webkit-scrollbar-thumb{background:rgba(30,80,160,.25);border-radius:2px;}
+.ci{padding:11px 14px;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .1s;}
+.ci:hover{background:var(--s2);}.ci.sel{background:rgba(59,127,255,.08);border-left:2px solid var(--ac);}
+.ci-r1{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:3px;}
+.ci-n{font-size:12px;font-weight:500;line-height:1.3;flex:1;}
+.ci-p{background:var(--amb);color:var(--am);font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;flex-shrink:0;}
+.ci-r2{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.ci-s{font-size:10px;color:var(--mt);}.ci-t{font-size:10px;font-family:var(--mo);color:var(--ac);opacity:.8;}
+.ci-k{font-size:9px;background:rgba(122,129,150,.13);color:var(--mt);padding:1px 4px;border-radius:3px;font-family:var(--mo);}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.dot.pendiente{background:var(--mt);}.dot.visitaOK{background:var(--gr);}
+.dot.noInteresa{background:var(--rd);}.dot.rellamar{background:var(--am);animation:pulse 1.2s infinite;}
+.dot.noContesta{background:#555;}.dot.llamando{background:var(--ac);box-shadow:0 0 6px var(--ac);animation:pulse .8s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.rp{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--mt);}
+.empty svg{opacity:.2;}.empty p{font-size:13px;}
+.det{flex:1;overflow-y:auto;padding:18px 22px;display:none;}
+.det.vis{display:block;}
+.det::-webkit-scrollbar{width:4px;}.det::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px;}
+.dh{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:14px;}
+.dn{font-size:19px;font-weight:600;line-height:1.2;margin-bottom:3px;}.ds{font-size:12px;color:var(--mt);}
+.da{display:flex;gap:7px;flex-shrink:0;align-items:center;}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:7px;font-size:12px;font-weight:500;font-family:var(--fn);cursor:pointer;border:none;transition:all .15s;}
+.bp{background:var(--ac);color:#fff;}.bp:hover{background:#5b8fff;}.bp:disabled{background:#253050;color:var(--mt);cursor:not-allowed;}
+.bg{background:var(--s2);color:var(--tx);border:1px solid var(--bd);}.bg:hover{border-color:var(--bd2);}
+.bd2{background:var(--rdb);color:var(--rd);border:1px solid rgba(244,63,94,.2);}
+.sm{padding:5px 10px;font-size:11px;}
+.stag{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:500;}
+.stag.pendiente{background:rgba(122,129,150,.15);color:var(--mt);}
+.stag.visitaOK{background:var(--grb);color:var(--gr);}
+.stag.noInteresa{background:var(--rdb);color:var(--rd);}
+.stag.rellamar{background:var(--amb);color:var(--am);}
+.stag.noContesta{background:var(--s2);color:var(--mt);}
+.stag.llamando{background:var(--acg);color:var(--ac);}
+.ig{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.ic{background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;box-shadow:0 1px 3px rgba(30,80,160,.07);}
+.ic-l{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--mt);margin-bottom:3px;}
+.ic-v{font-size:13px;font-weight:500;font-family:var(--mo);}
+.sec{margin-bottom:16px;}
+.sec-t{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#1e50a0;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.sec-t::after{content:'';flex:1;height:1px;background:var(--bd);}
+.sb{background:var(--s1);border:1px solid var(--bd);border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(30,80,160,.08);}
+.sp{border-bottom:1px solid var(--bd);}.sp:last-child{border-bottom:none;}
+.sp-h{padding:9px 13px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
+.sp-h:hover{background:var(--s2);}
+.pn{width:19px;height:19px;border-radius:50%;background:var(--acg);border:1px solid rgba(59,127,255,.3);color:var(--ac);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mo);}
+.pt{font-size:11px;font-weight:600;flex:1;}.pg{font-size:10px;color:var(--mt);}
+.stxt{padding:11px 13px;font-size:12px;line-height:1.8;color:#2a3f6f;border-top:1px solid var(--bd);white-space:pre-wrap;display:none;}
+.stxt.op{display:block;}
+.aip{background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:13px;margin-bottom:16px;box-shadow:0 1px 4px rgba(30,80,160,.08);}
+.aih{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.ail{font-size:11px;font-weight:600;color:var(--pu);display:flex;align-items:center;gap:5px;}
+.ar{display:flex;gap:7px;margin-bottom:7px;}
+.ar input,.ar select{flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:7px 9px;color:var(--tx);font-size:12px;font-family:var(--mo);outline:none;}
+.ar input:focus,.ar select:focus{border-color:var(--ac);}
+.ar select option{background:var(--s2);}
+.aihelp{display:none;margin-top:8px;padding:9px;background:var(--s2);border-radius:6px;font-size:11px;line-height:1.7;color:var(--mt);}
+.aihelp strong{color:var(--tx);}
+.cban{display:none;background:linear-gradient(90deg,rgba(30,80,160,.1),rgba(30,80,160,.04));border:1px solid rgba(30,80,160,.2);border-radius:8px;padding:11px 15px;margin-bottom:14px;align-items:center;gap:11px;}
+.cban.on{display:flex;}
+.cw{display:flex;gap:3px;align-items:center;}
+.cw span{width:3px;height:14px;background:var(--ac);border-radius:2px;animation:wv .8s infinite ease-in-out;}
+.cw span:nth-child(2){animation-delay:.15s;}.cw span:nth-child(3){animation-delay:.3s;}.cw span:nth-child(4){animation-delay:.45s;}
+@keyframes wv{0%,100%{height:4px}50%{height:16px}}
+.ct{flex:1;font-size:12px;font-weight:500;}.ctm{font-family:var(--mo);font-size:14px;color:var(--ac);}
+.rsp{background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:13px;box-shadow:0 1px 4px rgba(30,80,160,.08);}
+.rbs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;}
+.rbtn{padding:6px 11px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fn);border:1px solid transparent;transition:all .15s;}
+.r-ok{background:var(--grb);color:var(--gr);border-color:rgba(34,197,94,.2);}
+.r-cb{background:var(--amb);color:var(--am);border-color:rgba(245,158,11,.2);}
+.r-nc{background:var(--s2);color:var(--mt);border-color:var(--bd);}
+.r-ni{background:var(--rdb);color:var(--rd);border-color:rgba(244,63,94,.2);}
+.rbtn.on{outline:2px solid currentColor;outline-offset:1px;}
+.rbtn:hover{filter:brightness(1.15);}
+textarea.nt{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;color:var(--tx);font-size:12px;font-family:var(--fn);resize:vertical;min-height:65px;outline:none;}
+textarea.nt:focus{border-color:var(--ac);}textarea.nt::placeholder{color:var(--mt);}
+.svb{display:flex;justify-content:flex-end;gap:7px;margin-top:8px;}
+.tst{position:fixed;bottom:18px;right:18px;background:#fff;border:1px solid var(--bd2);border-radius:8px;padding:11px 15px;font-size:12px;color:var(--tx);z-index:999;transform:translateY(50px);opacity:0;transition:all .25s;pointer-events:none;box-shadow:0 4px 12px rgba(30,80,160,.15);}
+.tst.show{transform:translateY(0);opacity:1;}
+.tst.ok{border-color:rgba(34,197,94,.3);color:var(--gr);}
+.tst.err{border-color:rgba(244,63,94,.3);color:var(--rd);}
+</style>
+</head>
+<body>
+<div class="tb">
+  <div class="bds">
+    <div class="logo">Factor<em>Energía</em> · Agente</div>
+    <div class="bd-ac">MONTGAT 08390</div>
+    <div class="bd-gr">📍 Tu zona — visitas presenciales</div>
+  </div>
+  <div class="stats">
+    <div class="st"><div class="st-v">58</div><div class="st-l">Total</div></div>
+    <div class="st"><div class="st-v" style="color:var(--pu)" id="sp">12</div><div class="st-l">⚡ Prioritarios</div></div>
+    <div class="st"><div class="st-v" style="color:var(--gr)" id="sv">0</div><div class="st-l">Visitas</div></div>
+    <div class="st"><div class="st-v" style="color:var(--am)" id="sr">0</div><div class="st-l">Rellamar</div></div>
+    <div class="st"><div class="st-v" style="color:var(--rd)" id="sni">0</div><div class="st-l">No interesa</div></div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="lp">
+    <div class="lp-h">
+      <h2>Contactos</h2>
+      <div class="fts">
+        <button class="ftab on" onclick="setF('todos',this)">Todos</button>
+        <button class="ftab" onclick="setF('prio',this)">⚡</button>
+        <button class="ftab" onclick="setF('pendiente',this)">Pend.</button>
+        <button class="ftab" onclick="setF('rellamar',this)">Rellamar</button>
+        <button class="ftab" onclick="setF('visitaOK',this)">Visitas</button>
+      </div>
+    </div>
+    <div class="sr"><input type="text" id="sq" placeholder="Buscar empresa, calle, sector..." oninput="renderList()"></div>
+    <div class="cl" id="cl"></div>
+  </div>
+
+  <div class="rp">
+    <div class="empty" id="empty">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.7 13.5 19.79 19.79 0 0 1 1.63 6.83 2 2 0 0 1 3.61 4.68h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 12a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      <p>Selecciona un contacto para ver el guión y lanzar la llamada</p>
+    </div>
+    <div class="det" id="det">
+      <div class="dh">
+        <div><div class="dn" id="dn"></div><div class="ds" id="ds"></div></div>
+        <div class="da">
+          <span id="dstag" class="stag pendiente">● Pendiente</span>
+          <button class="btn bg sm" onclick="copyScript()">📋 Copiar guión</button>
+          <button class="btn bp sm" id="bcall" onclick="launchCall()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.7 13.5 19.79 19.79 0 0 1 1.63 6.83 2 2 0 0 1 3.61 4.68h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 12a16 16 0 0 0 6 6l.96-.96a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Llamar con IA
+          </button>
+        </div>
+      </div>
+      <div class="cban" id="cban">
+        <div class="cw"><span></span><span></span><span></span><span></span></div>
+        <div class="ct">Llamada en curso — agente IA hablando con el contacto...</div>
+        <div class="ctm" id="ctm">0:00</div>
+        <button class="btn bd2 sm" onclick="stopCall()">Colgar</button>
+      </div>
+      <div class="ig">
+        <div class="ic"><div class="ic-l">Teléfono</div><div class="ic-v" style="color:var(--ac)" id="dtel">—</div></div>
+        <div class="ic"><div class="ic-l">Potencia</div><div class="ic-v" style="color:var(--am)" id="dpot">—</div></div>
+        <div class="ic"><div class="ic-l">Tarifa</div><div class="ic-v" id="dtar">—</div></div>
+        <div class="ic"><div class="ic-l">Comercializadora</div><div class="ic-v" id="dcom" style="font-size:11px">—</div></div>
+        <div class="ic"><div class="ic-l">Sector</div><div class="ic-v" id="dsec">—</div></div>
+        <div class="ic"><div class="ic-l">Dirección</div><div class="ic-v" id="ddir" style="font-size:11px;line-height:1.4">—</div></div>
+      </div>
+      <div class="sec">
+        <div class="sec-t">Guión de llamada personalizado</div>
+        <div class="sb" id="sb"></div>
+      </div>
+      <!-- AI config hidden - all preconfigured -->
+      <div style="display:none">
+        <select id="plat"><option value="vapi">Vapi.ai</option></select>
+        <input type="password" id="apikey" value="96d7565b-f657-42e2-b144-670153ff65eb">
+        <select id="voice-prov"><option value="11labs">ElevenLabs</option></select>
+        <input type="text" id="voice-id" value="uQw4jpKzMLrZuo0RLPS9">
+        <input type="text" id="phone-num-id" value="0d4fe76e-760c-4cf8-8760-b291bb96aac5">
+      </div>
+      <div class="sec">
+        <div class="sec-t">Ficha del cliente</div>
+        <div class="rsp" style="margin-bottom:12px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+            <div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--mt);margin-bottom:2px">Nombre contacto</div>
+              <input type="text" id="fc-nombre" placeholder="Nombre del encargado..." style="width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:5px 8px;color:var(--tx);font-size:12px;font-family:var(--fn);outline:none;">
+            </div>
+            <div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--mt);margin-bottom:2px">Email</div>
+              <input type="text" id="fc-email" placeholder="email@empresa.com" style="width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:5px 8px;color:var(--tx);font-size:12px;font-family:var(--fn);outline:none;">
+            </div>
+            <div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--mt);margin-bottom:2px">Fecha visita</div>
+              <input type="text" id="fc-visita" placeholder="Ej: Jueves 24/04 a las 11:00h" style="width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:5px 8px;color:var(--tx);font-size:12px;font-family:var(--fn);outline:none;">
+            </div>
+            <div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--mt);margin-bottom:2px">CUPS</div>
+              <input type="text" id="fc-cups" placeholder="ES0021..." style="width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:5px 8px;color:var(--tx);font-size:12px;font-family:var(--mo);outline:none;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-t">Resultado de la llamada</div>
+        <div class="rsp">
+          <div class="rbs">
+            <button class="rbtn r-ok" onclick="setRes('visitaOK',this)">✓ Visita concertada</button>
+            <button class="rbtn r-cb" onclick="setRes('rellamar',this)">↺ Rellamar</button>
+            <button class="rbtn r-nc" onclick="setRes('noContesta',this)">✕ No contesta</button>
+            <button class="rbtn r-ni" onclick="setRes('noInteresa',this)">— No interesa</button>
+          </div>
+          <textarea class="nt" id="notas" placeholder="Notas: objeciones, observaciones, mejor hora para llamar..."></textarea>
+          <div class="svb">
+            <button class="btn bg sm" onclick="clearRes()">Limpiar</button>
+            <button class="btn bp sm" onclick="saveRes()">Guardar resultado</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="tst" id="tst"></div>
+
+<script>
+const SK='fe_mgt_v3',AK='fe_mgt_ak',PK='fe_mgt_pk';
+const RAW=[{"id": 999, "nombre": "PRUEBAS CARBÓ SL", "nif": "TEST", "telefono": "+34619012680", "email": "carboalvaro@gmail.com", "direccion": "RONDA 8 DE MARÇ 48", "comercializadora": "ENDESA ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 14.0, "sector": "TEST — No llamar", "prioritario": true}, {"id": 0, "nombre": "ROSENDO RABAT COMAS", "nif": "38616614M", "telefono": "934692699", "email": "", "direccion": "ARNO JAGER 71, BJO", "comercializadora": "ENDESA ENERGÍA", "tarifa": "2.0 TD", "potencia_kw": 12.5, "sector": "Actividad comercial", "prioritario": false}, {"id": 2, "nombre": "JUAN GILI SL", "nif": "B58810235", "telefono": "934693585", "email": "", "direccion": "ESGLESIA 1, 1", "comercializadora": "GAS NATURAL SDG", "tarifa": "2.0 TD", "potencia_kw": 15.0, "sector": "Actividad comercial", "prioritario": false}, {"id": 3, "nombre": "RESTAURANT CA ARQUE, S.L.", "nif": "B60200375", "telefono": "934641222", "email": "", "direccion": "JOAQUIN COSTA 18, LOC-10", "comercializadora": "ENDESA ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 17.3, "sector": "Restaurante", "prioritario": true}, {"id": 4, "nombre": "LINEAR CHEMICALS, S.L.", "nif": "B60485687", "telefono": "934694990", "email": "", "direccion": "JOAQUIN COSTA 18, 3", "comercializadora": "ENDESA ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 43.6, "sector": "Industrial", "prioritario": false}, {"id": 5, "nombre": "LINEAR CHEMICALS, S.L.", "nif": "B60485687", "telefono": "934694990", "email": "", "direccion": "JOAQUIN COSTA 18, 2", "comercializadora": "ENDESA ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 40.0, "sector": "Industrial", "prioritario": false}, {"id": 7, "nombre": "RODRIGO TIANA FERRETERS S.L.", "nif": "B61828463", "telefono": "934691906", "email": "", "direccion": "MARINA 33, BJO", "comercializadora": "GAS NATURAL SDG", "tarifa": "2.0 TD", "potencia_kw": 15.0, "sector": "Ferretería", "prioritario": false}, {"id": 8, "nombre": "GUANT TECNIC, SL", "nif": "B58014184", "telefono": "934690815", "email": "", "direccion": "MARINA 33, 2", "comercializadora": "GAS NATURAL SDG", "tarifa": "2.0 TD", "potencia_kw": 15.0, "sector": "Empresa", "prioritario": false}, {"id": 9, "nombre": "ESCUELA MIREIA", "nif": "A08247108", "telefono": "934690152", "email": "administracio@mireiace.net", "direccion": "MARINA 49", "comercializadora": "ENDESA ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 40.0, "sector": "Colegio/Academia", "prioritario": false}, {"id": 10, "nombre": "SENFORT S A", "nif": "A08795809", "telefono": "934690166", "email": "senfort@senfort.com", "direccion": "MARINA 39", "comercializadora": "ENDESA ENERGÍA", "tarifa": "2.0 TD", "potencia_kw": 20.0, "sector": "Papelería/Oficina", "prioritario": false}, {"id": 11, "nombre": "GUILLERMO LATORRE — BAR MARINA 53", "nif": "38719040N", "telefono": "934692506", "email": "", "direccion": "MARINA 53, BJO, BAR", "comercializadora": "GAS NATURAL SDG", "tarifa": "3.0 TD", "potencia_kw": 20.8, "sector": "Bar", "prioritario": true}, {"id": 12, "nombre": "VIVIANA VINCIGUERRA", "nif": "46540594W", "telefono": "934691906", "email": "", "direccion": "MARINA 55, BJO", "comercializadora": "GAS NATURAL SDG", "tarifa": "2.0 TD", "potencia_kw": 27.7, "sector": "Ferretería/Bazar", "prioritario": false}, {"id": 13, "nombre": "ROSA DOMINGUEZ FERNANDEZ", "nif": "34579668L", "telefono": "934690913", "email": "", "direccion": "MARINA 57", "comercializadora": "", "tarifa": "3.0 TD", "potencia_kw": 43.6, "sector": "Bar/Cafetería", "prioritario": false}, {"id": 15, "nombre": "RONGSHENG CHEN", "nif": "X4172407T", "telefono": "676175515", "email": "", "direccion": "PABLO ALSINA 1, LOC", "comercializadora": "ENDESA ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 27.7, "sector": "Bar/Cafetería", "prioritario": false}, {"id": 20, "nombre": "EMCAM S L", "nif": "B58670555", "telefono": "934693427", "email": "", "direccion": "RIERA SANT JORDI, FRENTE TILOS, BJO", "comercializadora": "ENDESA ENERGÍA", "tarifa": "2.0 TD", "potencia_kw": 20.0, "sector": "Tienda alimentación", "prioritario": false}, {"id": 21, "nombre": "AIXUT-PUERTO SCP", "nif": "J65058034", "telefono": "934691204", "email": "", "direccion": "RIERA SANT JORDI 3, BJO, BAR", "comercializadora": "", "tarifa": "3.0 TD", "potencia_kw": 15.9, "sector": "Bar", "prioritario": true}, {"id": 22, "nombre": "BOLLERIA IND. OLIMPIA S.A", "nif": "A08699613", "telefono": "934690831", "email": "", "direccion": "RIERA SANT JORDI 9, LOC-2", "comercializadora": "NABALIA ENERGÍA 2000", "tarifa": "3.0 TD", "potencia_kw": 15.9, "sector": "Panadería/Pastelería", "prioritario": false}, {"id": 23, "nombre": "GRAFILAT SUMIN. GRAFICOS SL", "nif": "B64328149", "telefono": "934690623", "email": "", "direccion": "RIERA SANT JORDI 68, NAV", "comercializadora": "NABALIA ENERGÍA 2000", "tarifa": "3.0 TD", "potencia_kw": 20.0, "sector": "Taller metalúrgico", "prioritario": false}, {"id": 24, "nombre": "ESCUELA MIREIA (sede)", "nif": "A08247108", "telefono": "934692450", "email": "administracio@mireiace.net", "direccion": "RIERA SANT JORDI 129, BJO", "comercializadora": "GAS NATURAL SDG", "tarifa": "3.0 TD", "potencia_kw": 30.0, "sector": "Colegio/Academia", "prioritario": false}, {"id": 26, "nombre": "MARIA AGUILERA GARCIA", "nif": "38694996A", "telefono": "934691453", "email": "", "direccion": "SANTA VICTORIA 13, LOC", "comercializadora": "NABALIA ENERGÍA 2000", "tarifa": "2.0 TD", "potencia_kw": 11.0, "sector": "Restaurante", "prioritario": false}, {"id": 27, "nombre": "FILOMENA VICENTE ESTEBE", "nif": "38613128S", "telefono": "676175515", "email": "", "direccion": "PLAYA-MAR S/N, VG DEL MAR", "comercializadora": "ENDESA ENERGÍA", "tarifa": "2.0 TD", "potencia_kw": 17.3, "sector": "Bar/Cafetería playa", "prioritario": false}, {"id": 28, "nombre": "FILOMENA VICENTE ESTEBE (bar)", "nif": "38613128S", "telefono": "676175515", "email": "", "direccion": "PLAYA-MAR S/N, LOC, BAR", "comercializadora": "ENDESA ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 27.7, "sector": "Bar/Cafetería playa", "prioritario": true}, {"id": 32, "nombre": "HERRAMIENTAS PREZISS, S.L", "nif": "B08954497", "telefono": "934694054", "email": "", "direccion": "ZONA PEDRERES 0, PCL 2", "comercializadora": "FOENER COMERCIALIZACION", "tarifa": "3.0 TD", "potencia_kw": 250.0, "sector": "Industrial/Taller", "prioritario": false}, {"id": 33, "nombre": "EL RACO DEL TURO SCP", "nif": "J63940969", "telefono": "934691020", "email": "", "direccion": "RB TURO 8, LOC-38", "comercializadora": "GAS NATURAL SDG", "tarifa": "3.0 TD", "potencia_kw": 20.0, "sector": "Panadería/Pastelería", "prioritario": true}, {"id": 34, "nombre": "BOLLERIA IND. OLIMPIA S.A", "nif": "A08699613", "telefono": "934690831", "email": "", "direccion": "RB TURO 11, LOC", "comercializadora": "NABALIA ENERGÍA 2000", "tarifa": "3.0 TD", "potencia_kw": 20.0, "sector": "Bollería", "prioritario": false}, {"id": 35, "nombre": "FRANCISCO PACHECO SANCHEZ", "nif": "40940941K", "telefono": "934690127", "email": "", "direccion": "RB TURO 12, RESTAUR", "comercializadora": "ENDESA ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 20.0, "sector": "Bar/Cafetería", "prioritario": true}, {"id": 37, "nombre": "BOLLERIA IND. OLIMPIA S.A", "nif": "A08699613", "telefono": "934690831", "email": "", "direccion": "RB TURO 13, LOC-1", "comercializadora": "NABALIA ENERGÍA 2000", "tarifa": "3.0 TD", "potencia_kw": 50.0, "sector": "Panadería/Pastelería", "prioritario": false}, {"id": 38, "nombre": "BOLLERIA IND. OLIMPIA S.A (tienda)", "nif": "A08699613", "telefono": "934690831", "email": "", "direccion": "RB TURO 13, LOC-1 tienda", "comercializadora": "NABALIA ENERGÍA 2000", "tarifa": "2.0 TD", "potencia_kw": 20.8, "sector": "Tienda alimentación", "prioritario": false}, {"id": 40, "nombre": "DARIO PIN PEREZ — LA FONDA MARINA", "nif": "52148840C", "telefono": "934692506", "email": "", "direccion": "CAMI RAL 151, BJO, RESTAURANTE", "comercializadora": "GAS NATURAL SDG", "tarifa": "3.0 TD", "potencia_kw": 43.6, "sector": "Restaurante", "prioritario": true}, {"id": 41, "nombre": "ZONA ESPORTIVA U.R.C.A", "nif": "G58541261", "telefono": "934694900", "email": "", "direccion": "LLUIS COMPANYS 56, ZNA ESPORT", "comercializadora": "SYDER VERDE", "tarifa": "3.0 TD", "potencia_kw": 32.0, "sector": "Zona deportiva", "prioritario": false}, {"id": 43, "nombre": "DISCEBEBA S A", "nif": "A08362576", "telefono": "934690831", "email": "", "direccion": "CR TIANA 3, NAV JUNTO GA", "comercializadora": "AUDAX ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 100.0, "sector": "Distribución bebidas", "prioritario": false}, {"id": 45, "nombre": "INTEGRACIONES PANADERAS, S.L.", "nif": "B60412483", "telefono": "934694969", "email": "", "direccion": "PJ DELS TILLERS 2, JUNTO MUELLE", "comercializadora": "GAS NATURAL COMERCIALIZADORA", "tarifa": "6.1 TD", "potencia_kw": 355.0, "sector": "Panadería industrial", "prioritario": false}, {"id": 50, "nombre": "BADALONA SERVEIS ASSISTENCIALS", "nif": "A59551655", "telefono": "934691254", "email": "", "direccion": "SANT ANTONI 99 B, CAP", "comercializadora": "GAS NATURAL COMERCIALIZADORA", "tarifa": "3.0 TD", "potencia_kw": 125.0, "sector": "Sanidad", "prioritario": false}, {"id": 51, "nombre": "HOSTELERIA ANUKA SL", "nif": "46755914L", "telefono": "934691453", "email": "", "direccion": "GIRONA 2, LOC-1, BAR", "comercializadora": "GAS NATURAL SDG", "tarifa": "2.0 TD", "potencia_kw": 13.9, "sector": "Bar/Restaurante", "prioritario": false}, {"id": 52, "nombre": "DECOR-MONGAT SCP", "nif": "J61455473", "telefono": "934690623", "email": "", "direccion": "SANT ANTONI 102, BJO-1", "comercializadora": "ENDESA ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 22.4, "sector": "Decoración", "prioritario": true}, {"id": 53, "nombre": "U D MONTGAT", "nif": "G58162983", "telefono": "934692450", "email": "", "direccion": "SANT ANTONI 112, ATC-1", "comercializadora": "", "tarifa": "2.0 TD", "potencia_kw": 17.3, "sector": "Servicios", "prioritario": false}, {"id": 54, "nombre": "ESCUELA MIREIA", "nif": "A08247108", "telefono": "934692450", "email": "administracio@mireiace.net", "direccion": "SANT ANTONI 112, 1-1", "comercializadora": "ENDESA ENERGÍA", "tarifa": "2.0 TD", "potencia_kw": 15.0, "sector": "Colegio/Academia", "prioritario": false}, {"id": 56, "nombre": "RESTAURANTE MARINA, SCP", "nif": "J62452149", "telefono": "934692884", "email": "", "direccion": "PZ MALLORQUINAS 5, E-1 LOC-4", "comercializadora": "ENDESA ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 25.0, "sector": "Restaurante", "prioritario": true}, {"id": 60, "nombre": "ESCUELA MIREIA", "nif": "A08247108", "telefono": "934692450", "email": "administracio@mireiace.net", "direccion": "PJ PARE CLARET 7, LOC", "comercializadora": "GAS NATURAL SDG", "tarifa": "2.0 TD", "potencia_kw": 30.0, "sector": "Colegio/Academia", "prioritario": false}, {"id": 61, "nombre": "JUAN AGUILERA GUISADO", "nif": "30828109J", "telefono": "934694885", "email": "", "direccion": "RIERA SANT JORDI 117, BIS, BJO-6", "comercializadora": "ENDESA ENERGÍA", "tarifa": "2.0 TD", "potencia_kw": 25.0, "sector": "Bar/Restaurante", "prioritario": false}, {"id": 63, "nombre": "TOP COMM NETWORKS, SL", "nif": "B65710857", "telefono": "934694691", "email": "", "direccion": "ZONA PEDRERES 0, NAU-C1", "comercializadora": "ENERGIA NUFRI", "tarifa": "2.0 TD", "potencia_kw": 20.0, "sector": "Empresa", "prioritario": false}, {"id": 64, "nombre": "MONTSERRAT PENALVA GUINOT", "nif": "35051404W", "telefono": "934693688", "email": "", "direccion": "AV LES VILARES 5, LOC-9, OFICINA", "comercializadora": "ENDESA ENERGÍA", "tarifa": "2.0 TD", "potencia_kw": 43.6, "sector": "Empresa", "prioritario": false}, {"id": 65, "nombre": "CORP CLD-SERV URB TRAT RESIDUOS", "nif": "B08173411", "telefono": "934690623", "email": "", "direccion": "AV LES VILARES 5, LOC-12, ESTETICA", "comercializadora": "ENDESA ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 20.8, "sector": "Servicios/Estética", "prioritario": false}, {"id": 66, "nombre": "WOOD FINISHES SCP", "nif": "J66095324", "telefono": "934690623", "email": "", "direccion": "ZONA PEDRERES 3, NAVE 3, IND.ACUSTICO", "comercializadora": "GAS NATURAL SDG", "tarifa": "2.0 TD", "potencia_kw": 13.9, "sector": "Taller industrial", "prioritario": false}, {"id": 67, "nombre": "CONSTRUCCIONES SABATER S A", "nif": "A08578395", "telefono": "934691495", "email": "", "direccion": "ARNO JAGER, ESQUINA BADALONA, LOC", "comercializadora": "SOM ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 20.0, "sector": "Construcción", "prioritario": false}, {"id": 70, "nombre": "LOCAL COMERCIAL RIERA ST. JORDI 22", "nif": "A65587198", "telefono": "934693366", "email": "", "direccion": "RIERA SANT JORDI 22-24, LOC 1", "comercializadora": "ENDESA ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 34.6, "sector": "Local comercial", "prioritario": true}, {"id": 72, "nombre": "JOSE ANGEL SANTOS FERNANDEZ", "nif": "46540776T", "telefono": "934694284", "email": "", "direccion": "RD 8 DE MARC 7-17, BJO-13", "comercializadora": "ENDESA ENERGÍA", "tarifa": "2.0 TD", "potencia_kw": 12.5, "sector": "Actividad comercial", "prioritario": false}, {"id": 73, "nombre": "JOSE LUIS LOPEZ CAMPOS", "nif": "35043942S", "telefono": "934692979", "email": "", "direccion": "RD 8 DE MARC 19-25, BJO-23", "comercializadora": "ENDESA ENERGÍA", "tarifa": "2.0 TD", "potencia_kw": 12.5, "sector": "Actividad comercial", "prioritario": false}, {"id": 74, "nombre": "LINEAR CHEMICALS, S.L.", "nif": "B60485687", "telefono": "934694990", "email": "", "direccion": "JOAQUIN COSTA 18, INDUSTRIA PRATSMAN", "comercializadora": "ENDESA ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 43.7, "sector": "Industrial", "prioritario": false}, {"id": 75, "nombre": "I.C.T. FILTRACION, S.L.", "nif": "B58045444", "telefono": "902999433", "email": "", "direccion": "PJ PARE CLARET 15, 25", "comercializadora": "GAS NATURAL SDG", "tarifa": "3.0 TD", "potencia_kw": 138.0, "sector": "Industrial textil", "prioritario": false}, {"id": 76, "nombre": "TRAMVIA PARC TILK SL", "nif": "B65896185", "telefono": "934698736", "email": "", "direccion": "AV CAN SERRA 7, LOC-1", "comercializadora": "ENERGY STROM XXI", "tarifa": "3.0 TD", "potencia_kw": 17.3, "sector": "Clinica/Medico", "prioritario": false}, {"id": 77, "nombre": "MOSCA DIRECT SPAIN, S.L.", "nif": "B62790258", "telefono": "934690123", "email": "", "direccion": "VIAL PEDRERES, NAVE 1", "comercializadora": "ARACAN ENERGIA", "tarifa": "3.0 TD", "potencia_kw": 55.0, "sector": "Empresa", "prioritario": false}, {"id": 78, "nombre": "PROYECTOS SINERGIA, SL", "nif": "B65002503", "telefono": "935197300", "email": "", "direccion": "VIAL PEDRERES, NAVE 2", "comercializadora": "", "tarifa": "3.0 TD", "potencia_kw": 277.0, "sector": "Imprenta", "prioritario": false}, {"id": 79, "nombre": "AMBULANCIES BLANCH VILA, S.L", "nif": "B17717281", "telefono": "934691495", "email": "", "direccion": "VIAL PEDRERES, NAVE 3", "comercializadora": "ENDESA ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 87.0, "sector": "Ambulancias", "prioritario": false}, {"id": 80, "nombre": "HUMMERVIPLIMOCOM, SL.", "nif": "B64828445", "telefono": "934698736", "email": "", "direccion": "VIAL PEDRERES, NAVE 4", "comercializadora": "ENDESA ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 43.6, "sector": "Limusinas/Eventos", "prioritario": true}, {"id": 81, "nombre": "REFORMAS GALICIA 2010", "nif": "B62215900", "telefono": "934691495", "email": "", "direccion": "VIAL PEDRERES, NAVE 5-6", "comercializadora": "ENDESA ENERGÍA", "tarifa": "2.0 TD", "potencia_kw": 20.8, "sector": "Reformas", "prioritario": false}, {"id": 82, "nombre": "XFERA MOVILES, SA", "nif": "A82528548", "telefono": "934690166", "email": "", "direccion": "JOAQUIN COSTA 18, XFERA MOVILE", "comercializadora": "IBERDROLA CLIENTES", "tarifa": "3.0 TD", "potencia_kw": 15.5, "sector": "Telecomunicaciones", "prioritario": false}, {"id": 85, "nombre": "PADEL MONTGAT PLAYA, SL", "nif": "B65823080", "telefono": "934698736", "email": "info@padelmontgat.net", "direccion": "CAMI RAL 153", "comercializadora": "GAS NATURAL SDG", "tarifa": "3.0 TD", "potencia_kw": 43.6, "sector": "Club padel", "prioritario": false}, {"id": 87, "nombre": "POMPAS FUNEBRES DE BADALONA, SA", "nif": "A08073710", "telefono": "934694900", "email": "", "direccion": "RD PAISOS CATALANS, PROV OBRAS", "comercializadora": "SYDER VERDE", "tarifa": "3.0 TD", "potencia_kw": 43.6, "sector": "Funeraria", "prioritario": true}];
+
+let C=[],curId=null,curF='todos',curR=null,iv=null,sec=0;
+
+function init(){
+  try{const s=JSON.parse(localStorage.getItem(SK)||'[]');C=RAW.map(r=>{const x=s.find(y=>y.id===r.id);return x?{...r,estado:x.estado,notas:x.notas,contactName:x.contactName||'',email:x.email||r.email||'',visitDate:x.visitDate||'',cups:x.cups||''}:{...r,estado:'pendiente',notas:'',contactName:'',visitDate:'',cups:''};});}
+  catch{C=RAW.map(r=>({...r,estado:'pendiente',notas:''}));}
+  upStats();renderList();
+}
+function save(){localStorage.setItem(SK,JSON.stringify(C.map(c=>({id:c.id,estado:c.estado,notas:c.notas,contactName:c.contactName||'',email:c.email||'',visitDate:c.visitDate||'',cups:c.cups||''}))));}
+function upStats(){
+  document.getElementById('sv').textContent=C.filter(c=>c.estado==='visitaOK').length;
+  document.getElementById('sr').textContent=C.filter(c=>c.estado==='rellamar').length;
+  document.getElementById('sni').textContent=C.filter(c=>c.estado==='noInteresa').length;
+}
+function setF(f,el){curF=f;document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('on'));el.classList.add('on');renderList();}
+function renderList(){
+  const q=document.getElementById('sq').value.toLowerCase();
+  let list=C;
+  if(curF==='prio')list=list.filter(c=>c.prioritario);
+  else if(curF!=='todos')list=list.filter(c=>c.estado===curF);
+  if(q)list=list.filter(c=>c.nombre.toLowerCase().includes(q)||c.telefono.includes(q)||c.direccion.toLowerCase().includes(q)||c.sector.toLowerCase().includes(q));
+  document.getElementById('cl').innerHTML=list.map(c=>`<div class="ci${c.id===curId?' sel':''}" onclick="sel(${c.id})">
+    <div class="ci-r1"><div class="ci-n">${c.nombre}</div>${c.prioritario?'<div class="ci-p">⚡ PRIO</div>':''}<span class="dot ${c.estado}"></span></div>
+    <div class="ci-r2"><span class="ci-s">${c.sector}</span><span class="ci-t">${c.telefono}</span><span class="ci-k">${c.potencia_kw} kW</span></div>
+  </div>`).join('');
+}
+const SL={pendiente:'● Pendiente',visitaOK:'✓ Visita OK',noInteresa:'✕ No interesa',rellamar:'↺ Rellamar',noContesta:'— No contesta',llamando:'◎ Llamando'};
+function sel(id){
+  curId=id;curR=null;
+  const c=C.find(x=>x.id===id);
+  document.getElementById('empty').style.display='none';
+  document.getElementById('det').classList.add('vis');
+  document.getElementById('dn').textContent=c.nombre;
+  document.getElementById('ds').textContent=c.sector+' · '+c.tarifa+' · '+c.potencia_kw+' kW · Montgat · NIF '+c.nif;
+  document.getElementById('dtel').textContent=c.telefono;
+  document.getElementById('dpot').textContent=c.potencia_kw+' kW'+(c.prioritario?' ⚡':'');
+  document.getElementById('dtar').textContent=c.tarifa;
+  document.getElementById('dcom').textContent=c.comercializadora||'Desconocida';
+  document.getElementById('dsec').textContent=c.sector;
+  document.getElementById('ddir').textContent=c.direccion;
+  const st=document.getElementById('dstag');st.className='stag '+c.estado;st.textContent=SL[c.estado]||c.estado;
+  document.getElementById('sb').innerHTML=buildUI(c);
+  document.getElementById('notas').value=c.notas||'';
+  document.getElementById('bcall').disabled=false;
+  // Populate client card
+  document.getElementById('fc-nombre').value=c.contactName||'';
+  document.getElementById('fc-email').value=c.email||'';
+  document.getElementById('fc-visita').value=c.visitDate||'';
+  document.getElementById('fc-cups').value=c.cups||'';
+  document.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('on'));
+  const m={visitaOK:'r-ok',rellamar:'r-cb',noContesta:'r-nc',noInteresa:'r-ni'};
+  if(c.estado!=='pendiente'&&m[c.estado])document.querySelectorAll('.'+m[c.estado]).forEach(b=>b.classList.add('on'));
+  renderList();
+}
+function buildUI(c){
+  const pri=c.prioritario;
+  const comer=c.comercializadora||'su actual comercializadora';
+  const ap=`Buenos días, ¿hablo con el responsable de ${c.nombre.split(',')[0].split('—')[0].trim()}?\n\n[Si no es él/ella] → ¿Podría ponerme con quien gestiona la factura de la luz o los temas energéticos?\n\nPerfecto. Soy Álvaro Carbó, asesor energético. Trabajo en Montgat y llamo porque tenemos esta zona como foco de análisis este mes${pri?' y su instalación en '+c.direccion+' ha aparecido con un caso de interés en nuestros datos':''}.`;
+  const prop=pri
+    ?`En la tarifa ${c.tarifa} que tienen contratada, la factura tiene dos partes: lo que consumen y lo que pagan fijo por potencia. Con ${c.potencia_kw} kW contratados, los datos nos indican que los periodos de potencia no están ajustados a su consumo real.\n\nEso significa que probablemente pagan por potencia que no usan. Sin cambiar de comercializadora —pueden seguir con ${comer} si quieren— solo ajustando los periodos, el ahorro puede ser notable.\n\n¿Saben cuánto pagan de luz al mes aproximadamente?`
+    :`Estamos analizando contratos eléctricos de empresas en Montgat y en el sector ${c.sector.toLowerCase()} estamos viendo que muchas tienen margen de ahorro en la parte fija de la factura —el término de potencia— sin necesidad de cambiar nada.\n\nCon ${c.potencia_kw} kW en tarifa ${c.tarifa}, vale la pena revisarlo. Es gratuito y sin compromiso.\n\n¿Les interesaría que pasara a verles?`;
+  const cie=`Lo que propongo es quedar 10 minutos en sus instalaciones de ${c.direccion} para revisar el último recibo juntos. Sin papeles que firmar ese día, sin cambio de compañía si no quieren.\n\nSi hay ahorro real, se lo explico con números. Si no hay nada que mejorar, se lo digo y no les hago perder más tiempo.\n\n¿Tendrían disponibilidad esta semana o la próxima para que pase un momento?`;
+  const obj=`[No tengo tiempo] → Le entiendo perfectamente. Solo son 10 minutos en sus propias instalaciones. ¿Le va mejor esta semana o la que viene?\n\n[Ya tenemos asesor] → Perfecto. El ajuste de potencia por periodos P1-P6 es algo que muchos asesores pasan por alto porque se centran en el precio del kWh. ¿Han revisado específicamente los periodos de la tarifa ${c.tarifa}?\n\n[Mándeme algo por email] → Con mucho gusto.${c.email?' ¿Lo envío a '+c.email+'?':' ¿A qué email le lo mando?'} Le envío una ficha y luego quedamos para verlo en persona.\n\n[No me interesa / Ya estamos bien] → De acuerdo. ¿Puedo preguntarle si es porque ya lo tienen optimizado, o simplemente no es el momento? (Para no molestarle en el futuro.)`;
+  const phs=[
+    {n:'1',t:'Apertura y calificación',g:'~30s',txt:ap,op:true},
+    {n:'2',t:'Propuesta de valor',g:'~45s',txt:prop,op:false},
+    {n:'3',t:'Cierre — concertar visita',g:'~30s',txt:cie,op:false},
+    {n:'O',t:'Objeciones',g:'consultar',txt:obj,op:false},
+  ];
+  return phs.map((p,i)=>`<div class="sp"><div class="sp-h" onclick="tp(${i})"><div class="pn">${p.n}</div><div class="pt">${p.t}</div><div class="pg">${p.g}</div></div><div class="stxt${p.op?' op':''}" id="ph${i}">${p.txt}</div></div>`).join('');
+}
+function tp(i){document.getElementById('ph'+i).classList.toggle('op');}
+function buildPlain(c){
+  const kw=c.potencia_kw;
+  const tar=c.tarifa;
+  const pri=c.prioritario;
+  const empresa=c.nombre.replace(/,?\s*(S\.L\.|SL|S\.A\.|SA|SCP|S\.C\.P\.|SLP)\.?$/i,'').trim();
+  return `INSTRUCCIÓN CRÍTICA: Habla SIEMPRE en castellano español. NUNCA en inglés. FRASES MUY CORTAS — máximo 2 frases por turno. Termina siempre la frase antes de parar. Espera respuesta del cliente antes de continuar.
+
+ROL: Eres una mujer, encargada del departamento técnico de revisión de contratos eléctricos de la zona. Tienes un tono profesional, tranquilo y cercano. Llamas para notificar una incidencia y coordinar el envío de un técnico. NUNCA digas tu nombre. Si te lo preguntan di "soy la encargada del departamento técnico".
+
+DATOS DEL SUMINISTRO:
+- Empresa: ${c.nombre}
+- Dirección: ${c.direccion}, Montgat
+- Tarifa: ${tar} — Potencia: ${kw} kW
+- Zona de análisis: Montgat — área prioritaria este mes
+${pri?'- INCIDENCIA ACTIVA: potencia desajustada detectada':'- Análisis: posible desajuste de potencia detectado'}
+
+GUIÓN — sigue este orden exacto:
+
+PASO 1 — APERTURA:
+"Buenos días, llamo del departamento técnico de revisión de contratos eléctricos. ¿Hablo con ${empresa}?"
+Espera confirmación.
+"¿Es usted la persona responsable del suministro eléctrico?"
+
+PASO 2 — SI NO ES EL RESPONSABLE:
+"¿Cómo se llama la persona responsable? ¿Está disponible ahora?"
+Si no está: "¿Cuándo sería un buen momento para volver a llamarle?"
+Anota nombre y hora. Agradece y despídete educadamente.
+
+PASO 3 — CUANDO HABLAS CON EL RESPONSABLE:
+Di EXACTAMENTE esto, sin añadir ni quitar nada:
+"Hola, le llamamos porque en el sistema de la distribuidora hemos detectado una incidencia activa en su contrato. Tiene la potencia desajustada. Queremos enviarle un técnico para que se lo explique y darle solución. Estamos revisando la zona de Montgat este mes como área prioritaria."
+Pausa. Espera respuesta.
+
+PASO 4 — CONCERTAR VISITA:
+"La visita es gratuita y dura unos 10 minutos. ¿Cuándo le vendría bien esta semana o la que viene?"
+Espera que proponga día y hora. Confirma repitiendo día y hora.
+
+PASO 5 — CIERRE:
+Pregunta: "¿Con quién tengo el gusto?"
+Si el cliente pregunta si tiene que preparar algo: "Si puede tener una de las últimas facturas de la luz, mejor. Así el técnico puede hacer también una revisión de precios, porque el mercado está a la baja y suelen estar los precios desajustados."
+Si el cliente ofrece su email voluntariamente: anótalo repitiéndolo en español (arroba=arroba, punto=punto, nunca "at" ni "dot"). NO lo pidas tú.
+Despedida COMPLETA: "Perfecto, le confirmamos la visita para el [día] a las [hora]. Que tenga un buen día, hasta entonces."
+No añadas nada más — el sistema cuelga automáticamente.
+
+OBJECIONES:
+- "¿Cómo se llama usted?" → "Soy la encargada del departamento técnico."
+- "¿De qué empresa llama?" → "Del servicio técnico de revisión de contratos de la distribuidora de su zona."
+- "¿Tienen nuestros datos?" → "Sí, tenemos registrado ${c.nombre} en ${c.direccion}, Montgat."
+- "Ya estamos bien" → "Entiendo, pero al ser una incidencia detectada en el sistema le recomendamos que lo revisen. ¿Prefiere que le llamemos en otro momento?"
+- "¿Hay que pagar algo?" → "No, la visita es completamente gratuita y sin compromiso."
+- "¿Tengo que firmar algo?" → "No, es solo una revisión técnica informativa."
+- "¿Me puede mandar algo por escrito?" → "Por supuesto, si me da su email le enviamos la confirmación." Anota si lo da.
+
+TONO: Profesional, tranquilo, oficial pero cercano. Eres una gestora, no una comercial. Frases cortas y claras.
+IDIOMA: Castellano. Si contestan en catalán, responde en catalán.`;
+}
+function setRes(e,b){curR=e;document.querySelectorAll('.rbtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');}
+function saveRes(){
+  if(curId===null)return;
+  const c=C.find(x=>x.id===curId);
+  const prevEstado=c.estado;
+  if(curR)c.estado=curR;
+  c.notas=document.getElementById('notas').value;
+  // Save client card data
+  c.contactName=document.getElementById('fc-nombre').value.trim();
+  if(document.getElementById('fc-email').value.trim()) c.email=document.getElementById('fc-email').value.trim();
+  c.visitDate=document.getElementById('fc-visita').value.trim();
+  c.cups=document.getElementById('fc-cups').value.trim();
+  save();upStats();renderList();sel(curId);
+  toast('Resultado guardado','ok');
+}
+function clearRes(){curR=null;document.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('on'));document.getElementById('notas').value='';}
+async function launchCall(){
+  const c=C.find(x=>x.id===curId);if(!c)return;
+  const vapiKey='96d7565b-f657-42e2-b144-670153ff65eb';
+  const pl=document.getElementById('plat').value;
+  localStorage.setItem(AK,vapiKey);localStorage.setItem(PK,pl);
+  localStorage.setItem('fe_mgt_pnid',document.getElementById('phone-num-id').value.trim());
+  localStorage.setItem('fe_mgt_vid',document.getElementById('voice-id').value.trim());
+  localStorage.setItem('fe_mgt_vprov',document.getElementById('voice-prov').value);
+  c.estado='llamando';save();upStats();renderList();sel(curId);
+  document.getElementById('cban').classList.add('on');
+  sec=0;clearInterval(iv);
+  iv=setInterval(()=>{sec++;const m=Math.floor(sec/60),s=sec%60;document.getElementById('ctm').textContent=m+':'+(s<10?'0':'')+s;},1000);
+  let phone=c.telefono.replace(/\s/g,'');
+  if(!phone.startsWith('+')) phone='+'+phone;
+  try{
+    const resultado=await callViaProxy(vapiKey,phone,c);
+    toast('✓ Llamada lanzada al '+phone,'ok');
+    const callId=resultado?.id||C.find(x=>x.id===curId)?._callId;
+    console.log('Call ID obtenido:',callId);
+    if(callId) fetchCallNotes(callId, curId);
+  }catch(e){toast('Error: '+e.message,'err');stopCall();}
+}
+async function callBland(k,phone,c){
+  const r=await fetch('https://api.bland.ai/v1/calls',{method:'POST',headers:{authorization:k,'Content-Type':'application/json'},body:JSON.stringify({
+    phone_number:phone,task:buildPlain(c),voice:'paola',language:'es',max_duration:6,record:true,
+    first_sentence:`Buenos días, ¿hablo con el responsable de ${c.nombre.split(',')[0].split('—')[0].trim()}?`,
+    metadata:{id:c.id}
+  })});
+  if(!r.ok){const t=await r.text();throw new Error('Bland '+r.status+': '+t.slice(0,100));}
+}
+async function callViaProxy(vapiKey,phone,c){
+  const phoneNumId=localStorage.getItem('fe_mgt_pnid')||'0d4fe76e-760c-4cf8-8760-b291bb96aac5';
+  const voiceId=localStorage.getItem('fe_mgt_vid')||'uQw4jpKzMLrZuo0RLPS9';
+  const elKey='sk_57942fe62398a4deae03f454de30e8229192223181dbaa59';
+
+  const firstName=c.nombre.split(',')[0].split('—')[0].trim();
+  const payload={
+    phoneNumberId:phoneNumId||'0d4fe76e-760c-4cf8-8760-b291bb96aac5',
+    customer:{number:phone,name:c.nombre},
+    assistant:{
+      name:'Alvaro Carbo Asesor Energetico',
+      firstMessage:'Buenos días, llamo del departamento técnico de revisión de contratos eléctricos. ¿Hablo con '+c.nombre.replace(/,?\s*(S\.L\.|SL|S\.A\.|SA|SCP|S\.C\.P\.|SLP)\.?$/i,'').trim()+'?',
+      model:{
+        provider:'openai',
+        model:'gpt-4o',
+        temperature:0.4,
+        maxTokens:150,
+        messages:[{
+          role:'system',
+          content:'CRITICO: Habla SIEMPRE en castellano espanol. NUNCA en ingles.\n\n'+buildPlain(c)
+        }]
+      },
+      voice:{
+        provider:'11labs',
+        voiceId:voiceId,
+        model:'eleven_turbo_v2_5',
+        stability:0.5,
+        similarityBoost:0.75
+      },
+      transcriber:{
+        provider:'deepgram',
+        model:'nova-2',
+        language:'es'
+      },
+      endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
+      recordingEnabled:true,
+      endCallPhrases:['adiós','adios','hasta luego','hasta pronto','vale gracias','muchas gracias adiós','bye','hasta el jueves','hasta mañana','que tenga un buen día']
+    }
+  };
+
+  const r=await fetch('https://api.vapi.ai/call',{
+    method:'POST',
+    headers:{
+      'Authorization':'Bearer '+vapiKey,
+      'Content-Type':'application/json'
+    },
+    body:JSON.stringify(payload)
+  });
+  if(!r.ok){
+    const t=await r.text();
+    throw new Error('Vapi '+r.status+': '+t.slice(0,200));
+  }
+  const data=await r.json();
+  const cx=C.find(x=>x.id===curId);
+  if(cx&&data.id)cx._callId=data.id;
+  return data;
+}
+async function stopCall(){
+  clearInterval(iv);document.getElementById('cban').classList.remove('on');
+  const c=C.find(x=>x.id===curId);
+  // Try to end the call via Vapi API
+  if(c&&c._callId){
+    try{
+      await fetch('https://api.vapi.ai/call/'+c._callId,{
+        method:'PATCH',
+        headers:{'Authorization':'Bearer 96d7565b-f657-42e2-b144-670153ff65eb','Content-Type':'application/json'},
+        body:JSON.stringify({status:'ended'})
+      });
+    }catch(e){console.log('Stop call error:',e);}
+  }
+  if(c&&c.estado==='llamando'){c.estado='pendiente';save();upStats();renderList();sel(curId);}
+}
+function copyScript(){
+  const c=C.find(x=>x.id===curId);if(!c)return;
+  navigator.clipboard.writeText(buildPlain(c)).then(()=>toast('Guión copiado','ok'));
+}
+function toast(m,t){const e=document.getElementById('tst');e.textContent=m;e.className='tst '+(t||'')+' show';setTimeout(()=>e.classList.remove('show'),3000);}
+
+// ── POST-CALL: fetch transcript from Vapi and auto-fill notes ──
+const BACKEND_URL='https://agente-fe-peach.vercel.app/api/call-notes';
+
+
+async function fetchCallNotes(callId, contactId){
+  if(!callId) return;
+  console.log('fetchCallNotes via backend para',callId);
+  toast('Analizando llamada...','');
+  try{
+    const r=await fetch(BACKEND_URL,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({callId})
+    });
+    if(!r.ok){console.error('Backend error:',r.status);return;}
+    const data=await r.json();
+    console.log('Backend response:',data);
+    applyCallNotes(data, contactId);
+  }catch(e){
+    console.error('fetchCallNotes error:',e);
+    toast('Error al obtener notas: '+e.message,'err');
+  }
+}
+
+function applyCallNotes(data, contactId){
+  const c=C.find(x=>x.id===contactId);
+  if(!c) return;
+  if(data.notas) c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
+  if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
+  if(data.nombreContacto&&!c.contactName) c.contactName=data.nombreContacto;
+  if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
+  if(data.emailContacto&&!c.email) c.email=data.emailContacto;
+  save();upStats();renderList();
+  if(curId===contactId){
+    document.getElementById('notas').value=c.notas||'';
+    document.getElementById('fc-nombre').value=c.contactName||'';
+    document.getElementById('fc-email').value=c.email||'';
+    document.getElementById('fc-visita').value=c.visitDate||'';
+    const SL={pendiente:'● Pendiente',visitaOK:'✓ Visita OK',noInteresa:'✕ No interesa',rellamar:'↺ Rellamar',noContesta:'— No contesta',llamando:'◎ Llamando'};
+    const st=document.getElementById('dstag');
+    st.className='stag '+c.estado;st.textContent=SL[c.estado]||c.estado;
+    const m={visitaOK:'r-ok',rellamar:'r-cb',noContesta:'r-nc',noInteresa:'r-ni'};
+    document.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('on'));
+    if(m[c.estado])document.querySelectorAll('.'+m[c.estado]).forEach(b=>b.classList.add('on'));
+  }
+  toast('✓ Notas guardadas automáticamente','ok');
+}
+
+function applyCallNotes(data, contactId){
+  const c=C.find(x=>x.id===contactId);
+  if(!c) return;
+  if(data.notas) c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
+  if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
+  if(data.nombreContacto&&!c.contactName) c.contactName=data.nombreContacto;
+  if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
+  if(data.emailContacto&&!c.email) c.email=data.emailContacto;
+  save();upStats();renderList();
+  if(curId===contactId){
+    document.getElementById('notas').value=c.notas||'';
+    document.getElementById('fc-nombre').value=c.contactName||'';
+    document.getElementById('fc-email').value=c.email||'';
+    document.getElementById('fc-visita').value=c.visitDate||'';
+    const SL={pendiente:'● Pendiente',visitaOK:'✓ Visita OK',noInteresa:'✕ No interesa',rellamar:'↺ Rellamar',noContesta:'— No contesta',llamando:'◎ Llamando'};
+    const st=document.getElementById('dstag');
+    st.className='stag '+c.estado;st.textContent=SL[c.estado]||c.estado;
+    const m={visitaOK:'r-ok',rellamar:'r-cb',noContesta:'r-nc',noInteresa:'r-ni'};
+    document.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('on'));
+    if(m[c.estado])document.querySelectorAll('.'+m[c.estado]).forEach(b=>b.classList.add('on'));
+  }
+  toast('✓ Notas guardadas automáticamente','ok');
+}
+
+async function analyzeAndSaveNotes(transcript, contactId, callId, callData){
+  try{
+    const c=C.find(x=>x.id===contactId);
+    if(!c) return;
+    toast('Analizando transcript...','');
+
+    const prompt=`Analiza esta transcripción de una llamada comercial de prospección energética y extrae la información clave en JSON.
+
+TRANSCRIPCIÓN:
+${transcript.slice(0,3000)}
+
+Devuelve SOLO este JSON sin explicaciones:
+{
+  "resultado": "visita_concertada" | "rellamar" | "no_contesta" | "no_interesa" | "pendiente",
+  "es_encargado": true | false | null,
+  "nombre_contacto": "nombre si lo dijo, sino null",
+  "fecha_visita": "día y hora si se concertó, sino null",
+  "resumen": "2-3 frases con lo más importante de la conversación",
+  "motivo_no_interes": "si dijo que no, por qué razón, sino null",
+  "observaciones": "cualquier dato relevante: horario, mejor hora para llamar, etc"
+}`;
+
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':'','anthropic-version':'2023-06-01'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,messages:[{role:'user',content:prompt}]})
+    });
+
+    // Claude API won't work from browser due to CORS - parse transcript directly
+    // Do local analysis instead
+    parseTranscriptLocally(transcript, contactId, callId, callData);
+  }catch(e){
+    parseTranscriptLocally(transcript, contactId, callId, callData);
+  }
+}
+
+function parseTranscriptLocally(transcript, contactId, callId, callData){
+  const c=C.find(x=>x.id===contactId);
+  if(!c) return;
+
+  const low=transcript.toLowerCase();
+  const lines=transcript.split('\n');
+
+  // Detect if it's the manager
+  const esEncargado=low.includes('soy el encargado')||low.includes('soy el responsable')||low.includes('soy el dueño')||low.includes('soy la dueña')||low.includes('soy el propietario')||low.includes('soy yo')?true
+    :low.includes('no está')||low.includes('no se encuentra')||low.includes('está fuera')||low.includes('llame más tarde')||low.includes('vuelva a llamar')||low.includes('no es el encargado')?false
+    :null;
+
+  // Detect result
+  let resultado='pendiente';
+  if(low.includes('de acuerdo')||low.includes('cuando quiera')||low.includes('esta semana')||low.includes('la semana')||low.includes('quedamos')||low.includes('lunes')||low.includes('martes')||low.includes('miércoles')||low.includes('jueves')||low.includes('viernes')||low.includes('pasate')||low.includes('pásate')) resultado='visitaOK';
+  else if(low.includes('no me interesa')||low.includes('no estamos interesados')||low.includes('ya tenemos')||low.includes('no necesito')||low.includes('no gracias')) resultado='noInteresa';
+  else if(low.includes('llame más tarde')||low.includes('llámeme')||low.includes('vuelva a llamar')||low.includes('ahora no puedo')||low.includes('no es buen momento')) resultado='rellamar';
+  else if(callData&&callData.endedReason==='customer-did-not-answer') resultado='noContesta';
+
+  // Extract name mentioned by customer
+  let nombreContacto=null;
+  const namePatterns=[/me llamo ([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)/i,/soy ([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)/i,/habla ([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)/i];
+  for(const p of namePatterns){const m=transcript.match(p);if(m){nombreContacto=m[1];break;}}
+
+  // Extract visit date/time
+  let fechaVisita=null;
+  const datePatterns=[/(lunes|martes|miércoles|jueves|viernes|sábado)(\s+a las?\s+\d+[:.]\d*|\s+por la [a-z]+)?/i,/(\d+\s+de\s+[a-z]+)/i,/(esta semana|la semana que viene|mañana|pasado mañana)/i];
+  for(const p of datePatterns){const m=transcript.match(p);if(m){fechaVisita=m[0];break;}}
+
+  // Build notes
+  const dur=callData?.duration?Math.round(callData.duration)+'s':'?';
+  const ts=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+  let notas=`📞 Llamada ${ts} · ${dur}
+`;
+
+  if(esEncargado===true) notas+=`✅ Habló con el ENCARGADO/RESPONSABLE`;
+  else if(esEncargado===false) notas+=`⚠️ NO era el encargado — pedir que pasen o llamar en otro momento`;
+  else notas+=`❓ No se pudo confirmar si era el encargado`;
+
+  if(nombreContacto) notas+=` (${nombreContacto})`;
+  notas+='\n';
+
+  if(resultado==='visitaOK') notas+=`🟢 VISITA CONCERTADA${fechaVisita?' — '+fechaVisita:''}\n`;
+  else if(resultado==='noInteresa') notas+=`🔴 No interesa\n`;
+  else if(resultado==='rellamar') notas+=`🟡 Pide que llamen en otro momento\n`;
+  else if(resultado==='noContesta') notas+=`⚫ No contestó\n`;
+
+  if(transcript.length>50){
+    // Add brief transcript summary (last meaningful exchanges)
+    const customerLines=lines.filter(l=>l.toLowerCase().startsWith('user:')||l.toLowerCase().startsWith('customer:')||l.toLowerCase().startsWith('cliente:'));
+    if(customerLines.length>0){
+      notas+=`💬 Cliente dijo: "${customerLines.slice(-2).map(l=>l.replace(/^(user|customer|cliente):\s*/i,'')).join(' / ').slice(0,200)}"\n`;
+    }
+  }
+
+  notas+=`🔗 Call ID: ${callId}`;
+
+  // Save to contact
+  c.notas=(c.notas&&!c.notas.includes('Call ID')?c.notas+'\n\n':'')+notas;
+  if(resultado!=='pendiente') c.estado=resultado;
+  if(nombreContacto&&!c.contactName) c.contactName=nombreContacto;
+  if(fechaVisita&&!c.visitDate) c.visitDate=fechaVisita;
+  save();upStats();renderList();
+
+  // If currently viewing this contact, refresh
+  if(curId===contactId){
+    document.getElementById('notas').value=c.notas;
+    const st=document.getElementById('dstag');
+    const SL={pendiente:'● Pendiente',visitaOK:'✓ Visita OK',noInteresa:'✕ No interesa',rellamar:'↺ Rellamar',noContesta:'— No contesta',llamando:'◎ Llamando'};
+    st.className='stag '+c.estado;st.textContent=SL[c.estado]||c.estado;
+    // Highlight result button
+    const m={visitaOK:'r-ok',rellamar:'r-cb',noContesta:'r-nc',noInteresa:'r-ni'};
+    document.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('on'));
+    if(m[c.estado])document.querySelectorAll('.'+m[c.estado]).forEach(b=>b.classList.add('on'));
+  }
+
+  toast('✓ Notas guardadas automáticamente','ok');
+}
+
+init();
+</script>
+</body>
+</html>
