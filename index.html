@@ -119,6 +119,21 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
 .toast{position:fixed;bottom:16px;right:16px;background:var(--s0);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--tx);z-index:999;transform:translateY(40px);opacity:0;transition:all .2s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.1);}
 .toast.show{transform:translateY(0);opacity:1;}.toast.ok{border-color:rgba(11,122,71,.3);color:var(--gr);}.toast.err{border-color:rgba(192,57,43,.3);color:var(--rd);}
 .hidden-cfg{display:none;}
+.camp-bar{display:none;background:linear-gradient(90deg,var(--acl),#f0f5ff);border-top:2px solid var(--ac);padding:10px 18px;align-items:center;gap:12px;flex-shrink:0;}
+.camp-bar.on{display:flex;}
+.camp-wave{display:flex;gap:3px;align-items:center;}
+.camp-wave span{width:3px;background:var(--ac);border-radius:2px;animation:wv .8s infinite ease-in-out;}
+.camp-wave span:nth-child(1){height:8px;}.camp-wave span:nth-child(2){height:14px;animation-delay:.12s;}
+.camp-wave span:nth-child(3){height:10px;animation-delay:.24s;}.camp-wave span:nth-child(4){height:6px;animation-delay:.36s;}
+.camp-info{flex:1;}
+.camp-title{font-size:12px;font-weight:600;color:var(--ac);}
+.camp-sub{font-size:11px;color:var(--mt);}
+.camp-progress{display:flex;align-items:center;gap:8px;}
+.camp-bar-track{width:140px;height:5px;background:rgba(26,86,219,.15);border-radius:3px;overflow:hidden;}
+.camp-bar-fill{height:100%;background:var(--ac);border-radius:3px;transition:width .3s;}
+.camp-pct{font-size:11px;font-family:var(--mo);color:var(--ac);font-weight:600;}
+.btn-pause{background:var(--aml);color:var(--am);border:1px solid rgba(180,83,9,.2);padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fn);}
+.btn-stop{background:var(--rdl);color:var(--rd);border:1px solid rgba(192,57,43,.2);padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fn);}
 
 /* ── MOBILE RESPONSIVE (iPhone Pro 16: 393px) ── */
 @media (max-width:768px){
@@ -183,6 +198,20 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
     <div class="tstat" onclick="setF('noContesta',null)"><div class="tstat-dot dot-gray"></div><div class="tstat-v" id="snc">0</div><div class="tstat-l">No contesta</div></div>
     <div class="tstat" onclick="setF('llamadas',null)"><div class="tstat-dot" style="background:#60a5fa"></div><div class="tstat-v" style="color:#93c5fd" id="sllamadas">0</div><div class="tstat-l">Llamadas</div></div>
   </div>
+  <button class="btn" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:5px 12px;" onclick="startCampaign()">▶ Iniciar campaña</button>
+</div>
+<div class="camp-bar" id="camp-bar">
+  <div class="camp-wave"><span></span><span></span><span></span><span></span></div>
+  <div class="camp-info">
+    <div class="camp-title" id="camp-title">Campaña en curso</div>
+    <div class="camp-sub" id="camp-sub">Preparando...</div>
+  </div>
+  <div class="camp-progress">
+    <div class="camp-bar-track"><div class="camp-bar-fill" id="camp-fill" style="width:0%"></div></div>
+    <div class="camp-pct" id="camp-pct">0%</div>
+  </div>
+  <button class="btn-pause" id="camp-pause-btn" onclick="toggleCampaignPause()">⏸ Pausar</button>
+  <button class="btn-stop" onclick="stopCampaign()">✕ Parar</button>
 </div>
 <div class="main">
   <div class="lp">
@@ -276,6 +305,172 @@ const RAW=[{"id": 999, "nombre": "PRUEBAS CARBÓ SL", "nif": "TEST", "telefono":
 let C=[],curId=null,curF='todos',curR=null,iv=null,sec=0;
 
 function isPRO(c){return c.potencia_kw>15||(c.consumo&&parseFloat(c.consumo)>15000);}
+
+// ── CAMPAIGN ENGINE ──────────────────────────────────────────
+let campaignQueue=[], campaignIdx=0, campaignRunning=false, campaignPaused=false, campaignTimer=null;
+
+function getCampaignOrder(){
+  // Only pending contacts, sorted by priority
+  const sectorScore = s => {
+    if(/restaurante|bar|cafeter/i.test(s)) return 5;
+    if(/tienda|comerci|papeler/i.test(s)) return 4;
+    if(/panadería|bollería/i.test(s)) return 3;
+    if(/industrial|taller|metalúr/i.test(s)) return 2;
+    return 1;
+  };
+  return C
+    .filter(c=>c.estado==='pendiente'&&(c.llamadas||0)===0&&c.nif!=='AMIGO'&&c.nif!=='TEST')
+    .sort((a,b)=>{
+      // 1. PRO with prioritario first
+      const aScore=(isPRO(a)?10:0)+(a.prioritario?5:0)+sectorScore(a.sector);
+      const bScore=(isPRO(b)?10:0)+(b.prioritario?5:0)+sectorScore(b.sector);
+      return bScore-aScore;
+    })
+    .map(c=>c.id);
+}
+
+function startCampaign(){
+  const queue=getCampaignOrder();
+  if(queue.length===0){toast('No hay contactos pendientes sin llamar','err');return;}
+  if(campaignRunning){toast('Campaña ya en curso','');return;}
+  campaignQueue=queue;
+  campaignIdx=0;
+  campaignRunning=true;
+  campaignPaused=false;
+  document.getElementById('camp-bar').classList.add('on');
+  toast('Campaña iniciada — '+queue.length+' contactos','ok');
+  runNextCampaignCall();
+}
+
+async function runNextCampaignCall(){
+  if(!campaignRunning) return;
+  if(campaignPaused){
+    campaignTimer=setTimeout(runNextCampaignCall,2000);
+    return;
+  }
+  if(campaignIdx>=campaignQueue.length){
+    stopCampaign();
+    toast('✅ Campaña completada','ok');
+    return;
+  }
+  const id=campaignQueue[campaignIdx];
+  const c=C.find(x=>x.id===id);
+  if(!c||c.estado!=='pendiente'||(c.llamadas||0)>0){
+    campaignIdx++;
+    runNextCampaignCall();
+    return;
+  }
+
+  // Update UI
+  const done=campaignIdx;
+  const total=campaignQueue.length;
+  const pct=Math.round((done/total)*100);
+  document.getElementById('camp-title').textContent='Llamando: '+c.nombre.slice(0,35);
+  document.getElementById('camp-sub').textContent=(done+1)+' de '+total+' · Pendientes: '+(total-done);
+  document.getElementById('camp-fill').style.width=pct+'%';
+  document.getElementById('camp-pct').textContent=pct+'%';
+
+  // Select contact in UI
+  sel(id);
+  window.scrollTo(0,0);
+
+  // Launch call
+  try{
+    const phone=c.telefono.startsWith('+')?c.telefono:'+34'+c.telefono.replace(/\s/g,'');
+    c.estado='llamando';
+    c.llamadas=(c.llamadas||0)+1;
+    c.ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    save();upStats();renderList();
+
+    document.getElementById('cban').classList.add('on');
+    sec=0;clearInterval(iv);
+    iv=setInterval(()=>{sec++;const m=Math.floor(sec/60),s=sec%60;document.getElementById('ctm').textContent=m+':'+(s<10?'0':'')+s;},1000);
+
+    const resultado=await callViaProxy(phone,c);
+    const callId=resultado?.id||c._callId;
+
+    // Wait for call to end
+    if(callId){
+      fetchCallNotes(callId,id);
+      await waitForCallEnd(callId,id);
+    }
+  }catch(e){
+    console.error('Campaign call error:',e);
+    const cx=C.find(x=>x.id===id);
+    if(cx&&cx.estado==='llamando'){cx.estado='pendiente';save();}
+    clearInterval(iv);
+    document.getElementById('cban').classList.remove('on');
+  }
+
+  campaignIdx++;
+
+  // Pause 45s between calls
+  if(campaignRunning&&!campaignPaused){
+    document.getElementById('camp-sub').textContent='Esperando 45s antes de la siguiente llamada...';
+    await new Promise(r=>{campaignTimer=setTimeout(r,45000);});
+    runNextCampaignCall();
+  } else {
+    runNextCampaignCall();
+  }
+}
+
+async function waitForCallEnd(callId,contactId){
+  for(let i=0;i<60;i++){
+    await new Promise(r=>setTimeout(r,5000));
+    if(!campaignRunning) return;
+    try{
+      const r=await fetch('https://api.vapi.ai/call/'+callId,{headers:{Authorization:'Bearer '+VAPI_KEY}});
+      if(!r.ok) continue;
+      const data=await r.json();
+      if(data.status==='ended'||data.status==='failed'){
+        const c=C.find(x=>x.id===contactId);
+        if(c&&c.estado==='llamando'){
+          clearInterval(iv);
+          document.getElementById('cban').classList.remove('on');
+          if(data.endedReason==='customer-did-not-answer'||data.endedReason==='no-answer'||data.endedReason?.includes('voicemail')){
+            c.estado='noContesta';
+          } else {
+            c.estado='pendiente';
+          }
+          save();upStats();renderList();
+          if(curId===contactId) sel(contactId);
+        }
+        return;
+      }
+    }catch(e){}
+  }
+}
+
+function toggleCampaignPause(){
+  campaignPaused=!campaignPaused;
+  const btn=document.getElementById('camp-pause-btn');
+  if(campaignPaused){
+    btn.textContent='▶ Reanudar';
+    btn.style.background='var(--grl)';btn.style.color='var(--gr)';
+    document.getElementById('camp-title').textContent='Campaña pausada';
+    if(campaignTimer){clearTimeout(campaignTimer);campaignTimer=null;}
+    toast('Campaña pausada','');
+  } else {
+    btn.textContent='⏸ Pausar';
+    btn.style.background='var(--aml)';btn.style.color='var(--am)';
+    document.getElementById('camp-title').textContent='Campaña reanudada';
+    toast('Campaña reanudada','ok');
+    runNextCampaignCall();
+  }
+}
+
+function stopCampaign(){
+  campaignRunning=false;
+  campaignPaused=false;
+  if(campaignTimer){clearTimeout(campaignTimer);campaignTimer=null;}
+  clearInterval(iv);
+  document.getElementById('camp-bar').classList.remove('on');
+  document.getElementById('cban').classList.remove('on');
+  const c=C.find(x=>x.id===curId);
+  if(c&&c.estado==='llamando'){c.estado='pendiente';save();upStats();renderList();}
+  toast('Campaña detenida','');
+}
+// ────────────────────────────────────────────────────────────
 
 function init(){
   try{
