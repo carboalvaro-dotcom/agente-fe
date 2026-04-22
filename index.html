@@ -31,8 +31,8 @@ html,body{height:100%;}body{font-family:var(--fn);background:var(--bg);color:var
 .tstat-l{font-size:10px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.05em;}
 .tstat-dot{width:7px;height:7px;border-radius:50%;}
 .dot-gr{background:#4ade80;}.dot-am{background:#fbbf24;}.dot-rd{background:#f87171;}.dot-pu{background:#c4b5fd;}.dot-gray{background:#aaa;}
-.main{display:flex;flex:1;overflow:hidden;min-height:0;height:0;}
-.lp{width:280px;flex-shrink:0;border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;background:var(--s0);height:100%;}
+.main{display:flex;flex:1;min-height:0;overflow:hidden;}
+.lp{width:280px;flex-shrink:0;border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;background:var(--s0);}
 .lp-top{padding:10px 12px;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--s1);}
 .lp-search{width:100%;background:var(--s0);border:1px solid var(--bd);border-radius:6px;padding:6px 10px;font-size:12px;font-family:var(--fn);color:var(--tx);outline:none;}
 .lp-search:focus{border-color:var(--ac);}
@@ -62,10 +62,10 @@ html,body{height:100%;}body{font-family:var(--fn);background:var(--bg);color:var
 .sdot.noInteresa{background:var(--rd);}.sdot.rellamar{background:var(--am);animation:pulse 1.2s infinite;}
 .sdot.noContesta{background:#aaa;}.sdot.llamando{background:var(--ac);box-shadow:0 0 5px var(--ac);animation:pulse .8s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.rp{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);min-height:0;height:100%;}
+.rp{flex:1;overflow-y:auto;background:var(--bg);min-height:0;}
 .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--mt2);}
 .empty-icon{font-size:40px;opacity:.25;}.empty p{font-size:13px;}
-.det{flex:1;overflow-y:scroll;padding:12px 16px 60px;display:none;flex-direction:column;gap:10px;min-height:0;-webkit-overflow-scrolling:touch;}
+.det{padding:12px 16px 60px;display:none;flex-direction:column;gap:10px;}
 .det.vis{display:flex;}
 .det::-webkit-scrollbar{width:3px;}.det::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px;}
 .card{background:var(--s0);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
