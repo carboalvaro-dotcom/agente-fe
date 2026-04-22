@@ -72,15 +72,18 @@ export default async function handler(req, res) {
         data.endedReason === 'voicemail'
       ) resultado = 'noContesta';
 
-      // Extract name
+      // Extract name - exclude agent name and common words
       let nombreContacto = null;
+      const agentNames = ['carla','carlos','maria','carmen','rosa','ana'];
+      const stopWords = ['del','de','la','el','un','una','con','por','que','hay','muy','usted','hola','buenos','dias'];
       const namePatterns = [
-        /(?:me llamo|soy|habla|con) ([A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,})/i,
+        /(?:me llamo|soy yo,? me llamo|mi nombre es) ([A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,})/i,
+        /(?:habla|con quien hablo.*?habla) ([A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,})/i,
         /(?:el responsable es|hablar con) ([A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,})/i
       ];
       for (const p of namePatterns) {
         const m = transcript.match(p);
-        if (m && !['del','de','la','el','un','una','con','por','que','hay','muy'].includes(m[1].toLowerCase())) {
+        if (m && !stopWords.includes(m[1].toLowerCase()) && !agentNames.includes(m[1].toLowerCase())) {
           nombreContacto = m[1]; break;
         }
       }
@@ -135,7 +138,7 @@ export default async function handler(req, res) {
 
       // Add key customer lines
       const userLines = lines
-        .filter(l => /^(user|usuario|cliente):/i.test(l))
+        .filter(l => /^(user|usuario|cliente):/i.test(l) && !l.toLowerCase().includes('soy carla') && !l.toLowerCase().includes('llama carla'))
         .slice(-3)
         .map(l => l.replace(/^(user|usuario|cliente):\s*/i, '').trim())
         .filter(l => l.length > 5);
