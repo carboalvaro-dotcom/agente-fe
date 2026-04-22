@@ -523,7 +523,7 @@ async function callViaProxy(phone,c){
       startSpeakingPlan:{waitSeconds:2},
       firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':'Hola, buenos días. Te llamo porque estamos revisando varios suministros de la zona y hemos visto que en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Eres tú quien lleva este tema?',
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
-      voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8,elevenlabsApiKey:elKey},
+      voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
       endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
       recordingEnabled:true,
