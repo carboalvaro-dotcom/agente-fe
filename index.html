@@ -487,10 +487,15 @@ function getCampaignOrder(){
     if(/industrial|taller|metalúr/i.test(s)) return 2;
     return 1;
   };
-  let base=C.filter(c=>c.nif!=='AMIGO'&&c.nif!=='TEST');
-  if(filter==='nuevos') base=base.filter(c=>c.estado==='pendiente'&&(c.llamadas||0)===0);
-  else if(filter==='todos') base=base.filter(c=>c.estado==='pendiente');
-  else base=base.filter(c=>c.estado===filter);
+  let base=C.filter(c=>c.nif!=='AMIGO'&&c.nif!=='TEST'&&c.nif!=='');
+  if(filter==='nuevos'){
+    base=base.filter(c=>c.estado==='pendiente'&&(c.llamadas||0)===0);
+  } else if(filter==='todos'){
+    base=base.filter(c=>c.estado==='pendiente');
+  } else {
+    // For rellamar, noContesta, duda, pendiente — filter by estado only
+    base=base.filter(c=>c.estado===filter);
+  }
   return base.sort((a,b)=>{
     const aScore=(isPRO(a)?10:0)+(a.prioritario?5:0)+sectorScore(a.sector);
     const bScore=(isPRO(b)?10:0)+(b.prioritario?5:0)+sectorScore(b.sector);
@@ -499,15 +504,23 @@ function getCampaignOrder(){
 }
 
 function startCampaign(){
-  const queue=getCampaignOrder();
-  if(queue.length===0){toast('No hay contactos pendientes sin llamar','err');return;}
   if(campaignRunning){toast('Campaña ya en curso','');return;}
+  const queue=getCampaignOrder();
+  const filterSel=document.getElementById('camp-filter');
+  const filterVal=filterSel?filterSel.value:'nuevos';
+  const filterLabel={'nuevos':'Sin llamar','pendiente':'Pendientes','rellamar':'Rellamar',
+    'duda':'Duda','noContesta':'No contesta','todos':'Todos pendientes'}[filterVal]||filterVal;
+  if(queue.length===0){
+    toast('No hay contactos en filtro: '+filterLabel,'err');
+    return;
+  }
+  if(!confirm('Iniciar campaña "'+filterLabel+'" con '+queue.length+' contactos?')) return;
   campaignQueue=queue;
   campaignIdx=0;
   campaignRunning=true;
   campaignPaused=false;
   document.getElementById('camp-bar').classList.add('on');
-  toast('Campaña iniciada — '+queue.length+' contactos','ok');
+  toast('Campaña iniciada — '+queue.length+' contactos ('+filterLabel+')','ok');
   runNextCampaignCall();
 }
 
@@ -524,7 +537,13 @@ async function runNextCampaignCall(){
   }
   const id=campaignQueue[campaignIdx];
   const c=C.find(x=>x.id===id);
-  if(!c||c.estado!=='pendiente'||(c.llamadas||0)>0){
+  const filter=document.getElementById('camp-filter')?.value||'nuevos';
+  // Skip if contact no longer matches the filter
+  const skip = !c ||
+    (filter==='nuevos' && (c.estado!=='pendiente'||(c.llamadas||0)>0)) ||
+    (filter==='todos' && c.estado!=='pendiente') ||
+    (filter!=='nuevos'&&filter!=='todos' && c.estado!==filter);
+  if(skip){
     campaignIdx++;
     runNextCampaignCall();
     return;
