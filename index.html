@@ -137,6 +137,7 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
     <div class="tstat" onclick="setF('rellamar',null)"><div class="tstat-dot dot-am"></div><div class="tstat-v" id="sr">0</div><div class="tstat-l">Rellamar</div></div>
     <div class="tstat" onclick="setF('noInteresa',null)"><div class="tstat-dot dot-rd"></div><div class="tstat-v" id="sni">0</div><div class="tstat-l">No interesa</div></div>
     <div class="tstat" onclick="setF('noContesta',null)"><div class="tstat-dot dot-gray"></div><div class="tstat-v" id="snc">0</div><div class="tstat-l">No contesta</div></div>
+    <div class="tstat"><div class="tstat-dot" style="background:#60a5fa"></div><div class="tstat-v" style="color:#93c5fd" id="sllamadas">0</div><div class="tstat-l">Llamadas</div></div>
   </div>
 </div>
 <div class="main">
@@ -185,7 +186,7 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
 
       <!-- RESULTADO -->
       <div class="card">
-        <div class="card-head"><div class="card-title">Resultado de la llamada</div><div id="rec-link"></div></div>
+        <div class="card-head"><div class="card-title">Resultado de la llamada</div><div style="display:flex;align-items:center;gap:10px;"><span id="llamadas-badge" style="font-size:11px;font-weight:600;color:var(--ac);font-family:var(--mo);background:var(--acl);padding:2px 8px;border-radius:20px;"></span><div id="rec-link"></div></div></div>
         <div class="res-btns">
           <button class="rbtn r-ok" onclick="setRes('visitaOK',this)">✓ Visita concertada</button>
           <button class="rbtn r-cb" onclick="setRes('rellamar',this)">↺ Rellamar</button>
@@ -239,7 +240,8 @@ function init(){
       const x=s.find(y=>y.id===r.id);
       return x?{...r,estado:x.estado||'pendiente',notas:x.notas||'',contactName:x.contactName||'',
         email:x.email||r.email||'',visitDate:x.visitDate||'',cups:x.cups||r.cups||'',
-        consumo:x.consumo||r.consumo||'',telefono2:x.telefono2||'',potencia_kw:x.potencia_kw||r.potencia_kw}
+        consumo:x.consumo||r.consumo||'',telefono2:x.telefono2||'',potencia_kw:x.potencia_kw||r.potencia_kw,
+        llamadas:x.llamadas||0,ultimaLlamada:x.ultimaLlamada||''}
         :{...r,estado:'pendiente',notas:'',contactName:'',visitDate:'',cups:'',consumo:'',telefono2:''};
     });
   }catch{C=RAW.map(r=>({...r,estado:'pendiente',notas:'',contactName:'',visitDate:'',cups:'',consumo:'',telefono2:''}));}
@@ -250,7 +252,8 @@ function save(){
   localStorage.setItem(SK,JSON.stringify(C.map(c=>({
     id:c.id,estado:c.estado,notas:c.notas||'',contactName:c.contactName||'',
     email:c.email||'',visitDate:c.visitDate||'',cups:c.cups||'',
-    consumo:c.consumo||'',telefono2:c.telefono2||'',potencia_kw:c.potencia_kw
+    consumo:c.consumo||'',telefono2:c.telefono2||'',potencia_kw:c.potencia_kw,
+    llamadas:c.llamadas||0,ultimaLlamada:c.ultimaLlamada||''
   }))));
 }
 
@@ -261,6 +264,8 @@ function upStats(){
   document.getElementById('sr').textContent=C.filter(c=>c.estado==='rellamar').length;
   document.getElementById('sni').textContent=C.filter(c=>c.estado==='noInteresa').length;
   document.getElementById('snc').textContent=C.filter(c=>c.estado==='noContesta').length;
+  const totalCalls=C.reduce((sum,c)=>sum+(c.llamadas||0),0);
+  document.getElementById('sllamadas').textContent=totalCalls;
 }
 
 function setF(f,el){
@@ -305,7 +310,7 @@ function renderList(){
         <div class="ci-r1"><div class="ci-name">${c.nombre}</div>
           <div class="ci-badges">${pro?'<span class="badge b-pro">PRO</span>':''}${c.prioritario&&!pro?'<span class="badge b-prio">⚡</span>':''}<span class="sdot ${c.estado}"></span></div>
         </div>
-        <div class="ci-r2"><span class="ci-sec">${c.sector}</span><span class="ci-tel">${c.telefono}</span><span class="ci-kw">${c.potencia_kw} kW</span></div>
+        <div class="ci-r2"><span class="ci-sec">${c.sector}</span><span class="ci-tel">${c.telefono}</span><span class="ci-kw">${c.potencia_kw} kW</span>${c.llamadas>0?'<span class="ci-kw" style="background:var(--acl);color:var(--ac)">📞'+c.llamadas+'</span>':''}</div>
       </div>`;
     });
     html+='</div></div>';
@@ -355,6 +360,9 @@ function sel(id){
   `;
 
   document.getElementById('notas').value=c.notas||'';
+  // Llamadas badge
+  const lbadge=document.getElementById('llamadas-badge');
+  if(lbadge) lbadge.textContent=c.llamadas>0?'📞 LLAMADAS: '+c.llamadas+(c.ultimaLlamada?' · Última: '+c.ultimaLlamada:''):'';
   // Call recording link
   const recDiv=document.getElementById('rec-link');
   if(recDiv){
@@ -490,7 +498,10 @@ function clearRes(){curR=null;document.querySelectorAll('.rbtn').forEach(b=>b.cl
 async function launchCall(){
   const c=C.find(x=>x.id===curId);if(!c) return;
   const phone=c.telefono.startsWith('+')?c.telefono:'+34'+c.telefono.replace(/\s/g,'');
-  c.estado='llamando';save();upStats();renderList();sel(curId);
+  c.estado='llamando';
+  c.llamadas=(c.llamadas||0)+1;
+  c.ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  save();upStats();renderList();sel(curId);
   document.getElementById('cban').classList.add('on');
   sec=0;clearInterval(iv);
   iv=setInterval(()=>{sec++;const m=Math.floor(sec/60),s=sec%60;document.getElementById('ctm').textContent=m+':'+(s<10?'0':'')+s;},1000);
