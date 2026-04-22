@@ -62,10 +62,10 @@ html,body{height:100%;}body{font-family:var(--fn);background:var(--bg);color:var
 .sdot.noInteresa{background:var(--rd);}.sdot.rellamar{background:var(--am);animation:pulse 1.2s infinite;}
 .sdot.noContesta{background:#aaa;}.sdot.llamando{background:var(--ac);box-shadow:0 0 5px var(--ac);animation:pulse .8s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.rp{flex:1;overflow-y:auto;background:var(--bg);min-height:0;}
+.rp{flex:1;overflow-y:auto;background:var(--bg);min-height:0;-webkit-overflow-scrolling:touch;}
 .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--mt2);}
 .empty-icon{font-size:40px;opacity:.25;}.empty p{font-size:13px;}
-.det{padding:12px 16px 60px;display:none;flex-direction:column;gap:10px;}
+.det{padding:12px 16px 120px;display:none;flex-direction:column;gap:10px;}
 .det.vis{display:flex;}
 .det::-webkit-scrollbar{width:3px;}.det::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px;}
 .card{background:var(--s0);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
@@ -75,13 +75,13 @@ html,body{height:100%;}body{font-family:var(--fn);background:var(--bg);color:var
 .ch-name{font-size:17px;font-weight:600;line-height:1.2;margin-bottom:4px;}
 .ch-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .ch-badge{font-size:10px;padding:2px 9px;border-radius:20px;font-weight:500;}
-.ficha-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 14px 14px;}
+.ficha-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 14px 16px;}
 .fg-item{display:flex;flex-direction:column;gap:2px;}
 .fg-item.span2{grid-column:span 2;}
 .fg-label{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--mt);font-weight:500;}
-.fg-input{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:4px;padding:3px 6px;font-size:11px;font-family:var(--mo);color:var(--tx);outline:none;transition:border-color .15s;}
+.fg-input{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:4px;padding:6px 7px;font-size:11px;font-family:var(--mo);color:var(--tx);outline:none;transition:border-color .15s;}
 .fg-input:focus{border-color:var(--ac);background:var(--s0);}
-.res-btns{display:flex;gap:5px;flex-wrap:wrap;padding:10px 14px 6px;}
+.res-btns{display:flex;gap:6px;flex-wrap:wrap;padding:12px 14px 8px;}
 .rbtn{padding:6px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fn);border:1px solid transparent;transition:all .15s;}
 .r-ok{background:var(--grl);color:var(--gr);border-color:rgba(11,122,71,.2);}
 .r-cb{background:var(--aml);color:var(--am);border-color:rgba(180,83,9,.2);}
@@ -89,7 +89,7 @@ html,body{height:100%;}body{font-family:var(--fn);background:var(--bg);color:var
 .r-ni{background:var(--rdl);color:var(--rd);border-color:rgba(192,57,43,.2);}
 .rbtn.on{outline:2px solid currentColor;outline-offset:2px;font-weight:600;}
 .rbtn:hover{filter:brightness(.94);}
-textarea.nt{width:calc(100% - 28px);margin:0 14px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;color:var(--tx);font-size:12px;font-family:var(--fn);resize:vertical;min-height:130px;outline:none;}
+textarea.nt{width:calc(100% - 28px);margin:0 14px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;color:var(--tx);font-size:12px;font-family:var(--fn);resize:vertical;min-height:180px;outline:none;}
 textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
 .save-bar{display:flex;justify-content:flex-end;gap:7px;padding:10px 14px 14px;border-top:1px solid var(--bd);background:var(--s0);}
 .phase{border-bottom:1px solid var(--bd);}.phase:last-child{border-bottom:none;}
@@ -185,9 +185,9 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
 <body>
 <div class="tb">
   <div class="logo">
-    <span>FactorEnergía</span>
+    <span>FactorEnergía — Agente CARLA CRM</span>
     <div class="logo-sep"></div>
-    <span class="logo-sub">Agente CRM · Prospección</span>
+    <span class="logo-sub">Al servicio de ACC</span>
   </div>
   <div class="tb-stats">
     <div class="tstat" onclick="setF('todos',null)"><div class="tstat-v" id="st">0</div><div class="tstat-l">Total</div></div>
