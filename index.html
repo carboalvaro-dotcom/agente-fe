@@ -367,8 +367,13 @@ function sel(id){
   // Call recording link
   const recDiv=document.getElementById('rec-link');
   if(recDiv){
-    if(c._callId) recDiv.innerHTML=`<a href="https://dashboard.vapi.ai/calls" target="_blank" style="font-size:11px;color:var(--ac);text-decoration:none;display:inline-flex;align-items:center;gap:4px;">▶ Escuchar grabación en Vapi</a>`;
-    else recDiv.innerHTML='';
+    if(c._recordingUrl){
+      recDiv.innerHTML='<a href="'+c._recordingUrl+'" target="_blank" style="font-size:11px;font-weight:600;color:var(--gr);text-decoration:none;background:var(--grl);padding:3px 10px;border-radius:20px;border:1px solid rgba(11,122,71,.2)">🎧 Escuchar grabación</a>';
+    } else if(c._callId){
+      recDiv.innerHTML='<a href="https://dashboard.vapi.ai/calls/'+c._callId+'" target="_blank" style="font-size:11px;color:var(--ac);text-decoration:none;">▶ Ver en Vapi</a>';
+    } else {
+      recDiv.innerHTML='';
+    }
   }
   document.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('on'));
   const rm={visitaOK:'r-ok',rellamar:'r-cb',noContesta:'r-nc',noInteresa:'r-ni'};
@@ -597,6 +602,7 @@ async function fetchCallNotes(callId,contactId){
     if(data.nombreContacto&&!c.contactName&&!agentNames.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
     if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
     if(data.emailContacto&&!c.email) c.email=data.emailContacto;
+    if(data.recordingUrl) c._recordingUrl=data.recordingUrl;
     save();upStats();renderList();
     if(curId===contactId) sel(contactId);
     toast('✓ Notas guardadas','ok');
