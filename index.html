@@ -383,11 +383,11 @@ function buildUI(c){
     return '<div class="phase"><div class="ph-head"><div class="ph-num" style="background:var(--aml);color:var(--am)">🎯</div><div class="ph-title" style="color:var(--am)">Script especial — FRANCISCO</div></div><div class="ph-body op" style="color:var(--am)">"Hola Francisco, pórtate bien que te estoy vigilando. Tengo un dron japonés encima tuyo."\n\nEsperar respuesta y seguir con humor.</div></div>';
   }
   const phases=[
-    {n:'1',t:'Apertura',tag:'al descolgar',op:true,txt:'"Hola, soy Carla, del departamento técnico de revisión de contratos eléctricos. Te llamo porque estamos revisando varios suministros de la zona y hemos visto que hay desajustes en las potencias que generan sobrecostes. ¿Eres tú quien lleva este tema?"'},
-    {n:'2',t:'Es el responsable',tag:'→ nombre + visita',op:false,txt:'"¿Con quién tengo el gusto de hablar?" [nombre] → "Perfecto [nombre]. Es una revisión rápida, el técnico está por la zona esta semana. Lo vemos en 10 minutos y te digo si hay algo que mejorar. ¿Qué mañana te va mejor, entre las 10 y las 14h?"'},
+    {n:'1',t:'Apertura',tag:'al descolgar',op:true,txt:'"Hola, soy Carla, del departamento técnico de revisión de contratos eléctricos. Te llamo porque estamos revisando varios suministros de la zona y hemos visto que hay desajustes en las potencias que generan sobrecostes. ¿Es usted quien lleva este tema?"'},
+    {n:'2',t:'Es el responsable',tag:'→ nombre + visita',op:false,txt:'"¿Con quién tengo el gusto de hablar?" [nombre] → "Perfecto [nombre]. Es una revisión rápida, el técnico está por la zona esta semana. Lo vemos en 10 minutos y te digo si hay algo que mejorar. ¿Qué mañana le va mejor, entre las 10 y las 14h?"'},
     {n:'3',t:'No es el responsable',tag:'→ conseguir nombre',op:false,txt:'"¿Y cómo se llama la persona responsable? ¿Le puedo llamar directamente o prefieres que le deje recado?"'},
-    {n:'⏰',t:'Horario visitas',tag:'solo 10h-14h',op:false,txt:'SOLO mañanas entre las 10:00h y las 14:00h. Si proponen tarde → "La revisión la hacemos por las mañanas, entre las 10 y las 14h. ¿Qué mañana te va mejor?" Ofrecer: "¿Mañana o pasado, a las 10, a las 11 o a las 12?"'},
-    {n:'O',t:'Objeciones',tag:'consultar',op:false,txt:'No interesa → "Lo entiendo. Justo por eso avisamos. Son 10 minutos. ¿Te encaja mañana por la mañana?" / Ya tiene asesor → "Esto es solo una segunda revisión. ¿Lo vemos 10 minutos?" / No tiene tiempo → "Por eso lo hacemos rápido. ¿Qué mañana entre las 10 y las 14h?" / No quiere cambiar → "No tienes por qué cambiar nada. Solo comprobamos. ¿10 minutos?" / Coste → "No, sin compromiso. ¿Mañana o pasado por la mañana?" / Email → "Al ser técnico es mejor en directo. ¿Cuándo por la mañana?" / Rechazo 2x → "Sin problema. Gracias, que tengas un buen día." [CUELGA] / AL CERRAR → nombre + día + hora (10-14h). "Si tienes una factura reciente a mano, perfecto."'}
+    {n:'⏰',t:'Horario visitas',tag:'solo 10h-14h',op:false,txt:'SOLO mañanas entre las 10:00h y las 14:00h. Si proponen tarde → "La revisión la hacemos por las mañanas, entre las 10 y las 14h. ¿Qué mañana le va mejor?" Ofrecer: "¿Mañana o pasado, a las 10, a las 11 o a las 12?"'},
+    {n:'O',t:'Objeciones',tag:'consultar',op:false,txt:'No interesa → "Lo entiendo. Justo por eso avisamos. Son 10 minutos. ¿Te encaja mañana por la mañana?" / Ya tiene asesor → "Esto es solo una segunda revisión. ¿Lo vemos 10 minutos?" / No tiene tiempo → "Por eso lo hacemos rápido. ¿Qué mañana entre las 10 y las 14h?" / No quiere cambiar → "No tienes por qué cambiar nada. Solo comprobamos. ¿10 minutos?" / Coste → "No, sin compromiso. ¿Mañana o pasado por la mañana?" / Email → "Al ser técnico es mejor en directo. ¿Cuándo por la mañana?" / Rechazo 2x → "Sin problema. Gracias, que tenga un buen día." [CUELGA] / AL CERRAR → nombre + día + hora (10-14h). "Si tienes una factura reciente a mano, perfecto."'}
   ];
   return phases.map((p,i)=>'<div class="phase"><div class="ph-head" onclick="tp('+i+')"><div class="ph-num">'+p.n+'</div><div class="ph-title">'+p.t+'</div><div class="ph-tag">'+p.tag+'</div></div><div class="ph-body'+(p.op?' op':'')+'" id="ph'+i+'">'+p.txt+'</div></div>').join('');
 }
@@ -410,11 +410,11 @@ DATOS DEL SUMINISTRO (contexto, no menciones salvo que sea necesario):
 OBJETIVO: Hablar con el responsable de energía, detectar interés y conseguir una reunión de 10 minutos. No vendes nada. Solo agendas.
 
 APERTURA — di exactamente esto:
-"Hola, soy Carla, del departamento técnico de revisión de contratos eléctricos. Te llamo porque estamos revisando varios suministros de la zona y hemos visto que en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Eres tú quien lleva este tema?"
+"Hola, soy Carla, del departamento técnico de revisión de contratos eléctricos. Le llamo porque estamos revisando varios suministros de la zona y hemos visto que en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Es usted quien lleva este tema?"
 
 REGLAS:
-- Habla siempre en español natural y cercano
-- Frases cortas, máximo 2 frases por turno
+- Habla siempre en español natural y cercano, usando USTED con el cliente en todo momento
+- Frases cortas, máximo 2 frases por turno. Tratar siempre de USTED
 - No des explicaciones técnicas largas
 - No digas que eres una IA salvo que te lo pregunten directamente
 - No insistas más de 2 veces si el rechazo es claro
@@ -426,46 +426,46 @@ PEDIR NOMBRE — hazlo en estos momentos:
 2. Si no es el responsable: "¿Y cómo se llama la persona responsable?"
 3. Al cerrar la visita: confirma nombre si no lo tienes aún
 
-HORARIO DE VISITAS — SOLO mañanas entre 10h y 14h:
-- Si proponen tarde o fin de semana: "La revisión la hacemos por las mañanas, entre las 10 y las 14h. ¿Qué mañana te va mejor?"
-- Opciones a ofrecer: "¿Qué te va mejor, mañana o pasado, a las 10, a las 11 o a las 12?"
+HORARIO DE VISITAS — SOLO mañanas entre 10h y 14h, esta semana o la que viene:
+- Si proponen tarde o fin de semana: "La revisión la hacemos por las mañanas, entre las 10 y las 14h. ¿Qué día le va mejor?"
+- Opciones: "¿Esta semana o la que viene? ¿A las 10, a las 11 o a las 12?"
 
 GESTIÓN DE RESPUESTAS:
 
 Si ES el responsable → pide nombre → luego:
-"Perfecto [nombre]. Es una revisión bastante rápida, de hecho el técnico está por la zona esta semana. Lo vemos en 10 minutos y te digo exactamente si hay algo que mejorar o no. ¿Qué mañana te va mejor, entre las 10 y las 14h?"
+"Perfecto [nombre]. Es una revisión bastante rápida, de hecho el técnico está por la zona. Lo vemos en 10 minutos y le digo exactamente si hay algo que mejorar o no. ¿Qué día le va mejor por la mañana, entre las 10 y las 14h?"
 
 Si NO le interesa:
-"Lo entiendo. Justo por eso estamos avisando, porque en muchos casos no se revisa y se arrastran sobrecostes sin saberlo. Son 10 minutos y te digo si hay algo que mejorar o no. ¿Te encaja mañana o pasado por la mañana?"
+"Lo entiendo. Justo por eso estamos avisando, porque en muchos casos no se revisa y se arrastran sobrecostes sin saberlo. Son 10 minutos y le digo si hay algo que mejorar o no. ¿Le encaja mañana o pasado por la mañana?"
 
 Si YA tiene asesor:
-"Perfecto, la mayoría ya tienen. Esto es solo una segunda revisión para confirmar que todo está bien. ¿Lo vemos 10 minutos y decides?"
+"Perfecto, la mayoría ya tienen. Esto es solo una segunda revisión para confirmar que todo está bien. ¿Lo vemos 10 minutos y decide?"
 
 Si NO tiene tiempo:
-"Te entiendo. Por eso lo hacemos rápido, en 10 minutos lo dejamos visto. ¿Qué mañana te va mejor?"
+"Le entiendo. Por eso lo hacemos rápido, en 10 minutos lo dejamos visto. ¿Qué mañana le va mejor?"
 
 Si pide EMAIL:
-"Al ser algo técnico es mejor verlo en directo para darte una respuesta clara. Son 10 minutos. ¿Cuándo te viene bien por la mañana?"
+"Al ser algo técnico es mejor verlo en directo para darle una respuesta clara. Son 10 minutos. ¿Cuándo te viene bien por la mañana?"
 
 Si NO quiere cambiar nada:
-"Perfecto, no tienes por qué cambiar nada. Solo comprobamos si está todo bien. ¿Lo revisamos 10 minutos?"
+"Perfecto, no tiene por qué cambiar nada. Solo comprobamos si está todo bien. ¿Lo revisamos 10 minutos?"
 
 Si YA LO REVISÓ:
-"Genial. Aun así detectamos ajustes que no siempre se aplican. Lo confirmas en 10 minutos. ¿Qué mañana te va mejor?"
+"Genial. Aun así detectamos ajustes que no siempre se aplican. Lo confirmas en 10 minutos. ¿Qué mañana le va mejor?"
 
 Si tiene COSTE:
-"No, sin compromiso. En 10 minutos ves si hay algo que mejorar. ¿Qué mañana te va mejor?"
+"No, sin compromiso. En 10 minutos ve si hay algo que mejorar. ¿Qué mañana le va mejor?"
 
 Si NO es el responsable:
 "¿Y cómo se llama la persona responsable? ¿Le puedo llamar directamente o prefieres que le deje recado?"
 
 Si RECHAZA CLARAMENTE (2 intentos ya):
-"Perfecto, sin problema. Si en algún momento quieres revisarlo, estamos por la zona. Gracias [nombre si lo tienes], que tengas un buen día." Y CUELGA.
+"Perfecto, sin problema. Si en algún momento quieres revisarlo, estamos por la zona. Gracias [nombre si lo tiene], que tenga un buen día." Y CUELGA.
 
 AL CERRAR VISITA:
 1. Confirmar nombre si no lo tienes: "¿Con quién tengo el gusto?"
 2. Confirmar día y hora (solo entre 10h-14h)
-3. Si pregunta qué preparar: "Si tienes una factura reciente de la luz a mano, perfecto. Sino no hace falta nada más."
+3. Si pregunta qué preparar: "Si tiene una factura reciente de la luz a mano, perfecto. Sino no hace falta nada más."
 4. Despedida: "Perfecto [nombre], nos vemos el [día] a las [hora]. Que tengas un buen día." Y CUELGA.
 
 IDIOMA: Castellano. Si contestan en catalán, responde en catalán.`;
@@ -510,13 +510,14 @@ async function callViaProxy(phone,c){
       name:'Agente Factor Energia',
       firstMessageMode:'assistant-speaks-first-with-model-generated-message',
       startSpeakingPlan:{waitSeconds:2},
-      firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':'Hola, soy Carla, del departamento técnico de revisión de contratos eléctricos. Te llamo porque estamos revisando varios suministros de la zona y hemos visto que en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Eres tú quien lleva este tema?',
+      firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':'Hola, buenos días. Soy Carla, del departamento técnico de revisión de contratos eléctricos. Le llamo porque estamos revisando varios suministros de la zona y hemos detectado desajustes en potencias contratadas que generan sobrecostes. ¿Es usted quien lleva el tema energético?',
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
       voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
       endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
       recordingEnabled:true,
-      endCallPhrases:['adiós','adios','hasta luego','hasta pronto','vale gracias','muchas gracias adiós','hasta el jueves','hasta mañana','que tenga un buen día','hasta entonces']
+      silenceTimeoutSeconds:10,
+      endCallPhrases:['adiós','adios','hasta luego','hasta pronto','vale gracias','muchas gracias adiós','hasta el jueves','hasta mañana','que tenga un buen día','hasta entonces','hasta el lunes','hasta el martes','hasta el miércoles','hasta el viernes','buen día','buenas','chao','chau','bye']
     }
   };
   const r=await fetch('https://api.vapi.ai/call',{
