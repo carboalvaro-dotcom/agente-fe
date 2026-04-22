@@ -358,7 +358,7 @@ function sel(id){
   // Call recording link
   const recDiv=document.getElementById('rec-link');
   if(recDiv){
-    if(c._callId) recDiv.innerHTML=`<a href="https://app.vapi.ai/calls" target="_blank" style="font-size:11px;color:var(--ac);text-decoration:none;display:inline-flex;align-items:center;gap:4px;">▶ Escuchar grabación en Vapi</a>`;
+    if(c._callId) recDiv.innerHTML=`<a href="https://app.vapi.ai/calls?callId=${c._callId}" target="_blank" style="font-size:11px;color:var(--ac);text-decoration:none;display:inline-flex;align-items:center;gap:4px;">▶ Escuchar grabación en Vapi</a>`;
     else recDiv.innerHTML='';
   }
   document.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('on'));
@@ -455,6 +455,9 @@ Si YA LO REVISÓ:
 
 Si tiene COSTE:
 "No, sin compromiso. En 10 minutos ve si hay algo que mejorar. ¿Qué mañana le va mejor?"
+
+Si pregunta de QUÉ EMPRESA:
+"Soy Carla, de Factor Energía. Le llamo porque estamos revisando suministros de la zona y hemos detectado desajustes en potencias que generan sobrecostes."
 
 Si NO es el responsable:
 "¿Y cómo se llama la persona responsable? ¿Le puedo llamar directamente o prefieres que le deje recado?"
