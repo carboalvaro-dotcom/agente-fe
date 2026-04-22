@@ -120,6 +120,8 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
 .toast.show{transform:translateY(0);opacity:1;}.toast.ok{border-color:rgba(11,122,71,.3);color:var(--gr);}.toast.err{border-color:rgba(192,57,43,.3);color:var(--rd);}
 .hidden-cfg{display:none;}
 </style>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 </head>
 <body>
 <div class="tb">
@@ -183,7 +185,7 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
 
       <!-- RESULTADO -->
       <div class="card">
-        <div class="card-head"><div class="card-title">Resultado de la llamada</div></div>
+        <div class="card-head"><div class="card-title">Resultado de la llamada</div><div id="rec-link"></div></div>
         <div class="res-btns">
           <button class="rbtn r-ok" onclick="setRes('visitaOK',this)">✓ Visita concertada</button>
           <button class="rbtn r-cb" onclick="setRes('rellamar',this)">↺ Rellamar</button>
@@ -215,6 +217,10 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
   <input id="phone-num-id" value="0d4fe76e-760c-4cf8-8760-b291bb96aac5">
 </div>
 <script>
+window.onerror=function(msg,src,line,col,err){
+  document.getElementById('lp-list').innerHTML='<div style="padding:12px;color:red;font-size:11px">JS Error: '+msg+' (line '+line+')</div>';
+  return false;
+};
 const SK='fe_crm_v2';
 const VAPI_KEY='96d7565b-f657-42e2-b144-670153ff65eb';
 const BACKEND_URL='https://agente-fe-peach.vercel.app/api/call-notes';
@@ -349,6 +355,12 @@ function sel(id){
   `;
 
   document.getElementById('notas').value=c.notas||'';
+  // Call recording link
+  const recDiv=document.getElementById('rec-link');
+  if(recDiv){
+    if(c._callId) recDiv.innerHTML=`<a href="https://app.vapi.ai/calls" target="_blank" style="font-size:11px;color:var(--ac);text-decoration:none;display:inline-flex;align-items:center;gap:4px;">▶ Escuchar grabación en Vapi</a>`;
+    else recDiv.innerHTML='';
+  }
   document.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('on'));
   const rm={visitaOK:'r-ok',rellamar:'r-cb',noContesta:'r-nc',noInteresa:'r-ni'};
   if(c.estado!=='pendiente'&&rm[c.estado]) document.querySelectorAll('.'+rm[c.estado]).forEach(b=>b.classList.add('on'));
@@ -368,36 +380,44 @@ function saveField(id,field,value){
 
 function buildUI(c){
   if(c.nif==='AMIGO'){
-    return `<div class="phase"><div class="ph-head"><div class="ph-num" style="background:var(--aml);color:var(--am)">🎯</div><div class="ph-title" style="color:var(--am)">Script especial — FRANCISCO</div></div><div class="ph-body op" style="color:var(--am)">"Hola Francisco, pórtate bien que te estoy vigilando. Tengo un dron japonés encima tuyo."
-
-Esperar respuesta y seguir con humor. Si pregunta quién llama → "Soy un agente secreto."</div></div>`;
+    return '<div class="phase"><div class="ph-head"><div class="ph-num" style="background:var(--aml);color:var(--am)">🎯</div><div class="ph-title" style="color:var(--am)">Script especial — FRANCISCO</div></div><div class="ph-body op" style="color:var(--am)">"Hola Francisco, pórtate bien que te estoy vigilando. Tengo un dron japonés encima tuyo."\n\nEsperar respuesta y seguir con humor. Si pregunta quién llama → "Soy un agente secreto."</div></div>';
   }
+  const phases=[
+    {n:'1',t:'Apertura',tag:'al descolgar',op:true,txt:
+'"Hola, soy Carla, del departamento técnico de revisión de contratos eléctricos. Te llamo porque estamos revisando varios suministros de la zona y hemos visto que en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Eres tú quien lleva este tema?"'},
+    {n:'2',t:'Es el responsable',tag:'→ pedir nombre + visita',op:false,txt:
+'"¿Con quién tengo el gusto de hablar?"
 
-  const phases = [
-    {n:'1', t:'Apertura', tag:'al descolgar', op:true, txt:
-`"Hola, buenos días. Te llamo porque estamos revisando varios suministros de la zona y hemos visto que en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Eres tú quien lleva este tema?"`},
-    {n:'2', t:'Es el responsable', tag:'→ cerrar visita', op:false, txt:
-`"Perfecto. Es una revisión bastante rápida, de hecho el técnico está por la zona esta semana. Lo vemos en 10 minutos y te digo exactamente si hay algo que mejorar o no. ¿Qué te va mejor, mañana o pasado?"`},
-    {n:'3', t:'No es el responsable', tag:'→ pasar con él', op:false, txt:
-`"Vale, ¿con quién tendría que hablar para este tema? ¿Le puedo llamar directamente o prefieres que le deje recado?"`},
-    {n:'O', t:'Objeciones', tag:'consultar', op:false, txt:
-`No le interesa → "Lo entiendo. Justo por eso estamos avisando, porque en muchos casos no se revisa y se arrastran sobrecostes. Son 10 minutos. ¿Te encaja mañana o pasado?"
+[Nombre confirmado]
+"Perfecto [nombre]. Es una revisión bastante rápida, el técnico está por la zona esta semana. Lo vemos en 10 minutos y te digo si hay algo que mejorar o no.
+¿Qué mañana te va mejor, entre las 10 y las 14h?"'},
+    {n:'3',t:'No es el responsable',tag:'→ conseguir nombre',op:false,txt:
+'"¿Y cómo se llama la persona responsable?
+¿Le puedo llamar directamente o prefieres que le deje recado?"'},
+    {n:'⏰',t:'Horario visitas',tag:'solo mañanas 10h-14h',op:false,txt:
+'SOLO agendar entre las 10:00h y las 14:00h.
 
-Ya tiene asesor → "Perfecto, la mayoría ya tienen. Esto es solo una segunda revisión para confirmar. ¿Lo vemos 10 minutos y decides?"
+Si proponen tarde → "La revisión la hacemos por las mañanas, entre las 10 y las 14h. ¿Qué mañana te va mejor?"
 
-No tiene tiempo → "Te entiendo. Por eso lo hacemos rápido, en 10 minutos lo dejamos visto. ¿Mañana o pasado?"
+Ofrecer: "¿Mañana o pasado, a las 10, a las 11 o a las 12?"'},
+    {n:'O',t:'Objeciones',tag:'consultar',op:false,txt:
+'No interesa → "Lo entiendo. Justo por eso avisamos, porque muchos arrastran sobrecostes sin saberlo. Son 10 minutos. ¿Te encaja mañana por la mañana?"
 
-No quiere cambiar nada → "Perfecto, no tienes por qué cambiar nada. Solo comprobamos. ¿Lo revisamos 10 minutos y decides?"
+Ya tiene asesor → "Perfecto. Esto es solo una segunda revisión para confirmar. ¿Lo vemos 10 minutos?"
 
-Ya lo revisó → "Genial. Aun así detectamos ajustes que no siempre se aplican. Lo confirmas en 10 minutos. ¿Qué te va mejor?"
+No tiene tiempo → "Por eso lo hacemos rápido. ¿Qué mañana te va mejor entre las 10 y las 14h?"
 
-Tiene coste → "No, sin compromiso. En 10 minutos ves si hay algo. ¿Mañana o pasado?"
+No quiere cambiar → "No tienes por qué cambiar nada. Solo comprobamos. ¿10 minutos?"
 
-Pide email → "Al ser técnico es mejor verlo en directo. Son 10 minutos y te queda resuelto. ¿Cuándo te viene bien?"
+Ya lo revisó → "Detectamos ajustes que no siempre se aplican. Lo confirmas en 10 minutos. ¿Qué mañana?"
 
-Rechazo claro (2 intentos) → "Perfecto, sin problema. Estamos por la zona esta semana si cambias de idea. Gracias."
+Coste → "No, sin compromiso. ¿Mañana o pasado por la mañana?"
 
-CUANDO CIERRA → Confirmar día/hora. Preguntar nombre. "Si tienes una factura reciente a mano, perfecto. Sino no hace falta nada más."`}
+Email → "Al ser técnico es mejor en directo. ¿Cuándo te viene bien por la mañana?"
+
+Rechazo claro (2x) → "Sin problema. Estamos por la zona si cambias de idea. Gracias, que tengas un buen día." [CUELGA]
+
+AL CERRAR → Confirmar nombre + día + hora (10-14h). "Si tienes una factura reciente a mano, perfecto. Sino no hace falta."'}
   ];
   return phases.map((p,i)=>'<div class="phase"><div class="ph-head" onclick="tp('+i+')"><div class="ph-num">'+p.n+'</div><div class="ph-title">'+p.t+'</div><div class="ph-tag">'+p.tag+'</div></div><div class="ph-body'+(p.op?' op':'')+'" id="ph'+i+'">'+p.txt+'</div></div>').join('');
 }
@@ -407,77 +427,76 @@ function tp(i){document.getElementById('ph'+i)?.classList.toggle('op');}
 function buildPlain(c){
   if(c.nif==='AMIGO'){
     return `INSTRUCCION CRITICA: Habla SIEMPRE en castellano.
-
 Nada mas descolgar di EXACTAMENTE: "Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo."
-
-Luego espera su respuesta y sigue la conversacion de forma natural con humor. Si pregunta quien llama di que eres un agente secreto. Cuando quieras terminar despidete con naturalidad.`;
+Luego espera su respuesta y sigue la conversacion de forma natural con humor. Si pregunta quien llama di que eres un agente secreto.`;
   }
 
-  return `Eres un asistente telefónico que llama a empresas en España.
+  return `Eres CARLA, asistente telefónica del departamento técnico de revisión de contratos eléctricos.
 
-DATOS DEL SUMINISTRO (solo para contexto, no los menciones salvo que sea necesario):
-- Empresa: ${c.nombre}
-- Dirección: ${c.direccion}, Montgat
-- Tarifa: ${c.tarifa} — Potencia contratada: ${c.potencia_kw} kW${c.consumo?' — Consumo: '+c.consumo+' kWh':''}
+DATOS DEL SUMINISTRO (contexto, no menciones salvo que sea necesario):
+- Empresa: ${c.nombre} · Dirección: ${c.direccion}, Montgat
+- Tarifa: ${c.tarifa} · Potencia: ${c.potencia_kw} kW${c.consumo?' · Consumo: '+c.consumo+' kWh':''}
 
-TU OBJETIVO:
-1. Hablar con el responsable de energía
-2. Detectar si hay interés
-3. Conseguir una reunión de 10 minutos
-No vendes nada en la llamada. Solo agendas la reunión.
+OBJETIVO: Hablar con el responsable de energía, detectar interés y conseguir una reunión de 10 minutos. No vendes nada. Solo agendas.
 
-INICIO DE LLAMADA — di exactamente esto:
-"Hola, buenos días. Te llamo porque estamos revisando varios suministros de la zona y hemos visto que en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Eres tú quien lleva este tema?"
+APERTURA — di exactamente esto:
+"Hola, soy Carla, del departamento técnico de revisión de contratos eléctricos. Te llamo porque estamos revisando varios suministros de la zona y hemos visto que en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Eres tú quien lleva este tema?"
 
-REGLAS DE COMPORTAMIENTO:
+REGLAS:
 - Habla siempre en español natural y cercano
 - Frases cortas, máximo 2 frases por turno
 - No des explicaciones técnicas largas
-- No menciones nombres propios ni empresas
 - No digas que eres una IA salvo que te lo pregunten directamente
-- Mantén el control de la conversación
-- No discutas con el cliente
 - No insistas más de 2 veces si el rechazo es claro
-- Responde siempre en máximo 2 frases antes de volver a intentar cerrar la reunión
 - Prioriza agendar sobre explicar
+- SIEMPRE pregunta el nombre: "¿Con quién tengo el gusto de hablar?"
 
-OBJETIVO PRINCIPAL — cierra siempre con:
-"¿Qué te va mejor, mañana o pasado?"
+PEDIR NOMBRE — hazlo en estos momentos:
+1. Nada más confirmar que es el responsable: "Perfecto, ¿con quién tengo el gusto de hablar?"
+2. Si no es el responsable: "¿Y cómo se llama la persona responsable?"
+3. Al cerrar la visita: confirma nombre si no lo tienes aún
+
+HORARIO DE VISITAS — SOLO mañanas entre 10h y 14h:
+- Si proponen tarde o fin de semana: "La revisión la hacemos por las mañanas, entre las 10 y las 14h. ¿Qué mañana te va mejor?"
+- Opciones a ofrecer: "¿Qué te va mejor, mañana o pasado, a las 10, a las 11 o a las 12?"
 
 GESTIÓN DE RESPUESTAS:
 
-Si el cliente ES el responsable:
-"Perfecto. Es una revisión bastante rápida, de hecho el técnico está por la zona esta semana. Lo vemos en 10 minutos y te digo exactamente si hay algo que mejorar o no. ¿Qué te va mejor, mañana o pasado?"
+Si ES el responsable → pide nombre → luego:
+"Perfecto [nombre]. Es una revisión bastante rápida, de hecho el técnico está por la zona esta semana. Lo vemos en 10 minutos y te digo exactamente si hay algo que mejorar o no. ¿Qué mañana te va mejor, entre las 10 y las 14h?"
 
-Si dice que NO le interesa:
-"Lo entiendo. Justo por eso estamos avisando, porque en muchos casos no se revisa y se arrastran sobrecostes sin saberlo. Son 10 minutos y te digo si hay algo que mejorar o no. ¿Te encaja mañana o pasado?"
+Si NO le interesa:
+"Lo entiendo. Justo por eso estamos avisando, porque en muchos casos no se revisa y se arrastran sobrecostes sin saberlo. Son 10 minutos y te digo si hay algo que mejorar o no. ¿Te encaja mañana o pasado por la mañana?"
 
-Si dice que YA tiene asesor:
-"Perfecto, la mayoría de clientes ya tienen asesor. Esto es simplemente una segunda revisión para confirmar que todo está bien o si hay margen de mejora. ¿Lo vemos en 10 minutos y decides?"
+Si YA tiene asesor:
+"Perfecto, la mayoría ya tienen. Esto es solo una segunda revisión para confirmar que todo está bien. ¿Lo vemos 10 minutos y decides?"
 
-Si dice que NO tiene tiempo:
-"Te entiendo. Por eso lo hacemos rápido, en 10 minutos lo dejamos visto. ¿Qué te va mejor, mañana o pasado?"
+Si NO tiene tiempo:
+"Te entiendo. Por eso lo hacemos rápido, en 10 minutos lo dejamos visto. ¿Qué mañana te va mejor?"
 
-Si pide que se lo ENVÍES POR EMAIL:
-"Claro, pero al ser algo técnico es mejor verlo en directo para darte una respuesta clara. Son 10 minutos y te queda resuelto. ¿Cuándo te viene bien?"
+Si pide EMAIL:
+"Al ser algo técnico es mejor verlo en directo para darte una respuesta clara. Son 10 minutos. ¿Cuándo te viene bien por la mañana?"
 
-Si dice que NO QUIERE CAMBIAR nada:
-"Perfecto, y no tienes por qué cambiar nada. Solo comprobamos si está todo bien o si hay algo que mejorar. ¿Lo revisamos 10 minutos y decides?"
+Si NO quiere cambiar nada:
+"Perfecto, no tienes por qué cambiar nada. Solo comprobamos si está todo bien. ¿Lo revisamos 10 minutos?"
 
-Si dice que YA LO REVISÓ hace poco:
-"Genial, entonces lo tendrás bastante optimizado. Aun así, en algunos casos detectamos ajustes recientes que no siempre se aplican. Lo vemos en 10 minutos y lo confirmas. ¿Qué te va mejor?"
+Si YA LO REVISÓ:
+"Genial. Aun así detectamos ajustes que no siempre se aplican. Lo confirmas en 10 minutos. ¿Qué mañana te va mejor?"
 
-Si pregunta si TIENE COSTE:
-"No, la revisión es sin compromiso. En 10 minutos ves si hay algo que mejorar o no. ¿Qué te va mejor, mañana o pasado?"
+Si tiene COSTE:
+"No, sin compromiso. En 10 minutos ves si hay algo que mejorar. ¿Qué mañana te va mejor?"
 
 Si NO es el responsable:
-"Vale, ¿con quién tendría que hablar para este tema? ¿Le puedo llamar directamente o prefieres que le deje recado?"
+"¿Y cómo se llama la persona responsable? ¿Le puedo llamar directamente o prefieres que le deje recado?"
 
-Si RECHAZA CLARAMENTE (2 veces ya has intentado):
-"Perfecto, sin problema. Si en algún momento quieres revisarlo, estamos por la zona esta semana. Gracias por tu tiempo." Y CUELGA.
+Si RECHAZA CLARAMENTE (2 intentos ya):
+"Perfecto, sin problema. Si en algún momento quieres revisarlo, estamos por la zona. Gracias [nombre si lo tienes], que tengas un buen día." Y CUELGA.
 
-CUANDO CONSIGAS REUNIÓN:
-Confirma día y hora. Pregunta nombre del contacto. Si pregunta qué preparar: "Si tienes una factura reciente de la luz a mano, perfecto. Sino no hace falta nada más." Despídete y CUELGA.
+AL CERRAR VISITA:
+1. Confirmar nombre si no lo tienes: "¿Con quién tengo el gusto?"
+2. Confirmar día y hora (solo entre 10h-14h)
+3. Si pregunta qué preparar: "Si tienes una factura reciente de la luz a mano, perfecto. Sino no hace falta nada más."
+4. Despedida: "Perfecto [nombre], nos vemos el [día] a las [hora]. Que tengas un buen día." Y CUELGA.
 
 IDIOMA: Castellano. Si contestan en catalán, responde en catalán.`;
 }
@@ -521,7 +540,7 @@ async function callViaProxy(phone,c){
       name:'Agente Factor Energia',
       firstMessageMode:'assistant-speaks-first-with-model-generated-message',
       startSpeakingPlan:{waitSeconds:2},
-      firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':'Hola, buenos días. Te llamo porque estamos revisando varios suministros de la zona y hemos visto que en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Eres tú quien lleva este tema?',
+      firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':'Hola, soy Carla, del departamento técnico de revisión de contratos eléctricos. Te llamo porque estamos revisando varios suministros de la zona y hemos visto que en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Eres tú quien lleva este tema?',
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
       voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
