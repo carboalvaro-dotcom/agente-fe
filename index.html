@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>Factor Energía — Agente CRM</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -119,6 +119,50 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
 .toast{position:fixed;bottom:16px;right:16px;background:var(--s0);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--tx);z-index:999;transform:translateY(40px);opacity:0;transition:all .2s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.1);}
 .toast.show{transform:translateY(0);opacity:1;}.toast.ok{border-color:rgba(11,122,71,.3);color:var(--gr);}.toast.err{border-color:rgba(192,57,43,.3);color:var(--rd);}
 .hidden-cfg{display:none;}
+
+/* ── MOBILE RESPONSIVE (iPhone Pro 16: 393px) ── */
+@media (max-width:768px){
+  body{overflow-y:auto;height:auto;min-height:100vh;}
+  .tb{padding:0 12px;height:auto;min-height:48px;flex-wrap:wrap;gap:6px;padding:8px 12px;}
+  .logo{font-size:12px;}
+  .tb-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:100%;padding-bottom:4px;}
+  .tstat{padding:4px 6px;border-radius:6px;justify-content:center;}
+  .tstat-v{font-size:13px;}.tstat-l{font-size:9px;}
+  .main{flex-direction:column;height:auto;overflow:visible;}
+  .lp{width:100%;border-right:none;border-bottom:1px solid var(--bd);max-height:280px;flex-shrink:0;}
+  .lp-top{position:sticky;top:0;z-index:10;background:var(--s1);}
+  .lp-filters{gap:4px;}
+  .ftab{font-size:10px;padding:3px 8px;}
+  .rp{min-height:auto;overflow:visible;}
+  .det{overflow:visible;padding:10px 12px 30px;flex:none;}
+  .det.vis{display:flex;}
+  .card-head{padding:8px 12px;flex-wrap:wrap;gap:6px;}
+  .card-head>div:last-child{width:100%;display:flex;gap:6px;justify-content:flex-end;}
+  .ch-wrap{padding:8px 12px 6px;}
+  .ch-name{font-size:15px;}
+  .ch-meta{gap:4px;}
+  .ficha-grid{grid-template-columns:repeat(2,1fr);gap:6px;padding:0 12px 12px;}
+  .fg-item.span2{grid-column:span 2;}
+  .fg-input{font-size:11px;padding:5px 7px;}
+  .cban{margin:0 0 8px;}
+  .res-btns{padding:8px 12px 6px;gap:5px;}
+  .rbtn{font-size:10px;padding:5px 9px;}
+  textarea.nt{width:calc(100% - 24px);margin:0 12px 8px;min-height:100px;}
+  .save-bar{padding:8px 12px 12px;}
+  .btn{font-size:11px;padding:6px 10px;}
+  .btn-sm{padding:5px 8px;font-size:10px;}
+  .phase .ph-head{padding:8px 12px;}
+  .phase .ph-body{padding:8px 12px;font-size:11px;}
+  .empty{padding:40px 20px;}
+  /* Fix sticky call button on mobile */
+  #bcall{position:fixed;bottom:16px;right:16px;z-index:100;box-shadow:0 4px 14px rgba(26,86,219,.4);padding:10px 16px;font-size:13px;border-radius:10px;}
+}
+@media (max-width:430px){
+  .tb-stats{grid-template-columns:repeat(3,1fr);}
+  .tstat-l{display:none;}
+  .ficha-grid{grid-template-columns:repeat(2,1fr);}
+  .ch-name{font-size:14px;}
+}
 </style>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
