@@ -189,6 +189,7 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
     <div class="logo-sep"></div>
     <span class="logo-sub">Al servicio de ACC</span>
   </div>
+  <button class="btn" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:5px 12px;" onclick="showDashboard()">📊 Dashboard</button>
   <div class="tb-stats">
     <div class="tstat" onclick="setF('todos',null)"><div class="tstat-v" id="st">0</div><div class="tstat-l">Total</div></div>
     <div class="tstat" onclick="setF('prioritario',null)"><div class="tstat-dot dot-pu"></div><div class="tstat-v" id="spr">0</div><div class="tstat-l">PRO</div></div>
@@ -296,6 +297,23 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
   </div>
 </div>
 <div class="toast" id="toast"></div>
+
+<!-- DASHBOARD MODAL -->
+<div id="dash-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;overflow-y:auto;padding:20px;">
+  <div style="background:var(--s0);border-radius:var(--r2);max-width:900px;margin:0 auto;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--ac);color:#fff;">
+      <div style="font-size:14px;font-weight:600">📊 Dashboard de resultados — Agente CARLA</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <label style="font-size:11px;color:rgba(255,255,255,.8)">Desde</label>
+        <input type="date" id="dash-from" style="font-size:11px;padding:3px 6px;border-radius:4px;border:none;background:rgba(255,255,255,.2);color:#fff;font-family:var(--fn);outline:none;" onchange="renderDashboard()">
+        <label style="font-size:11px;color:rgba(255,255,255,.8)">Hasta</label>
+        <input type="date" id="dash-to" style="font-size:11px;padding:3px 6px;border-radius:4px;border:none;background:rgba(255,255,255,.2);color:#fff;font-family:var(--fn);outline:none;" onchange="renderDashboard()">
+        <button onclick="document.getElementById('dash-modal').style.display='none'" style="background:rgba(255,255,255,.2);border:none;color:#fff;font-size:16px;cursor:pointer;padding:2px 8px;border-radius:4px;">✕</button>
+      </div>
+    </div>
+    <div id="dash-content" style="padding:20px;"></div>
+  </div>
+</div>
 <div class="hidden-cfg">
   <input id="plat" value="vapi">
   <input id="apikey" value="96d7565b-f657-42e2-b144-670153ff65eb">
@@ -318,6 +336,144 @@ const RAW=[{"id": 999, "nombre": "PRUEBAS CARBÓ SL", "nif": "TEST", "telefono":
 let C=[],curId=null,curF='todos',curR=null,iv=null,sec=0;
 
 function isPRO(c){return c.potencia_kw>15||(c.consumo&&parseFloat(c.consumo)>15000);}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+function showDashboard(){
+  // Set default dates: last 30 days
+  const to=new Date(); const from=new Date(); from.setDate(from.getDate()-30);
+  const fmt=d=>d.toISOString().split('T')[0];
+  document.getElementById('dash-from').value=fmt(from);
+  document.getElementById('dash-to').value=fmt(to);
+  document.getElementById('dash-modal').style.display='block';
+  renderDashboard();
+}
+
+function parseCallDate(str){
+  if(!str) return null;
+  // Format: DD/MM/YYYY HH:MM
+  const [datePart]=str.split(' ');
+  if(!datePart) return null;
+  const [d,m,y]=datePart.split('/');
+  if(!d||!m||!y) return null;
+  return new Date(`${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`);
+}
+
+function renderDashboard(){
+  const fromVal=document.getElementById('dash-from').value;
+  const toVal=document.getElementById('dash-to').value;
+  const from=fromVal?new Date(fromVal):null;
+  const to=toVal?new Date(toVal+'T23:59:59'):null;
+
+  // Filter contacts that have been called in range
+  const inRange=C.filter(c=>{
+    if(!(c.llamadas>0)) return false;
+    if(!from&&!to) return true;
+    const d=parseCallDate(c.ultimaLlamada);
+    if(!d) return false;
+    if(from&&d<from) return false;
+    if(to&&d>to) return false;
+    return true;
+  });
+
+  const total=C.length;
+  const llamadas=inRange.length;
+  const visitas=inRange.filter(c=>c.estado==='visitaOK').length;
+  const noContesta=inRange.filter(c=>c.estado==='noContesta').length;
+  const noInteresa=inRange.filter(c=>c.estado==='noInteresa').length;
+  const rellamar=inRange.filter(c=>c.estado==='rellamar').length;
+  const duda=inRange.filter(c=>c.estado==='duda').length;
+  const pendiente=inRange.filter(c=>c.estado==='pendiente').length;
+  const conversion=llamadas>0?Math.round((visitas/llamadas)*100):0;
+  const respuesta=llamadas>0?Math.round(((llamadas-noContesta)/llamadas)*100):0;
+
+  // Top visitas
+  const visitasList=inRange.filter(c=>c.estado==='visitaOK')
+    .map(c=>`<tr><td style="padding:5px 8px;font-size:11px;font-weight:500">${c.nombre}</td><td style="padding:5px 8px;font-size:11px;color:var(--mt)">${c.visitDate||'—'}</td><td style="padding:5px 8px;font-size:11px;font-family:var(--mo)">${c.telefono}</td><td style="padding:5px 8px;font-size:11px;color:var(--mt)">${c.sector}</td></tr>`)
+    .join('');
+
+  const rellamarList=inRange.filter(c=>c.estado==='rellamar')
+    .map(c=>`<tr><td style="padding:5px 8px;font-size:11px;font-weight:500">${c.nombre}</td><td style="padding:5px 8px;font-size:11px;color:var(--mt)">${c.ultimaLlamada||'—'}</td><td style="padding:5px 8px;font-size:11px;color:var(--mt)">${(c.notas||'').split('\n')[0]||'—'}</td></tr>`)
+    .join('');
+
+  const bar=(val,max,color)=>`<div style="background:var(--s2);border-radius:4px;height:8px;overflow:hidden;flex:1"><div style="width:${max>0?Math.round((val/max)*100):0}%;background:${color};height:100%;border-radius:4px;transition:width .4s"></div></div>`;
+
+  document.getElementById('dash-content').innerHTML=`
+    <!-- KPI CARDS -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+      ${[
+        {l:'Total contactos',v:total,c:'var(--ac)',bg:'var(--acl)'},
+        {l:'Llamadas realizadas',v:llamadas,c:'var(--ac)',bg:'var(--acl)'},
+        {l:'Visitas concertadas',v:visitas,c:'var(--gr)',bg:'var(--grl)'},
+        {l:'Tasa conversión',v:conversion+'%',c:'var(--gr)',bg:'var(--grl)'},
+      ].map(k=>`<div style="background:${k.bg};border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:24px;font-weight:700;color:${k.c};font-family:var(--mo)">${k.v}</div>
+        <div style="font-size:10px;color:var(--mt);text-transform:uppercase;letter-spacing:.06em;margin-top:3px">${k.l}</div>
+      </div>`).join('')}
+    </div>
+
+    <!-- RESULTS BREAKDOWN -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+      <div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:16px;">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--mt);margin-bottom:12px">Resultados de llamadas</div>
+        ${[
+          {l:'Visitas concertadas',v:visitas,c:'var(--gr)'},
+          {l:'Rellamar',v:rellamar,c:'var(--am)'},
+          {l:'No interesa',v:noInteresa,c:'var(--rd)'},
+          {l:'No contesta',v:noContesta,c:'#aaa'},
+          {l:'Duda',v:duda,c:'#7c3aed'},
+          {l:'Pendiente',v:pendiente,c:'var(--mt2)'},
+        ].map(r=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <div style="width:70px;font-size:11px;color:var(--tx)">${r.l}</div>
+          ${bar(r.v,llamadas,r.c)}
+          <div style="width:28px;text-align:right;font-size:12px;font-weight:600;font-family:var(--mo);color:${r.c}">${r.v}</div>
+        </div>`).join('')}
+      </div>
+      <div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:16px;">
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--mt);margin-bottom:12px">Métricas clave</div>
+        ${[
+          {l:'Tasa de respuesta',v:respuesta+'%',desc:'Contestaron la llamada'},
+          {l:'Tasa de conversión',v:conversion+'%',desc:'Llamadas → Visita'},
+          {l:'Pendientes sin llamar',v:C.filter(c=>(c.llamadas||0)===0&&c.estado==='pendiente').length,desc:'Contactos nuevos'},
+          {l:'PRO contactados',v:inRange.filter(c=>isPRO(c)).length,desc:'De '+C.filter(c=>isPRO(c)).length+' PRO totales'},
+        ].map(m=>`<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--bd)">
+          <div style="display:flex;justify-content:space-between;align-items:baseline">
+            <div style="font-size:11px;color:var(--mt)">${m.l}</div>
+            <div style="font-size:18px;font-weight:700;font-family:var(--mo);color:var(--ac)">${m.v}</div>
+          </div>
+          <div style="font-size:10px;color:var(--mt2)">${m.desc}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- VISITAS TABLE -->
+    ${visitas>0?`<div style="background:var(--grl);border:1px solid rgba(11,122,71,.15);border-radius:10px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--gr);margin-bottom:10px">🟢 Visitas concertadas (${visitas})</div>
+      <table style="width:100%;border-collapse:collapse">
+        <tr style="border-bottom:1px solid rgba(11,122,71,.15)">
+          <th style="text-align:left;padding:4px 8px;font-size:10px;color:var(--gr);font-weight:600">Empresa</th>
+          <th style="text-align:left;padding:4px 8px;font-size:10px;color:var(--gr);font-weight:600">Fecha visita</th>
+          <th style="text-align:left;padding:4px 8px;font-size:10px;color:var(--gr);font-weight:600">Teléfono</th>
+          <th style="text-align:left;padding:4px 8px;font-size:10px;color:var(--gr);font-weight:600">Sector</th>
+        </tr>
+        ${visitasList}
+      </table>
+    </div>`:''}
+
+    <!-- RELLAMAR TABLE -->
+    ${rellamar>0?`<div style="background:var(--aml);border:1px solid rgba(180,83,9,.15);border-radius:10px;padding:16px;">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--am);margin-bottom:10px">🟡 Rellamar (${rellamar})</div>
+      <table style="width:100%;border-collapse:collapse">
+        <tr style="border-bottom:1px solid rgba(180,83,9,.15)">
+          <th style="text-align:left;padding:4px 8px;font-size:10px;color:var(--am);font-weight:600">Empresa</th>
+          <th style="text-align:left;padding:4px 8px;font-size:10px;color:var(--am);font-weight:600">Última llamada</th>
+          <th style="text-align:left;padding:4px 8px;font-size:10px;color:var(--am);font-weight:600">Nota</th>
+        </tr>
+        ${rellamarList}
+      </table>
+    </div>`:''}
+  `;
+}
+// ────────────────────────────────────────────────────────────
 
 // ── CAMPAIGN ENGINE ──────────────────────────────────────────
 let campaignQueue=[], campaignIdx=0, campaignRunning=false, campaignPaused=false, campaignTimer=null;
@@ -549,6 +705,15 @@ function setF(f,el){
     const tabs=document.querySelectorAll('.ftab');
     if(tabs[idx]) tabs[idx].classList.add('on');
   }
+  // Sync campaign filter select with current view filter
+  const sel=document.getElementById('camp-filter');
+  if(sel){
+    if(f==='noContesta') sel.value='noContesta';
+    else if(f==='rellamar') sel.value='rellamar';
+    else if(f==='duda') sel.value='duda';
+    else if(f==='pendiente') sel.value='pendiente';
+    else if(f==='todos'||f==='prioritario') sel.value='nuevos';
+  }
   renderList();
 }
 
@@ -633,7 +798,7 @@ function sel(id){
     <div class="fg-item"><div class="fg-label">Consumo anual (kWh)</div><input class="fg-input" value="${c.consumo||''}" placeholder="Escribe consumo..." onchange="saveField(${id},'consumo',this.value)"></div>
     <div class="fg-item"><div class="fg-label">Tarifa</div><input class="fg-input" value="${c.tarifa}" onchange="saveField(${id},'tarifa',this.value)"></div>
     <div class="fg-item"><div class="fg-label">Comercializadora</div><input class="fg-input" value="${c.comercializadora||''}" placeholder="—" onchange="saveField(${id},'comercializadora',this.value)"></div>
-    <div class="fg-item span2"><div class="fg-label">Dirección</div><input class="fg-input" value="${c.direccion}" onchange="saveField(${id},'direccion',this.value)"></div>
+    <div class="fg-item span2"><div class="fg-label">Dirección <a href="https://maps.google.com/?q=${encodeURIComponent(c.direccion+', Montgat, Barcelona')}" target="_blank" style="color:var(--ac);font-size:9px;margin-left:4px;text-decoration:none">📍 Maps</a></div><input class="fg-input" value="${c.direccion}" onchange="saveField(${id},'direccion',this.value)"></div>
     <div class="fg-item span2"><div class="fg-label">CUPS</div><input class="fg-input" value="${c.cups||''}" placeholder="ES00314050..." style="font-size:10px;font-family:var(--mo)" onchange="saveField(${id},'cups',this.value)"></div>
     <div class="fg-item"><div class="fg-label">Fecha visita</div><input class="fg-input" value="${c.visitDate||''}" placeholder="—" onchange="saveField(${id},'visitDate',this.value)"></div>
     <div class="fg-item"><div class="fg-label">Sector</div><input class="fg-input" value="${c.sector}" onchange="saveField(${id},'sector',this.value)"></div>
