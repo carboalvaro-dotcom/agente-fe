@@ -65,7 +65,7 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .rp{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
 .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--mt2);}
 .empty-icon{font-size:40px;opacity:.25;}.empty p{font-size:13px;}
-.det{flex:1;overflow-y:auto;padding:16px 20px;display:none;flex-direction:column;gap:14px;}
+.det{flex:1;overflow-y:auto;padding:16px 20px 30px;display:none;flex-direction:column;gap:14px;}
 .det.vis{display:flex;}
 .det::-webkit-scrollbar{width:3px;}.det::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px;}
 .card{background:var(--s0);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
@@ -75,11 +75,11 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .ch-name{font-size:20px;font-weight:600;line-height:1.2;margin-bottom:6px;}
 .ch-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .ch-badge{font-size:10px;padding:2px 9px;border-radius:20px;font-weight:500;}
-.ficha-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 14px 18px;}
+.ficha-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:0 14px 16px;}
 .fg-item{display:flex;flex-direction:column;gap:3px;}
 .fg-item.span2{grid-column:span 2;}
 .fg-label{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--mt);font-weight:500;}
-.fg-input{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:5px 7px;font-size:12px;font-family:var(--mo);color:var(--tx);outline:none;transition:border-color .15s;}
+.fg-input{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:4px 7px;font-size:12px;font-family:var(--mo);color:var(--tx);outline:none;transition:border-color .15s;}
 .fg-input:focus{border-color:var(--ac);background:var(--s0);}
 .res-btns{display:flex;gap:6px;flex-wrap:wrap;padding:12px 14px 8px;}
 .rbtn{padding:6px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fn);border:1px solid transparent;transition:all .15s;}
@@ -137,7 +137,7 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
     <div class="tstat" onclick="setF('rellamar',null)"><div class="tstat-dot dot-am"></div><div class="tstat-v" id="sr">0</div><div class="tstat-l">Rellamar</div></div>
     <div class="tstat" onclick="setF('noInteresa',null)"><div class="tstat-dot dot-rd"></div><div class="tstat-v" id="sni">0</div><div class="tstat-l">No interesa</div></div>
     <div class="tstat" onclick="setF('noContesta',null)"><div class="tstat-dot dot-gray"></div><div class="tstat-v" id="snc">0</div><div class="tstat-l">No contesta</div></div>
-    <div class="tstat"><div class="tstat-dot" style="background:#60a5fa"></div><div class="tstat-v" style="color:#93c5fd" id="sllamadas">0</div><div class="tstat-l">Llamadas</div></div>
+    <div class="tstat" onclick="setF('llamadas',null)"><div class="tstat-dot" style="background:#60a5fa"></div><div class="tstat-v" style="color:#93c5fd" id="sllamadas">0</div><div class="tstat-l">Llamadas</div></div>
   </div>
 </div>
 <div class="main">
@@ -284,6 +284,7 @@ function renderList(){
   const q=(document.getElementById('sq').value||'').toLowerCase();
   let list=C;
   if(curF==='prioritario') list=list.filter(c=>isPRO(c));
+  else if(curF==='llamadas') list=list.filter(c=>(c.llamadas||0)>0);
   else if(curF!=='todos') list=list.filter(c=>c.estado===curF);
   if(q) list=list.filter(c=>
     c.nombre.toLowerCase().includes(q)||
@@ -391,7 +392,7 @@ function buildUI(c){
     return '<div class="phase"><div class="ph-head"><div class="ph-num" style="background:var(--aml);color:var(--am)">🎯</div><div class="ph-title" style="color:var(--am)">Script especial — FRANCISCO</div></div><div class="ph-body op" style="color:var(--am)">"Hola Francisco, pórtate bien que te estoy vigilando. Tengo un dron japonés encima tuyo."\n\nEsperar respuesta y seguir con humor.</div></div>';
   }
   const phases=[
-    {n:'1',t:'Apertura',tag:'al descolgar',op:true,txt:'"Hola, soy Carla, del departamento técnico de revisión de contratos eléctricos. Te llamo porque estamos revisando varios suministros de la zona y hemos visto que hay desajustes en las potencias que generan sobrecostes. ¿Es usted quien lleva este tema?"'},
+    {n:'1',t:'Apertura',tag:'al descolgar',op:true,txt:'"Hola, soy Carla, del departamento técnico de suministros eléctricos. Te llamo porque estamos revisando varios suministros de la zona y hemos visto que hay desajustes en las potencias que generan sobrecostes. ¿Es usted quien lleva este tema?"'},
     {n:'2',t:'Es el responsable',tag:'→ nombre + visita',op:false,txt:'"¿Con quién tengo el gusto de hablar?" [nombre] → "Perfecto [nombre]. Es una revisión rápida, el técnico está por la zona esta semana. Lo vemos en 10 minutos y te digo si hay algo que mejorar. ¿Qué mañana le va mejor, entre las 10 y las 14h?"'},
     {n:'3',t:'No es el responsable',tag:'→ conseguir nombre',op:false,txt:'"¿Y cómo se llama la persona responsable? ¿Le puedo llamar directamente o prefieres que le deje recado?"'},
     {n:'⏰',t:'Horario visitas',tag:'solo 10h-14h',op:false,txt:'SOLO mañanas entre las 10:00h y las 14:00h. Si proponen tarde → "La revisión la hacemos por las mañanas, entre las 10 y las 14h. ¿Qué mañana le va mejor?" Ofrecer: "¿Mañana o pasado, a las 10, a las 11 o a las 12?"'},
@@ -409,7 +410,7 @@ Nada mas descolgar di EXACTAMENTE: "Hola Francisco, portate bien que te estoy vi
 Luego espera su respuesta y sigue la conversacion de forma natural con humor. Si pregunta quien llama di que eres un agente secreto.`;
   }
 
-  return `Eres CARLA, asistente telefónica del departamento técnico de revisión de contratos eléctricos.
+  return `Eres CARLA, asistente telefónica del departamento técnico de suministros eléctricos.
 
 DATOS DEL SUMINISTRO (contexto, no menciones salvo que sea necesario):
 - Empresa: ${c.nombre} · Dirección: ${c.direccion}, Montgat
@@ -418,7 +419,7 @@ DATOS DEL SUMINISTRO (contexto, no menciones salvo que sea necesario):
 OBJETIVO: Hablar con el responsable de energía, detectar interés y conseguir una reunión de 10 minutos. No vendes nada. Solo agendas.
 
 APERTURA — di exactamente esto:
-"Hola, soy Carla, del departamento técnico de revisión de contratos eléctricos. Le llamo porque estamos revisando varios suministros de la zona y hemos visto que en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Es usted quien lleva este tema?"
+"Hola, soy Carla, del departamento técnico de suministros eléctricos. Le llamo porque estamos revisando varios suministros de la zona y hemos visto que en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Es usted quien lleva este tema?"
 
 REGLAS:
 - Habla siempre en español natural y cercano, usando USTED con el cliente en todo momento
@@ -524,7 +525,7 @@ async function callViaProxy(phone,c){
       name:'Agente Factor Energia',
       firstMessageMode:'assistant-speaks-first-with-model-generated-message',
       startSpeakingPlan:{waitSeconds:2},
-      firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':'Hola, buenos días. Soy Carla, del departamento técnico de revisión de contratos eléctricos. Le llamo porque estamos revisando varios suministros de la zona y hemos detectado desajustes en potencias contratadas que generan sobrecostes. ¿Es usted quien lleva el tema energético?',
+      firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':'Hola, buenos días. Soy Carla, del departamento técnico de suministros eléctricos. Le llamo porque estamos revisando varios suministros de la zona y hemos detectado desajustes en potencias contratadas que generan sobrecostes. ¿Es usted quien lleva el tema energético?',
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
       voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
@@ -591,7 +592,9 @@ async function fetchCallNotes(callId,contactId){
     const c=C.find(x=>x.id===contactId);if(!c) return;
     if(data.notas) c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
     if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
-    if(data.nombreContacto&&!c.contactName) c.contactName=data.nombreContacto;
+    // Never save agent name (Carla) as contact name
+    const agentNames=['carla','carlos'];
+    if(data.nombreContacto&&!c.contactName&&!agentNames.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
     if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
     if(data.emailContacto&&!c.email) c.email=data.emailContacto;
     save();upStats();renderList();
