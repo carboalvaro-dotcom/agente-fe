@@ -380,44 +380,14 @@ function saveField(id,field,value){
 
 function buildUI(c){
   if(c.nif==='AMIGO'){
-    return '<div class="phase"><div class="ph-head"><div class="ph-num" style="background:var(--aml);color:var(--am)">🎯</div><div class="ph-title" style="color:var(--am)">Script especial — FRANCISCO</div></div><div class="ph-body op" style="color:var(--am)">"Hola Francisco, pórtate bien que te estoy vigilando. Tengo un dron japonés encima tuyo."\n\nEsperar respuesta y seguir con humor. Si pregunta quién llama → "Soy un agente secreto."</div></div>';
+    return '<div class="phase"><div class="ph-head"><div class="ph-num" style="background:var(--aml);color:var(--am)">🎯</div><div class="ph-title" style="color:var(--am)">Script especial — FRANCISCO</div></div><div class="ph-body op" style="color:var(--am)">"Hola Francisco, pórtate bien que te estoy vigilando. Tengo un dron japonés encima tuyo."\n\nEsperar respuesta y seguir con humor.</div></div>';
   }
   const phases=[
-    {n:'1',t:'Apertura',tag:'al descolgar',op:true,txt:
-'"Hola, soy Carla, del departamento técnico de revisión de contratos eléctricos. Te llamo porque estamos revisando varios suministros de la zona y hemos visto que en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Eres tú quien lleva este tema?"'},
-    {n:'2',t:'Es el responsable',tag:'→ pedir nombre + visita',op:false,txt:
-'"¿Con quién tengo el gusto de hablar?"
-
-[Nombre confirmado]
-"Perfecto [nombre]. Es una revisión bastante rápida, el técnico está por la zona esta semana. Lo vemos en 10 minutos y te digo si hay algo que mejorar o no.
-¿Qué mañana te va mejor, entre las 10 y las 14h?"'},
-    {n:'3',t:'No es el responsable',tag:'→ conseguir nombre',op:false,txt:
-'"¿Y cómo se llama la persona responsable?
-¿Le puedo llamar directamente o prefieres que le deje recado?"'},
-    {n:'⏰',t:'Horario visitas',tag:'solo mañanas 10h-14h',op:false,txt:
-'SOLO agendar entre las 10:00h y las 14:00h.
-
-Si proponen tarde → "La revisión la hacemos por las mañanas, entre las 10 y las 14h. ¿Qué mañana te va mejor?"
-
-Ofrecer: "¿Mañana o pasado, a las 10, a las 11 o a las 12?"'},
-    {n:'O',t:'Objeciones',tag:'consultar',op:false,txt:
-'No interesa → "Lo entiendo. Justo por eso avisamos, porque muchos arrastran sobrecostes sin saberlo. Son 10 minutos. ¿Te encaja mañana por la mañana?"
-
-Ya tiene asesor → "Perfecto. Esto es solo una segunda revisión para confirmar. ¿Lo vemos 10 minutos?"
-
-No tiene tiempo → "Por eso lo hacemos rápido. ¿Qué mañana te va mejor entre las 10 y las 14h?"
-
-No quiere cambiar → "No tienes por qué cambiar nada. Solo comprobamos. ¿10 minutos?"
-
-Ya lo revisó → "Detectamos ajustes que no siempre se aplican. Lo confirmas en 10 minutos. ¿Qué mañana?"
-
-Coste → "No, sin compromiso. ¿Mañana o pasado por la mañana?"
-
-Email → "Al ser técnico es mejor en directo. ¿Cuándo te viene bien por la mañana?"
-
-Rechazo claro (2x) → "Sin problema. Estamos por la zona si cambias de idea. Gracias, que tengas un buen día." [CUELGA]
-
-AL CERRAR → Confirmar nombre + día + hora (10-14h). "Si tienes una factura reciente a mano, perfecto. Sino no hace falta."'}
+    {n:'1',t:'Apertura',tag:'al descolgar',op:true,txt:'"Hola, soy Carla, del departamento técnico de revisión de contratos eléctricos. Te llamo porque estamos revisando varios suministros de la zona y hemos visto que hay desajustes en las potencias que generan sobrecostes. ¿Eres tú quien lleva este tema?"'},
+    {n:'2',t:'Es el responsable',tag:'→ nombre + visita',op:false,txt:'"¿Con quién tengo el gusto de hablar?" [nombre] → "Perfecto [nombre]. Es una revisión rápida, el técnico está por la zona esta semana. Lo vemos en 10 minutos y te digo si hay algo que mejorar. ¿Qué mañana te va mejor, entre las 10 y las 14h?"'},
+    {n:'3',t:'No es el responsable',tag:'→ conseguir nombre',op:false,txt:'"¿Y cómo se llama la persona responsable? ¿Le puedo llamar directamente o prefieres que le deje recado?"'},
+    {n:'⏰',t:'Horario visitas',tag:'solo 10h-14h',op:false,txt:'SOLO mañanas entre las 10:00h y las 14:00h. Si proponen tarde → "La revisión la hacemos por las mañanas, entre las 10 y las 14h. ¿Qué mañana te va mejor?" Ofrecer: "¿Mañana o pasado, a las 10, a las 11 o a las 12?"'},
+    {n:'O',t:'Objeciones',tag:'consultar',op:false,txt:'No interesa → "Lo entiendo. Justo por eso avisamos. Son 10 minutos. ¿Te encaja mañana por la mañana?" / Ya tiene asesor → "Esto es solo una segunda revisión. ¿Lo vemos 10 minutos?" / No tiene tiempo → "Por eso lo hacemos rápido. ¿Qué mañana entre las 10 y las 14h?" / No quiere cambiar → "No tienes por qué cambiar nada. Solo comprobamos. ¿10 minutos?" / Coste → "No, sin compromiso. ¿Mañana o pasado por la mañana?" / Email → "Al ser técnico es mejor en directo. ¿Cuándo por la mañana?" / Rechazo 2x → "Sin problema. Gracias, que tengas un buen día." [CUELGA] / AL CERRAR → nombre + día + hora (10-14h). "Si tienes una factura reciente a mano, perfecto."'}
   ];
   return phases.map((p,i)=>'<div class="phase"><div class="ph-head" onclick="tp('+i+')"><div class="ph-num">'+p.n+'</div><div class="ph-title">'+p.t+'</div><div class="ph-tag">'+p.tag+'</div></div><div class="ph-body'+(p.op?' op':'')+'" id="ph'+i+'">'+p.txt+'</div></div>').join('');
 }
