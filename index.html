@@ -89,7 +89,7 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .r-ni{background:var(--rdl);color:var(--rd);border-color:rgba(192,57,43,.2);}
 .rbtn.on{outline:2px solid currentColor;outline-offset:2px;font-weight:600;}
 .rbtn:hover{filter:brightness(.94);}
-textarea.nt{width:calc(100% - 28px);margin:0 14px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;color:var(--tx);font-size:12px;font-family:var(--fn);resize:vertical;min-height:70px;outline:none;}
+textarea.nt{width:calc(100% - 28px);margin:0 14px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;color:var(--tx);font-size:12px;font-family:var(--fn);resize:vertical;min-height:160px;outline:none;}
 textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
 .save-bar{display:flex;justify-content:flex-end;gap:7px;padding:0 14px 14px;}
 .phase{border-bottom:1px solid var(--bd);}.phase:last-child{border-bottom:none;}
@@ -366,7 +366,7 @@ function sel(id){
   // Call recording link
   const recDiv=document.getElementById('rec-link');
   if(recDiv){
-    if(c._callId) recDiv.innerHTML=`<a href="https://app.vapi.ai/calls?callId=${c._callId}" target="_blank" style="font-size:11px;color:var(--ac);text-decoration:none;display:inline-flex;align-items:center;gap:4px;">▶ Escuchar grabación en Vapi</a>`;
+    if(c._callId) recDiv.innerHTML=`<a href="https://dashboard.vapi.ai/calls" target="_blank" style="font-size:11px;color:var(--ac);text-decoration:none;display:inline-flex;align-items:center;gap:4px;">▶ Escuchar grabación en Vapi</a>`;
     else recDiv.innerHTML='';
   }
   document.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('on'));
