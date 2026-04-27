@@ -858,14 +858,22 @@ function saveField(id,field,value){
 
 function buildUI(c){
   if(c.nif==='AMIGO'){
-    return '<div class="phase"><div class="ph-head"><div class="ph-num" style="background:var(--aml);color:var(--am)">🎯</div><div class="ph-title" style="color:var(--am)">Script especial — FRANCISCO</div></div><div class="ph-body op" style="color:var(--am)">"Hola Francisco, pórtate bien que te estoy vigilando. Tengo un dron japonés encima tuyo."\n\nEsperar respuesta y seguir con humor.</div></div>';
+    return '<div class="phase"><div class="ph-head"><div class="ph-num" style="background:var(--aml);color:var(--am)">🎯</div><div class="ph-title" style="color:var(--am)">Script especial — FRANCISCO</div></div><div class="ph-body op" style="color:var(--am)">"Hola Francisco, pórtate bien que te estoy vigilando. Tengo un dron japonés encima tuyo."\n\nSeguir con humor. Si pregunta quién llama → "Soy un agente secreto."</div></div>';
   }
+  const empresa=c.nombre.replace(/,?\s*(S\.L\.|SL|S\.A\.|SA|SCP|S\.C\.P\.|SLP|SAU)\.?$/i,'').trim();
   const phases=[
-    {n:'1',t:'Apertura',tag:'al descolgar',op:true,txt:'"Hola, soy Carla, del departamento técnico de suministros eléctricos. Te llamo porque estamos revisando varios suministros de la zona y hemos visto que hay desajustes en las potencias que generan sobrecostes. ¿Es usted quien lleva este tema?"'},
-    {n:'2',t:'Es el responsable',tag:'→ nombre + visita',op:false,txt:'"¿Con quién tengo el gusto de hablar?" [nombre] → "Perfecto [nombre]. Es una revisión rápida, el técnico está por la zona esta semana. Lo vemos en 10 minutos y te digo si hay algo que mejorar. ¿Qué mañana le va mejor, entre las 10 y las 14h?"'},
-    {n:'3',t:'No es el responsable',tag:'→ conseguir nombre',op:false,txt:'"¿Y cómo se llama la persona responsable? ¿Le puedo llamar directamente o prefieres que le deje recado?"'},
-    {n:'⏰',t:'Horario visitas',tag:'solo 10h-14h',op:false,txt:'SOLO mañanas entre las 10:00h y las 14:00h. Si proponen tarde → "La revisión la hacemos por las mañanas, entre las 10 y las 14h. ¿Qué mañana le va mejor?" Ofrecer: "¿Mañana o pasado, a las 10, a las 11 o a las 12?"'},
-    {n:'O',t:'Objeciones',tag:'consultar',op:false,txt:'No interesa → "Lo entiendo. Justo por eso avisamos. Son 10 minutos. ¿Te encaja mañana por la mañana?" / Ya tiene asesor → "Esto es solo una segunda revisión. ¿Lo vemos 10 minutos?" / No tiene tiempo → "Por eso lo hacemos rápido. ¿Qué mañana entre las 10 y las 14h?" / No quiere cambiar → "No tienes por qué cambiar nada. Solo comprobamos. ¿10 minutos?" / Coste → "No, sin compromiso. ¿Mañana o pasado por la mañana?" / Email → "Al ser técnico es mejor en directo. ¿Cuándo por la mañana?" / Rechazo 2x → "Sin problema. Gracias, que tenga un buen día." [CUELGA] / AL CERRAR → nombre + día + hora (10-14h). "Si tienes una factura reciente a mano, perfecto."'}
+    {n:'1',t:'Apertura',tag:'al descolgar',op:true,
+     txt:'"Hola, buenos días. Le llamo de Factor Energía porque estamos revisando varios suministros en la zona y en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Lleva usted este tema?"'},
+    {n:'2',t:'Es el responsable',tag:'→ nombre + visita',op:false,
+     txt:'"¿Con quién tengo el gusto?" → "Es una revisión rápida y el técnico está por la zona. Lo vemos en 10 minutos y le digo si hay algo que mejorar. ¿Qué le va mejor, mañana o pasado por la mañana?"'},
+    {n:'3',t:'No es el responsable',tag:'→ pasar con él',op:false,
+     txt:'"Vale, ¿con quién tendría que hablar para este tema? ¿Le puedo llamar directamente o prefiere que le deje recado?"'},
+    {n:'⏰',t:'Horario',tag:'solo 10h-14h',op:false,
+     txt:'SOLO mañanas 10h-14h. Si proponen tarde → "La hacemos por las mañanas, entre las 10 y las 14h. ¿Qué mañana le va mejor?"'},
+    {n:'?',t:'Preguntas directas',tag:'responder siempre',op:false,
+     txt:'"¿De dónde llama?" → "Le llamo de Factor Energía. Revisamos suministros en la zona para detectar posibles mejoras."\n"¿Es una venta?" → "No, es una revisión. Si hay algo que mejorar se lo comento y decide usted. Son 10 minutos."\n"¿Quién es usted?" → "Soy Carla, de Factor Energía."'},
+    {n:'O',t:'Objeciones',tag:'máx 2 intentos',op:false,
+     txt:'No interesa → "Lo entiendo. Muchas veces no se revisa y se arrastran sobrecostes. Son 10 minutos y sale de dudas. ¿Le encaja mañana?"\nYa tiene asesor → "La mayoría ya tienen. Es solo una segunda revisión. ¿Lo vemos 10 minutos?"\nNo tiene tiempo → "Por eso lo hacemos rápido. ¿Qué le va mejor, mañana o pasado?"\nPide email → "Al ser técnico es mejor en directo. Son 10 minutos. ¿Cuándo le viene bien?"\nNo quiere cambiar → "No tiene que cambiar nada. Solo comprobamos. ¿10 minutos?"\nYa lo revisó → "Aun así a veces hay ajustes que no se aplican. Lo confirma en 10 minutos. ¿Qué le va mejor?"\nCoste → "Sin compromiso. En 10 minutos lo tiene claro. ¿Mañana o pasado?"\n\nRechazo claro (2x) → "Sin problema. Estamos por la zona si cambia de idea. Gracias por su tiempo." [CUELGA]\n\nAL CERRAR → nombre + día + hora (10-14h) + "Si tiene una factura reciente a mano, perfecto."'}
   ];
   return phases.map((p,i)=>'<div class="phase"><div class="ph-head" onclick="tp('+i+')"><div class="ph-num">'+p.n+'</div><div class="ph-title">'+p.t+'</div><div class="ph-tag">'+p.tag+'</div></div><div class="ph-body'+(p.op?' op':'')+'" id="ph'+i+'">'+p.txt+'</div></div>').join('');
 }
@@ -879,82 +887,88 @@ Nada mas descolgar di EXACTAMENTE: "Hola Francisco, portate bien que te estoy vi
 Luego espera su respuesta y sigue la conversacion de forma natural con humor. Si pregunta quien llama di que eres un agente secreto.`;
   }
 
-  return `Eres CARLA, asistente telefónica del departamento técnico de suministros eléctricos.
+  const empresa = c.nombre.replace(/,?\s*(S\.L\.|SL|S\.A\.|SA|SCP|S\.C\.P\.|SLP|SAU)\.?$/i,'').trim();
 
-DATOS DEL SUMINISTRO (contexto, no menciones salvo que sea necesario):
-- Empresa: ${c.nombre} · Dirección: ${c.direccion}, Montgat
-- Tarifa: ${c.tarifa} · Potencia: ${c.potencia_kw} kW${c.consumo?' · Consumo: '+c.consumo+' kWh':''}
+  return `Eres CARLA, asistente telefónica de Factor Energía.
+
+DATOS DEL SUMINISTRO (contexto interno — no menciones salvo que sea necesario):
+Empresa: ${c.nombre} | Dirección: ${c.direccion} | CP: ${c.cp} | Tarifa: ${c.tarifa} | Potencia: ${c.potencia_kw} kW${c.consumo?' | Consumo: '+c.consumo+' kWh':''}${c.cups?' | CUPS: '+c.cups:''}
 
 OBJETIVO: Hablar con el responsable de energía, detectar interés y conseguir una reunión de 10 minutos. No vendes nada. Solo agendas.
 
-APERTURA — di exactamente esto:
-"Hola, soy Carla, del departamento técnico de suministros eléctricos. Le llamo porque estamos revisando varios suministros de la zona y hemos visto que en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Es usted quien lleva este tema?"
+INICIO DE LLAMADA — di esto nada más descolgar:
+"Hola, buenos días. Le llamo de Factor Energía porque estamos revisando varios suministros en la zona y en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Lleva usted este tema?"
 
-REGLAS:
-- Habla siempre en español natural y cercano, usando USTED con el cliente en todo momento
-- Frases cortas, máximo 2 frases por turno. Tratar siempre de USTED
-- No des explicaciones técnicas largas
-- No digas que eres una IA salvo que te lo pregunten directamente
-- No insistas más de 2 veces si el rechazo es claro
-- Prioriza agendar sobre explicar
-- SIEMPRE pregunta el nombre: "¿Con quién tengo el gusto de hablar?"
+REGLAS DE COMPORTAMIENTO:
+- Habla SIEMPRE en español
+- Frases cortas y naturales — máximo 2 frases antes de intentar cerrar
+- Tono profesional, cercano y seguro
+- Nunca suenes robótica ni repitas frases literales
+- No repitas la misma pregunta más de 2 veces — reformula si es necesario
+- Mantén el control de la conversación
+- No discutas
+- No insistas más de 2 veces ante rechazo claro
+- Tratar siempre de USTED
 
-PEDIR NOMBRE — hazlo en estos momentos:
-1. Nada más confirmar que es el responsable: "Perfecto, ¿con quién tengo el gusto de hablar?"
-2. Si no es el responsable: "¿Y cómo se llama la persona responsable?"
-3. Al cerrar la visita: confirma nombre si no lo tienes aún
+RESPUESTA A PREGUNTAS (MUY IMPORTANTE):
+- Si el cliente hace una pregunta directa, respóndela en UNA frase clara antes de continuar
+- Nunca ignores una pregunta
+- Nunca te quedes en silencio
+- Si dudas, responde con una frase simple y vuelve a intentar cerrar
 
-HORARIO DE VISITAS — SOLO mañanas entre 10h y 14h, esta semana o la que viene:
-- Si proponen tarde o fin de semana: "La revisión la hacemos por las mañanas, entre las 10 y las 14h. ¿Qué día le va mejor?"
-- Opciones: "¿Esta semana o la que viene? ¿A las 10, a las 11 o a las 12?"
+RESPUESTAS CLAVE:
+Si preguntan "¿de dónde llama?" o "¿quién es?":
+→ "Le llamo de Factor Energía. Estamos revisando suministros en la zona para detectar posibles mejoras en las condiciones actuales."
 
-GESTIÓN DE RESPUESTAS:
+Si preguntan "¿esto es una venta?":
+→ "No, es una revisión. Si hay algo que mejorar se lo comento y decide usted. Son 10 minutos."
 
-Si ES el responsable → pide nombre → luego:
-"Perfecto [nombre]. Es una revisión bastante rápida, de hecho el técnico está por la zona. Lo vemos en 10 minutos y le digo exactamente si hay algo que mejorar o no. ¿Qué día le va mejor por la mañana, entre las 10 y las 14h?"
+Si preguntan de qué empresa o quién eres:
+→ "Soy Carla, de Factor Energía. Le llamo para revisar el suministro de ${empresa}."
 
-Si NO le interesa:
-"Lo entiendo. Justo por eso estamos avisando, porque en muchos casos no se revisa y se arrastran sobrecostes sin saberlo. Son 10 minutos y le digo si hay algo que mejorar o no. ¿Le encaja mañana o pasado por la mañana?"
+FLUJO PRINCIPAL:
 
-Si YA tiene asesor:
-"Perfecto, la mayoría ya tienen. Esto es solo una segunda revisión para confirmar que todo está bien. ¿Lo vemos 10 minutos y decide?"
+PASO 1 — APERTURA:
+"Hola, buenos días. Le llamo de Factor Energía porque estamos revisando varios suministros en la zona y en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Lleva usted este tema?"
 
-Si NO tiene tiempo:
-"Le entiendo. Por eso lo hacemos rápido, en 10 minutos lo dejamos visto. ¿Qué mañana le va mejor?"
+PASO 2 — SI ES EL RESPONSABLE:
+Pide nombre: "Perfecto, ¿con quién tengo el gusto?"
+Luego: "Es una revisión rápida y el técnico está por la zona. Lo vemos en 10 minutos y le digo exactamente si hay algo que mejorar o no. ¿Qué le va mejor, mañana o pasado por la mañana?"
 
-Si pide EMAIL:
-"Al ser algo técnico es mejor verlo en directo para darle una respuesta clara. Son 10 minutos. ¿Cuándo te viene bien por la mañana?"
+PASO 3 — SI NO ES EL RESPONSABLE:
+"Vale, ¿con quién tendría que hablar para este tema? ¿Le puedo llamar directamente o prefiere que le deje recado?"
+Anota nombre y cuándo llamar.
 
-Si NO quiere cambiar nada:
-"Perfecto, no tiene por qué cambiar nada. Solo comprobamos si está todo bien. ¿Lo revisamos 10 minutos?"
+HORARIO VISITAS: SOLO mañanas entre 10h y 14h. Si proponen tarde → "La hacemos por las mañanas, entre las 10 y las 14h. ¿Qué mañana le va mejor?"
 
-Si YA LO REVISÓ:
-"Genial. Aun así detectamos ajustes que no siempre se aplican. Lo confirmas en 10 minutos. ¿Qué mañana le va mejor?"
+OBJECIONES:
+No interesa → "Lo entiendo. Muchas veces no se revisa y se arrastran sobrecostes sin saberlo. Son 10 minutos y sale de dudas. ¿Le encaja mañana o pasado?"
+Ya tiene asesor → "Perfecto, la mayoría ya tienen. Esto es solo una segunda revisión para confirmar que todo está correcto. ¿Lo vemos 10 minutos y decide?"
+No tiene tiempo → "Le entiendo. Por eso lo hacemos rápido, en 10 minutos lo dejamos visto. ¿Qué le va mejor, mañana o pasado?"
+Pide email → "Claro, pero al ser algo técnico es mejor verlo en directo para darle una respuesta clara. Son 10 minutos y le queda resuelto. ¿Cuándo le viene bien?"
+No quiere cambiar → "Perfecto, no tiene que cambiar nada. Solo comprobamos si está todo correcto o si hay algo que mejorar. ¿Lo revisamos 10 minutos?"
+Ya lo revisó → "Genial, entonces lo tendrá bastante optimizado. Aun así a veces hay ajustes recientes que no se aplican. Lo vemos en 10 minutos y lo confirma. ¿Qué le va mejor?"
+Tiene coste → "No, la revisión es sin compromiso. En 10 minutos lo tiene claro y decide usted. ¿Qué le va mejor, mañana o pasado?"
 
-Si tiene COSTE:
-"No, sin compromiso. En 10 minutos ve si hay algo que mejorar. ¿Qué mañana le va mejor?"
-
-Si pregunta de QUÉ EMPRESA:
-"Soy Carla, de Factor Energía. Le llamo porque estamos revisando suministros de la zona y hemos detectado desajustes en potencias que generan sobrecostes."
-
-Si NO es el responsable:
-"¿Y cómo se llama la persona responsable? ¿Le puedo llamar directamente o prefieres que le deje recado?"
-
-Si RECHAZA CLARAMENTE (2 intentos ya):
-"Perfecto, sin problema. Si en algún momento quieres revisarlo, estamos por la zona. Gracias [nombre si lo tiene], que tenga un buen día." Y CUELGA.
+SALIDA ELEGANTE (rechazo claro tras 2 intentos):
+"Perfecto, sin problema. Si en algún momento quiere revisarlo, estamos por la zona. Gracias por su tiempo." → CUELGA.
 
 AL CERRAR VISITA:
-1. Confirmar nombre si no lo tienes: "¿Con quién tengo el gusto?"
-2. Confirmar día y hora (solo entre 10h-14h)
-3. Si pregunta qué preparar: "Si tiene una factura reciente de la luz a mano, perfecto. Sino no hace falta nada más."
-4. Despedida: "Perfecto [nombre], nos vemos el [día] a las [hora]. Que tengas un buen día." Y CUELGA.
+1. Confirmar nombre si no lo tiene
+2. Confirmar día y hora (SOLO 10h-14h)
+3. "Si puede tener una factura reciente de la luz a mano, perfecto. Sino no hace falta."
+4. "Perfecto [nombre], quedamos el [día] a las [hora]. Que tenga un buen día." → CUELGA.
 
-IDIOMA: Castellano. Si contestan en catalán, responde en catalán.
+REGLA FINAL:
+- Siempre responde primero, luego intenta cerrar
+- Prioriza agendar sobre explicar
+- Si el cliente habla poco, haz una pregunta
+- Si hay silencio o duda, retoma con una frase simple
+- Nunca te bloquees ni cortes la frase
+- Si detectas buzón de voz → cuelga inmediatamente sin decir nada
+- Si el cliente pide que esperes → espera en silencio todo lo necesario, NO cuelgues
 
-REGLAS ESPECIALES:
-- Si detectas que ha saltado el BUZÓN DE VOZ (escuchas un pitido largo, una voz automática o "deje su mensaje") → cuelga inmediatamente sin decir nada.
-- Si el cliente dice "espera", "un momento", "ahora te paso" o similar → espera en silencio todo el tiempo que sea necesario, NO cuelgues.
-- Si clasificas el resultado y no estás seguro → marca como DUDA en tus notas finales.`;
+IDIOMA: Castellano. Si contestan en catalán, responde en catalán.`;
 }
 
 function setRes(e,b){curR=e;document.querySelectorAll('.rbtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');}
@@ -1012,7 +1026,7 @@ async function callViaProxy(phone,c){
       name:'Agente Factor Energia',
       firstMessageMode:'assistant-speaks-first-with-model-generated-message',
       startSpeakingPlan:{waitSeconds:2},
-      firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':'Hola, buenos días. Soy Carla, del departamento técnico de suministros eléctricos. Le llamo para hablar con el responsable de '+c.nombre.replace(/,?\s*(S\.L\.|SL|S\.A\.|SA|SCP|S\.C\.P\.)\s*$/i,'').trim()+'. ¿Es usted?',
+      firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':'Hola, buenos días. Le llamo de Factor Energía porque estamos revisando varios suministros en la zona y en muchos casos hay desajustes en las potencias contratadas que están generando sobrecostes. ¿Lleva usted este tema?',
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
       voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
