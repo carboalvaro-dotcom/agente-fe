@@ -1023,7 +1023,22 @@ REGLA FINAL:
 IDIOMA: Castellano. Si contestan en catalán, responde en catalán.`;
 }
 
-function setRes(e,b){curR=e;document.querySelectorAll('.rbtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');}
+function setRes(e,b){
+  curR=e;
+  document.querySelectorAll('.rbtn').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  // Auto-save immediately
+  if(curId===null) return;
+  const c=C.find(x=>x.id===curId);
+  if(!c) return;
+  c.estado=e;
+  c.notas=document.getElementById('notas').value;
+  save();upStats();renderList();
+  // Update status tag
+  const st=document.getElementById('d-stag');
+  if(st){st.className='stag '+e;st.textContent=SL[e]||e;}
+  toast('✓ Guardado','ok');
+}
 
 function deleteContact(){
   if(curId===null) return;
