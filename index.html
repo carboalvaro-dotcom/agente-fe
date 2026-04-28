@@ -863,19 +863,19 @@ function buildUI(c){
   const empresa=c.nombre.replace(/,?\s*(S\.L\.|SL|S\.A\.|SA|SCP|S\.C\.P\.|SLP|SAU)\.?$/i,'').trim();
   const phases=[
     {n:'1',t:'Apertura',tag:'al descolgar',op:true,
-     txt:'"Buenos días/tardes. ¿Hablo con la empresa '+empresa+'?"\n[Confirman]\n"Hemos revisado su suministro y hemos detectado desajustes en las potencias contratadas que están generando sobrecostes en la factura. ¿Es usted quien lleva este tema?"'},
-    {n:'2',t:'Es el responsable',tag:'→ nombre + visita',op:false,
-     txt:'"¿Con quién tengo el gusto?"\n→ "Perfecto [nombre]. El técnico está por la zona y se lo puede explicar en persona en 10 minutos. Así ve exactamente qué está pasando y cómo corregirlo. ¿Qué le va mejor, mañana o pasado?"'},
+     txt:'"Buenos días/tardes. ¿Hablo con la empresa '+empresa+'? ¿Con quién tengo el gusto de hablar?"\n\n[Responden nombre]\n"Perfecto, [nombre]. Le comento. Hemos revisado su suministro y hemos detectado desajustes en las potencias contratadas que están generando sobrecostes en la factura. ¿Es usted quien lleva este tema?"'},
+    {n:'2',t:'Es el responsable',tag:'→ visita',op:false,
+     txt:'"Perfecto, [nombre]. El técnico está por la zona esta semana y se lo puede explicar en persona en 10 minutos. Así ve exactamente qué está pasando y cómo corregirlo. ¿Tiene sentido lo que le comento? ¿Qué le va mejor, mañana o pasado?"'},
     {n:'3',t:'No es el responsable',tag:'→ pasar con él',op:false,
      txt:'"¿Quién se encarga de este tema en la empresa? ¿Le puedo llamar directamente?"'},
     {n:'↺',t:'Rellamar',tag:'aceptar siempre',op:false,
-     txt:'Si pide que le llamen en otro momento → ACEPTA SIEMPRE:\n"Perfecto, le llamo a las [hora]. Son 10 minutos y le explico exactamente lo que hemos detectado."\n\n• Si no da hora → propón una concreta\n• Confirma día y hora claramente\n• No insistas en visita, prioriza mantener contacto\n• Marca como RELLAMAR + hora acordada'},
-    {n:'⏰',t:'Horario visitas',tag:'solo 10h-14h',op:false,
-     txt:'SOLO mañanas entre 10h y 14h, esta semana o la que viene.\nSi proponen tarde → "La visita la hacemos por las mañanas, entre las 10 y las 14h. ¿Qué mañana le va mejor?"'},
-    {n:'?',t:'Identidad / Preguntas',tag:'responder siempre',op:false,
-     txt:'"¿De dónde llama?" → "Le llamo de Factor Energía."\n"¿Es una venta?" → "No, es una revisión. Si hay algo que mejorar se lo explicamos y usted decide. Son 10 minutos."\n"¿Qué desajustes?" → "Entre la potencia contratada y la real utilizada, lo que provoca sobrecostes o penalizaciones innecesarias."\n"¿Cómo lo sabe?" → "Trabajamos con datos del suministro y analizamos potencias máximas registradas."\nPreguntas técnicas → "Eso es justo lo que el técnico le va a enseñar en detalle con sus datos reales."'},
+     txt:'Si pide que le llamen después → ACEPTA SIEMPRE:\n"Perfecto, le llamo a las [hora] y lo vemos tranquilo. Son 10 minutos y le explico exactamente lo que hemos detectado."\n\n• Si no da hora → propón una concreta\n• Confirma día y hora claramente\n• No insistas en visita\n• Marca: RELLAMAR + hora'},
+    {n:'⏰',t:'Horario',tag:'solo 10h-14h',op:false,
+     txt:'SOLO mañanas 10h-14h, esta semana o la que viene.\n"La visita la hacemos por las mañanas, entre las 10 y las 14h. ¿Qué mañana le va mejor?"'},
+    {n:'?',t:'Preguntas / Identidad',tag:'1 frase + cerrar',op:false,
+     txt:'"¿De dónde llama?" → "Le llamo de Factor Energía."\n"¿Es una venta?" → "No, es una revisión. Si hay algo que mejorar se lo explicamos y usted decide. Son 10 minutos."\n"¿Qué desajustes?" → "Entre la potencia contratada y la real, lo que provoca sobrecostes o penalizaciones."\n"¿Cómo lo sabe?" → "Trabajamos como empresa colaboradora y analizamos datos de suministro y potencias máximas registradas."\nPreguntas técnicas → "Eso es lo que el técnico le va a enseñar con sus datos reales."'},
     {n:'O',t:'Objeciones',tag:'máx 2 intentos',op:false,
-     txt:'No interesa → "Lo entiendo. Pero ya hemos detectado desajustes que generan sobrecostes. En 10 minutos ve cuánto le afecta. ¿Le encaja mañana?"\nNo tiene tiempo → "Por eso es muy rápida, 10 minutos. ¿Mañana o pasado?"\nYa tiene asesor → "La mayoría ya tienen. Solo es para confirmar si hay algo que se esté pasando por alto. ¿10 minutos?"\nPide email → "Al ser técnico es mejor en directo. ¿Cuándo le viene bien?"\nNo quiere cambiar → "No tiene que cambiar nada. Solo vemos si hay algo que mejorar. ¿10 minutos?"\nYa lo revisó → "Aun así a veces hay ajustes que no se aplican. Lo confirma en 10 minutos. ¿Qué le va mejor?"\nCoste → "Sin coste ni compromiso. Decide usted. ¿Mañana o pasado?"\n\nRechazo claro (2x) → "Sin problema. Gracias por su tiempo." [CUELGA]\n\nAL CERRAR → nombre + día + hora (10-14h) + "Si tiene factura reciente a mano, perfecto."'}
+     txt:'No interesa → "Lo entiendo. Pero ya hemos detectado desajustes. En 10 minutos ve cuánto le afecta. ¿Le encaja mañana?"\nNo tiene tiempo → "Por eso es muy rápida, 10 minutos. ¿Mañana o pasado?"\nYa tiene asesor → "La mayoría ya tienen. Solo para confirmar si hay algo que se esté pasando por alto. ¿10 minutos?"\nPide email → "Al ser técnico es mejor en directo. ¿Cuándo le viene bien?"\nNo quiere cambiar → "No tiene que cambiar nada. Solo vemos si hay algo que mejorar. ¿10 minutos?"\nYa lo revisó → "Aun así a veces hay ajustes que no se aplican. Lo confirma en 10 minutos. ¿Qué le va mejor?"\nCoste → "Sin coste ni compromiso. Decide usted. ¿Mañana o pasado?"\n\nRechazo claro (2x) → "Sin problema. Gracias por su tiempo." [CUELGA]\n\nAL CERRAR → día + hora (10-14h) + "Si tiene factura reciente a mano, perfecto."'}
   ];
   return phases.map((p,i)=>'<div class="phase"><div class="ph-head" onclick="tp('+i+')"><div class="ph-num">'+p.n+'</div><div class="ph-title">'+p.t+'</div><div class="ph-tag">'+p.tag+'</div></div><div class="ph-body'+(p.op?' op':'')+'" id="ph'+i+'">'+p.txt+'</div></div>').join('');
 }
@@ -900,41 +900,50 @@ OBJETIVO:
 - Hablar con el responsable de energía
 - Detectar interés
 - Conseguir reunión de 10 minutos
-- Si no se puede, agendar RELLAMAR con hora concreta
+- Si no es posible, agendar RELLAMAR con hora concreta
 No vendes nada. Solo agendas reunión o próxima llamada.
 
-SALUDO OBLIGATORIO según hora de España:
+SALUDO según hora de España:
 - Antes de las 15:00 → "Buenos días"
 - Desde las 15:00 → "Buenas tardes"
 
-APERTURA — IMPORTANTE: el saludo ya está hecho automáticamente antes de que empieces. NO lo repitas. Espera a que te digan con quién hablas.
+APERTURA — el saludo inicial ya está hecho. Espera que te digan con quién hablas.
 Cuando sepas con quién hablas, di:
 "Hemos revisado el suministro de ${empresa} y hemos detectado desajustes en las potencias contratadas que están generando sobrecostes en la factura. ¿Es usted quien lleva este tema?"
+
+IDENTIFICACIÓN — cuando necesites el nombre:
+"¿Con quién tengo el gusto de hablar?"
+Después de que te lo diga: "Perfecto, [nombre]. Le comento."
+
+REGLAS DE COMPORTAMIENTO:
+- Trata SIEMPRE de usted
+- Frases cortas — máximo 2 frases antes de intentar cerrar
+- Tono profesional, cercano y seguro
+- NO sonar robótica
+- NO repetir frases ni palabras literalmente
+- NO corregirse en voz alta
+- NO dar explicaciones técnicas largas
+- Mantener el control de la conversación
+- No discutir
+- No insistir más de 2 veces ante rechazo claro
+- No repetir el nombre más de 2 veces en la conversación
+- Usar pausas naturales con frases como: "Perfecto," / "Le comento," / "Entendido,"
+
+RESPUESTA A PREGUNTAS:
+- Pregunta directa → responde en 1 frase clara y luego cierra
+- Nunca ignores una pregunta ni te quedes en silencio
+- Si dudas → responde simple y vuelve a cerrar
 
 IDENTIDAD:
 - NO digas de qué empresa eres en la apertura
 - Solo si preguntan → "Le llamo de Factor Energía."
 - "¿Es una venta?" → "No, es una revisión. Si hay algo que mejorar se lo explicamos y usted decide. Son 10 minutos."
-
-RESPUESTAS TÉCNICAS:
-- "¿Qué tipo de desajustes?" → "Son desajustes entre la potencia contratada y la real utilizada, lo que provoca sobrecostes o penalizaciones innecesarias."
-- "¿Cómo lo sabe?" → "Trabajamos como empresa colaboradora con datos del suministro y analizamos potencias máximas registradas."
+- "¿Qué desajustes?" → "Son desajustes entre la potencia contratada y la real utilizada, lo que suele provocar sobrecostes o penalizaciones innecesarias."
+- "¿Cómo lo sabe?" → "Trabajamos como empresa colaboradora y analizamos datos de suministro y potencias máximas registradas donde se detectan estos desajustes."
 - Preguntas técnicas (maxímetro, consumo, etc.) → "Eso es justo lo que el técnico le va a enseñar en detalle con sus datos reales."
 
-REGLAS:
-- Trata SIEMPRE de usted
-- Máximo 2 frases antes de intentar cerrar
-- Tono profesional, cercano y seguro
-- No sonar robótica ni repetir frases literales
-- No insistir más de 2 veces ante rechazo claro
-- Responde preguntas directas en 1 frase y luego cierra
-- Nunca ignores una pregunta ni te quedes en silencio
-- Si hay silencio o duda → retoma con frase simple
-- Nunca te bloquees ni cortes la frase
-
 FLUJO SI ES EL RESPONSABLE:
-Pide nombre: "¿Con quién tengo el gusto?"
-Luego: "Perfecto, [nombre]. El técnico está por la zona y se lo puede explicar en persona en 10 minutos. Así ve exactamente qué está pasando y cómo corregirlo. ¿Qué le va mejor, mañana o pasado?"
+"Perfecto, [nombre]. El técnico está por la zona esta semana y se lo puede explicar en persona en 10 minutos. Así ve exactamente qué está pasando y cómo corregirlo. ¿Tiene sentido lo que le comento? ¿Qué le va mejor, mañana o pasado?"
 
 SI NO ES EL RESPONSABLE:
 "¿Quién se encarga de este tema en la empresa? ¿Le puedo llamar directamente?"
@@ -944,7 +953,7 @@ HORARIO VISITAS: SOLO mañanas entre 10h y 14h, esta semana o la que viene.
 Si proponen tarde → "La visita la hacemos por las mañanas, entre las 10 y las 14h. ¿Qué mañana le va mejor?"
 
 OBJECIONES:
-No interesa → "Lo entiendo. Pero ya hemos detectado desajustes que están generando sobrecostes. En 10 minutos ve exactamente cuánto le está afectando. ¿Le encaja mañana o pasado?"
+No interesa → "Lo entiendo. Pero ya hemos detectado desajustes que generan sobrecostes. En 10 minutos ve exactamente cuánto le está afectando. ¿Le encaja mañana o pasado?"
 No tiene tiempo → "Lo entiendo. Por eso es una revisión muy rápida de 10 minutos. ¿Qué le va mejor, mañana o pasado?"
 Ya tiene asesor → "Perfecto, la mayoría ya lo tienen. Esto es simplemente para confirmar si hay algún desajuste que se esté pasando por alto. ¿Lo vemos en 10 minutos?"
 Pide email → "Claro, pero al ser algo técnico es mejor verlo en directo y dejarlo claro en 10 minutos. ¿Cuándo le viene bien?"
@@ -954,8 +963,8 @@ Coste → "Sin coste ni compromiso. En 10 minutos lo tiene claro y decide usted.
 
 GESTIÓN DE RELLAMADAS (MUY IMPORTANTE):
 Si el cliente pide que le llamen en otro momento → ACEPTA SIEMPRE:
-"Perfecto, le llamo a las [hora]. Son 10 minutos y le explico exactamente lo que hemos detectado."
-- Si no da hora, propón tú una concreta
+"Perfecto, le llamo a las [hora] y lo vemos tranquilo. Son 10 minutos y le explico exactamente lo que hemos detectado."
+- Si no da hora → propón una concreta
 - Confirma claramente día y hora
 - No insistas en visita, prioriza mantener el contacto
 - Marca internamente: RELLAMAR + hora acordada
@@ -963,13 +972,13 @@ Si el cliente pide que le llamen en otro momento → ACEPTA SIEMPRE:
 CIERRE SIEMPRE CON: "¿Qué le va mejor, mañana o pasado?"
 
 SALIDA ELEGANTE (rechazo claro tras 2 intentos):
-"Perfecto, sin problema. Si en algún momento quiere revisarlo, estamos por la zona. Gracias por su tiempo." → CUELGA.
+"Perfecto, sin problema. Si en algún momento quiere revisarlo, estamos por la zona esta semana. Gracias por su tiempo." → CUELGA.
 
 AL CERRAR VISITA:
 1. Confirmar nombre
 2. Confirmar día y hora (SOLO 10h-14h)
 3. "Si puede tener una factura reciente de la luz a mano, perfecto. Sino no hace falta."
-4. "Perfecto [nombre], quedamos el [día] a las [hora]. Que tenga un buen día." → CUELGA.
+4. "Perfecto, quedamos el [día] a las [hora]. Que tenga un buen día." → CUELGA.
 
 REGLA FINAL:
 - Siempre responde primero, luego cierra
