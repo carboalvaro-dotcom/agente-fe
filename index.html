@@ -200,6 +200,13 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
     <div class="tstat" onclick="setF('duda',null)"><div class="tstat-dot" style="background:#a78bfa"></div><div class="tstat-v" style="color:#c4b5fd" id="sduda">0</div><div class="tstat-l">Duda</div></div>
     <div class="tstat" onclick="setF('llamadas',null)"><div class="tstat-dot" style="background:#60a5fa"></div><div class="tstat-v" style="color:#93c5fd" id="sllamadas">0</div><div class="tstat-l">Llamadas</div></div>
   </div>
+  <select id="camp-cp" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 8px;border-radius:6px;font-family:var(--fn);cursor:pointer;outline:none;">
+    <option value="todos" style="color:#000">Todos los CP</option>
+    <option value="08390" style="color:#000">08390 — Montgat</option>
+    <option value="08391" style="color:#000">08391 — Tiana</option>
+    <option value="08329" style="color:#000">08329 — Teià</option>
+    <option value="08911" style="color:#000">08911 — Badalona</option>
+  </select>
   <select id="camp-filter" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 8px;border-radius:6px;font-family:var(--fn);cursor:pointer;outline:none;">
     <option value="nuevos" style="color:#000">Solo nuevos (sin llamar)</option>
     <option value="pendiente" style="color:#000">Pendientes</option>
@@ -480,6 +487,7 @@ let campaignQueue=[], campaignIdx=0, campaignRunning=false, campaignPaused=false
 
 function getCampaignOrder(){
   const filter=document.getElementById('camp-filter')?.value||'nuevos';
+  const cpFilter=document.getElementById('camp-cp')?.value||'todos';
   const sectorScore=s=>{
     if(/restaurante|bar|cafeter/i.test(s)) return 5;
     if(/tienda|comerci|papeler/i.test(s)) return 4;
@@ -487,7 +495,7 @@ function getCampaignOrder(){
     if(/industrial|taller|metalúr/i.test(s)) return 2;
     return 1;
   };
-  let base=C.filter(c=>c.nif!=='AMIGO'&&c.nif!=='TEST'&&c.nif!=='');
+  let base=C.filter(c=>c.nif!=='AMIGO'&&c.nif!=='TEST'&&c.nif!==''&&(cpFilter==='todos'||c.cp===cpFilter));
   if(filter==='nuevos'){
     base=base.filter(c=>c.estado==='pendiente'&&(c.llamadas||0)===0);
   } else if(filter==='todos'){
@@ -510,11 +518,13 @@ function startCampaign(){
   const filterVal=filterSel?filterSel.value:'nuevos';
   const filterLabel={'nuevos':'Sin llamar','pendiente':'Pendientes','rellamar':'Rellamar',
     'duda':'Duda','noContesta':'No contesta','todos':'Todos pendientes'}[filterVal]||filterVal;
+  const cpVal=document.getElementById('camp-cp')?.value||'todos';
+  const cpLabel=cpVal==='todos'?'Todos los CP':cpVal;
   if(queue.length===0){
     toast('No hay contactos en filtro: '+filterLabel,'err');
     return;
   }
-  if(!confirm('Iniciar campaña "'+filterLabel+'" con '+queue.length+' contactos?')) return;
+  if(!confirm('Iniciar campaña "'+filterLabel+'" — '+cpLabel+' — con '+queue.length+' contactos?')) return;
   campaignQueue=queue;
   campaignIdx=0;
   campaignRunning=true;
