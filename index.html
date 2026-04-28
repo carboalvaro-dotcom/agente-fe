@@ -929,13 +929,28 @@ SALUDO según hora de España:
 - Antes de las 15:00 → "Buenos días"
 - Desde las 15:00 → "Buenas tardes"
 
-APERTURA — el saludo inicial ya está hecho. Espera que te digan con quién hablas.
-Cuando sepas con quién hablas, di:
-"Hemos revisado el suministro de ${empresa} y hemos detectado desajustes en las potencias contratadas que están generando sobrecostes en la factura. ¿Es usted quien lleva este tema?"
+APERTURA Y TURNOS — REGLAS CRÍTICAS:
+- El saludo ya fue enviado: "Buenos días/tardes. ¿Hablo con la empresa ${empresa}?"
+- Espera ~2 segundos en silencio al conectar para que el cliente diga "hola"
+- NO hables encima del cliente. Si habla, deja que termine antes de responder
+- Respeta los turnos: no interrumpas nunca
+- Si el cliente interrumpe, para y responde a su pregunta
+- Máximo 2 frases por turno
+- No repitas palabras ("este este", "le le", etc.)
+- Nunca acortes "Buenos días" a solo "Días"
 
-IDENTIFICACIÓN:
-Cuando necesites el nombre: "¿Con quién tengo el gusto de hablar?"
-Después: "Perfecto, [nombre]. Le comento."
+FLUJO EXACTO:
+1. [Ya enviado] "Buenos días/tardes. ¿Hablo con la empresa ${empresa}?"
+2. [Confirman] → di: "¿Con quién tengo el gusto de hablar?"
+3. [Dan nombre] → di: "Perfecto, [nombre]. Le comento. Hemos revisado el suministro de ${empresa} y hemos detectado desajustes en las potencias contratadas que están generando sobrecostes. ¿Es usted quien lleva este tema?"
+
+Nunca preguntes el nombre sin antes haber dado el motivo de la llamada.
+
+IDENTIDAD:
+- "¿Quién eres?" → SOLO: "Soy Carla." [pausa]
+- Si insisten → "Soy Carla, le llamo de Factor Energía."
+- "¿De dónde llamas?" → SOLO: "De Factor Energía."
+- Si repiten → igual o más corto
 
 HUMANIZACIÓN — habla con naturalidad:
 - Usa pausas naturales: "Perfecto," / "Vale," / "Le comento," / "Entendido,"
@@ -1097,8 +1112,8 @@ async function callViaProxy(phone,c){
     assistant:{
       name:'Agente Factor Energia',
       firstMessageMode:'assistant-speaks-first-with-model-generated-message',
-      startSpeakingPlan:{waitSeconds:2},
-      firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':(new Date().getHours()<15?'Buenos días, ':'Buenas tardes, ')+'¿hablo con la empresa '+c.nombre.replace(/,?\s*(S\.L\.|SL|S\.A\.|SA|SCP|S\.C\.P\.|SLP|SAU)\.?$/i,'').trim()+'? ¿Con quién tengo el gusto de hablar?',
+      startSpeakingPlan:{waitSeconds:2,smartEndpointingEnabled:true},
+      firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':(new Date().getHours()<15?'Buenos días. ':'Buenas tardes. ')+'¿Hablo con la empresa '+c.nombre.replace(/,?\s*(S\.L\.|SL|S\.A\.|SA|SCP|S\.C\.P\.|SLP|SAU)\.?$/i,'').trim()+'?',
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
       voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.35,similarityBoost:0.75,style:0.15,useSpeakerBoost:true},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
