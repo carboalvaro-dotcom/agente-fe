@@ -698,7 +698,8 @@ function init(){
       return x?{...r,estado:x.estado||'pendiente',notas:x.notas||(r.notas_extra||''),contactName:x.contactName||'',
         email:x.email||r.email||'',visitDate:x.visitDate||'',cups:x.cups||r.cups||'',
         consumo:x.consumo||r.consumo||'',telefono2:x.telefono2||'',potencia_kw:x.potencia_kw||r.potencia_kw,
-        llamadas:x.llamadas||0,ultimaLlamada:x.ultimaLlamada||''}
+        llamadas:x.llamadas||0,ultimaLlamada:x.ultimaLlamada||'',
+        _callId:x._callId||'',_recordingUrl:x._recordingUrl||''}
         :{...r,estado:'pendiente',notas:r.notas_extra||'',contactName:'',visitDate:'',cups:r.cups||'',consumo:r.consumo||'',telefono2:''};
     });
   }catch{C=RAW.map(r=>({...r,estado:'pendiente',notas:'',contactName:'',visitDate:'',cups:'',consumo:'',telefono2:''}));}
@@ -710,7 +711,8 @@ function save(){
     id:c.id,estado:c.estado,notas:c.notas||'',contactName:c.contactName||'',
     email:c.email||'',visitDate:c.visitDate||'',cups:c.cups||'',
     consumo:c.consumo||'',telefono2:c.telefono2||'',potencia_kw:c.potencia_kw,
-    llamadas:c.llamadas||0,ultimaLlamada:c.ultimaLlamada||''
+    llamadas:c.llamadas||0,ultimaLlamada:c.ultimaLlamada||'',
+    _callId:c._callId||'',_recordingUrl:c._recordingUrl||''
   }))));
 }
 
@@ -842,10 +844,10 @@ function sel(id){
   // Call recording link
   const recDiv=document.getElementById('rec-link');
   if(recDiv){
-    if(c._recordingUrl){
+    if(c._recordingUrl&&c._recordingUrl.length>5){
       recDiv.innerHTML='<a href="'+c._recordingUrl+'" target="_blank" style="font-size:11px;font-weight:600;color:var(--gr);text-decoration:none;background:var(--grl);padding:3px 10px;border-radius:20px;border:1px solid rgba(11,122,71,.2)">🎧 Escuchar grabación</a>';
-    } else if(c._callId){
-      recDiv.innerHTML='<a href="https://dashboard.vapi.ai/calls/'+c._callId+'" target="_blank" style="font-size:11px;color:var(--ac);text-decoration:none;">▶ Ver en Vapi</a>';
+    } else if(c._callId&&c._callId.length>5){
+      recDiv.innerHTML='<a href="https://dashboard.vapi.ai/calls/'+c._callId+'" target="_blank" style="font-size:11px;font-weight:600;color:var(--ac);text-decoration:none;background:var(--acl);padding:3px 10px;border-radius:20px;border:1px solid rgba(26,86,219,.2)">▶ Ver llamada en Vapi</a>';
     } else {
       recDiv.innerHTML='';
     }
