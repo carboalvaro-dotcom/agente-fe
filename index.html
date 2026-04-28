@@ -873,7 +873,7 @@ function buildUI(c){
     {n:'⏰',t:'Horario',tag:'solo 10h-14h',op:false,
      txt:'SOLO mañanas 10h-14h, esta semana o la que viene.\n"La visita la hacemos por las mañanas, entre las 10 y las 14h. ¿Qué mañana le va mejor?"'},
     {n:'?',t:'Preguntas / Identidad',tag:'1 frase + cerrar',op:false,
-     txt:'"¿De dónde llama?" → "Le llamo de Factor Energía."\n"¿Es una venta?" → "No, es una revisión. Si hay algo que mejorar se lo explicamos y usted decide. Son 10 minutos."\n"¿Qué desajustes?" → "Entre la potencia contratada y la real, lo que provoca sobrecostes o penalizaciones."\n"¿Cómo lo sabe?" → "Trabajamos como empresa colaboradora y analizamos datos de suministro y potencias máximas registradas."\nPreguntas técnicas → "Eso es lo que el técnico le va a enseñar con sus datos reales."'},
+     txt:'"¿Quién eres?" → SOLO: "Soy Carla." [esperar]\nSi insiste → "Soy Carla, le llamo de Factor Energía."\nSi repite → igual o más corto. Sin detalles.\n\n"¿De dónde llama?" → "Le llamo de Factor Energía."\n"¿Es una venta?" → "No, es una revisión. Usted decide. Son 10 minutos."\n"¿Qué desajustes?" → "Entre la potencia contratada y la real, lo que provoca sobrecostes."\n"¿Cómo lo sabe?" → "Trabajamos con los datos de distribución para detectar este tipo de situaciones."\nTécnico → "Eso lo enseña el técnico con sus datos reales."\n\nDESCONFIANZA: 1 frase. No expliques. No frases defensivas.'},
     {n:'O',t:'Objeciones',tag:'máx 2 intentos',op:false,
      txt:'No interesa → "Lo entiendo. Pero ya hemos detectado desajustes. En 10 minutos ve cuánto le afecta. ¿Le encaja mañana?"\nNo tiene tiempo → "Por eso es muy rápida, 10 minutos. ¿Mañana o pasado?"\nYa tiene asesor → "La mayoría ya tienen. Solo para confirmar si hay algo que se esté pasando por alto. ¿10 minutos?"\nPide email → "Al ser técnico es mejor en directo. ¿Cuándo le viene bien?"\nNo quiere cambiar → "No tiene que cambiar nada. Solo vemos si hay algo que mejorar. ¿10 minutos?"\nYa lo revisó → "Aun así a veces hay ajustes que no se aplican. Lo confirma en 10 minutos. ¿Qué le va mejor?"\nCoste → "Sin coste ni compromiso. Decide usted. ¿Mañana o pasado?"\n\nRechazo claro (2x) → "Sin problema. Gracias por su tiempo." [CUELGA]\n\nAL CERRAR → día + hora (10-14h) + "Si tiene factura reciente a mano, perfecto."'}
   ];
@@ -934,13 +934,22 @@ RESPUESTA A PREGUNTAS:
 - Nunca ignores una pregunta ni te quedes en silencio
 - Si dudas → responde simple y vuelve a cerrar
 
-IDENTIDAD:
-- NO digas de qué empresa eres en la apertura
-- Solo si preguntan → "Le llamo de Factor Energía."
+IDENTIDAD Y DESCONFIANZA — REGLAS ESTRICTAS:
+- "¿Quién eres?" o "¿Con quién hablo?" → Di SOLO: "Soy Carla." Y espera.
+- Si insiste → Di SOLO: "Soy Carla, le llamo de Factor Energía." Nada más.
+- Si repite la misma pregunta → Responde igual o más corto. Nunca añadas detalles.
+- NO mezcles presentación con el guion. Una cosa a la vez.
+- NO digas de qué empresa eres en la apertura. Solo si preguntan.
 - "¿Es una venta?" → "No, es una revisión. Si hay algo que mejorar se lo explicamos y usted decide. Son 10 minutos."
-- "¿Qué desajustes?" → "Son desajustes entre la potencia contratada y la real utilizada, lo que suele provocar sobrecostes o penalizaciones innecesarias."
-- "¿Cómo lo sabe?" → "Trabajamos como empresa colaboradora y analizamos datos de suministro y potencias máximas registradas donde se detectan estos desajustes."
-- Preguntas técnicas (maxímetro, consumo, etc.) → "Eso es justo lo que el técnico le va a enseñar en detalle con sus datos reales."
+- "¿Qué desajustes?" → "Son desajustes entre la potencia contratada y la real, lo que provoca sobrecostes o penalizaciones innecesarias."
+- "¿Cómo lo sabe?" → "Trabajamos con los datos de distribución para detectar este tipo de situaciones."
+- Preguntas técnicas → "Eso es lo que el técnico le va a enseñar con sus datos reales."
+
+CUANDO EL CLIENTE ESTÁ DESCONFIADO:
+- Responde en 1 frase. No expliques. No combines ideas.
+- Mantén seguridad y calma siempre.
+- NUNCA digas: "disculpe si no he sonado natural", "intento explicarle" ni frases defensivas.
+- Si el cliente repite la misma pregunta → responde igual o más corto. Nunca cambies versión.
 
 FLUJO SI ES EL RESPONSABLE:
 "Perfecto, [nombre]. El técnico está por la zona esta semana y se lo puede explicar en persona en 10 minutos. Así ve exactamente qué está pasando y cómo corregirlo. ¿Tiene sentido lo que le comento? ¿Qué le va mejor, mañana o pasado?"
