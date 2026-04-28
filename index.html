@@ -907,10 +907,9 @@ SALUDO OBLIGATORIO según hora de España:
 - Antes de las 15:00 → "Buenos días"
 - Desde las 15:00 → "Buenas tardes"
 
-APERTURA — di exactamente esto:
-"Buenos días / Buenas tardes. ¿Hablo con la empresa ${empresa}?"
-[Cuando confirmen]:
-"Hemos revisado su suministro y hemos detectado desajustes en las potencias contratadas que están generando sobrecostes en la factura. ¿Es usted quien lleva este tema?"
+APERTURA — IMPORTANTE: el saludo ya está hecho automáticamente antes de que empieces. NO lo repitas. Espera a que te digan con quién hablas.
+Cuando sepas con quién hablas, di:
+"Hemos revisado el suministro de ${empresa} y hemos detectado desajustes en las potencias contratadas que están generando sobrecostes en la factura. ¿Es usted quien lleva este tema?"
 
 IDENTIDAD:
 - NO digas de qué empresa eres en la apertura
@@ -1038,7 +1037,7 @@ async function callViaProxy(phone,c){
       name:'Agente Factor Energia',
       firstMessageMode:'assistant-speaks-first-with-model-generated-message',
       startSpeakingPlan:{waitSeconds:2},
-      firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':(new Date().getHours()<15?'Buenos días':'Buenas tardes')+'. ¿Hablo con '+c.nombre.replace(/,?\s*(S\.L\.|SL|S\.A\.|SA|SCP|S\.C\.P\.|SLP|SAU)\.?$/i,'').trim()+'?',
+      firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':(new Date().getHours()<15?'Buenos días, ':'Buenas tardes, ')+'¿hablo con la empresa '+c.nombre.replace(/,?\s*(S\.L\.|SL|S\.A\.|SA|SCP|S\.C\.P\.|SLP|SAU)\.?$/i,'').trim()+'? ¿Con quién tengo el gusto de hablar?',
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
       voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.35,similarityBoost:0.75,style:0.15,useSpeakerBoost:true},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
