@@ -495,7 +495,7 @@ function getCampaignOrder(){
     if(/industrial|taller|metalúr/i.test(s)) return 2;
     return 1;
   };
-  let base=C.filter(c=>c.nif!=='AMIGO'&&c.nif!=='TEST'&&c.nif!==''&&(cpFilter==='todos'||c.cp===cpFilter));
+  let base=C.filter(c=>c.nif!=='AMIGO'&&c.nif!=='TEST'&&c.nif!==''&&c.telefono&&c.telefono.trim().length>6&&(cpFilter==='todos'||c.cp===cpFilter));
   if(filter==='nuevos'){
     base=base.filter(c=>c.estado==='pendiente'&&(c.llamadas||0)===0);
   } else if(filter==='todos'){
@@ -550,6 +550,7 @@ async function runNextCampaignCall(){
   const filter=document.getElementById('camp-filter')?.value||'nuevos';
   // Skip if contact no longer matches the filter
   const skip = !c ||
+    !c.telefono||c.telefono.trim().length<6 ||
     (filter==='nuevos' && (c.estado!=='pendiente'||(c.llamadas||0)>0)) ||
     (filter==='todos' && c.estado!=='pendiente') ||
     (filter!=='nuevos'&&filter!=='todos' && c.estado!==filter);
@@ -853,6 +854,15 @@ function sel(id){
   const rm={visitaOK:'r-ok',rellamar:'r-cb',noContesta:'r-nc',noInteresa:'r-ni'};
   if(c.estado!=='pendiente'&&rm[c.estado]) document.querySelectorAll('.'+rm[c.estado]).forEach(b=>b.classList.add('on'));
   document.getElementById('sb').innerHTML=buildUI(c);
+  // Disable call button if no phone
+  const bcall=document.getElementById('bcall');
+  if(bcall){
+    const hasPhone=c.telefono&&c.telefono.trim()&&c.telefono.trim().length>6;
+    bcall.disabled=!hasPhone;
+    bcall.style.opacity=hasPhone?'1':'0.4';
+    bcall.style.cursor=hasPhone?'pointer':'not-allowed';
+    bcall.title=hasPhone?'Llamar con IA':'Sin teléfono — añade uno en la ficha';
+  }
   renderList();
 }
 
@@ -1041,6 +1051,9 @@ function clearRes(){curR=null;document.querySelectorAll('.rbtn').forEach(b=>b.cl
 
 async function launchCall(){
   const c=C.find(x=>x.id===curId);if(!c) return;
+  if(!c.telefono||c.telefono.trim().length<6){
+    toast('Sin teléfono — añade uno en la ficha primero','err');return;
+  }
   const phone=c.telefono.startsWith('+')?c.telefono:'+34'+c.telefono.replace(/\s/g,'');
   c.estado='llamando';
   c.llamadas=(c.llamadas||0)+1;
