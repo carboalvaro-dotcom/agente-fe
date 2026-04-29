@@ -1035,6 +1035,7 @@ REGLA FINAL:
 - Si el cliente habla poco, haz una pregunta
 - Si hay silencio, retoma con una frase simple
 - Si detectas buzón de voz → cuelga inmediatamente sin decir nada
+- Si al descolgar oyes o el sistema dice "contestador", "deje su mensaje", "no está disponible", "después de la señal" o cualquier mensaje grabado automático → cuelga inmediatamente sin decir nada
 - Si el cliente pide que esperes → espera en silencio, NO cuelgues
 
 IDIOMA: Castellano. Si contestan en catalán, responde en catalán.`;
@@ -1120,7 +1121,7 @@ async function callViaProxy(phone,c){
       endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
       recordingEnabled:true,
       silenceTimeoutSeconds:10,
-      endCallPhrases:['adiós','adios','hasta luego','hasta pronto','vale gracias','muchas gracias adiós','hasta el jueves','hasta mañana','que tenga un buen día','hasta entonces','hasta el lunes','hasta el martes','hasta el miércoles','hasta el viernes','buen día','buenas','chao','chau','bye']
+      endCallPhrases:['adiós','adios','hasta luego','hasta pronto','vale gracias','muchas gracias adiós','hasta el jueves','hasta mañana','que tenga un buen día','hasta entonces','hasta el lunes','hasta el martes','hasta el miércoles','hasta el viernes','buen día','buenas','chao','chau','bye','contestador','deje su mensaje','después de la señal','no está disponible','no se encuentra disponible','deje un mensaje']
     }
   };
   const r=await fetch('https://api.vapi.ai/call',{
@@ -1172,24 +1173,27 @@ async function pollCallStatus(callId,contactId){
 
 async function fetchCallNotes(callId,contactId){
   if(!callId) return;
-  toast('Analizando llamada...','');
-  try{
-    const r=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({callId})});
-    if(!r.ok) return;
-    const data=await r.json();
-    const c=C.find(x=>x.id===contactId);if(!c) return;
-    if(data.notas) c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
-    if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
-    // Never save agent name (Carla) as contact name
-    const agentNames=['carla','carlos'];
-    if(data.nombreContacto&&!c.contactName&&!agentNames.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
-    if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
-    if(data.emailContacto&&!c.email) c.email=data.emailContacto;
-    if(data.recordingUrl) c._recordingUrl=data.recordingUrl;
-    save();upStats();renderList();
-    if(curId===contactId) sel(contactId);
-    toast('✓ Notas guardadas','ok');
-  }catch(e){console.error('fetchCallNotes:',e);}
+  for(let attempt=0;attempt<10;attempt++){
+    await new Promise(r=>setTimeout(r,attempt===0?20000:15000));
+    try{
+      const r=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({callId})});
+      if(!r.ok) continue;
+      const data=await r.json();
+      if(data.retry) continue;
+      const c=C.find(x=>x.id===contactId);if(!c) return;
+      if(data.notas&&data.notas.length>5) c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
+      if(data.resultado&&data.resultado!=='pendiente'&&c.estado!=='visitaOK') c.estado=data.resultado;
+      const ag=['carla','carlos'];
+      if(data.nombreContacto&&!c.contactName&&!ag.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
+      if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
+      if(data.emailContacto&&!c.email) c.email=data.emailContacto;
+      if(data.recordingUrl) c._recordingUrl=data.recordingUrl;
+      save();upStats();renderList();
+      if(curId===contactId) sel(contactId);
+      toast('✓ Notas guardadas','ok');
+      return;
+    }catch(e){console.error('fetchCallNotes',attempt,e);}
+  }
 }
 
 function copyScript(){
