@@ -215,6 +215,7 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
     <option value="noContesta" style="color:#000">No contesta</option>
     <option value="todos" style="color:#000">Todos los pendientes</option>
   </select>
+  <input type="time" id="camp-time" title="Hora de inicio (vacío = ahora)" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 8px;border-radius:6px;font-family:var(--fn);outline:none;width:80px;cursor:pointer;">
   <button class="btn" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:5px 12px;" onclick="startCampaign()">▶ Iniciar campaña</button>
 </div>
 <div class="camp-bar" id="camp-bar">
@@ -511,6 +512,8 @@ function getCampaignOrder(){
   }).map(c=>c.id);
 }
 
+let campaignScheduleTimer=null;
+
 function startCampaign(){
   if(campaignRunning){toast('Campaña ya en curso','');return;}
   const queue=getCampaignOrder();
@@ -520,17 +523,64 @@ function startCampaign(){
     'duda':'Duda','noContesta':'No contesta','todos':'Todos pendientes'}[filterVal]||filterVal;
   const cpVal=document.getElementById('camp-cp')?.value||'todos';
   const cpLabel=cpVal==='todos'?'Todos los CP':cpVal;
-  if(queue.length===0){
-    toast('No hay contactos en filtro: '+filterLabel,'err');
+  if(queue.length===0){toast('No hay contactos en filtro: '+filterLabel,'err');return;}
+
+  // Check scheduled time
+  const timeInput=document.getElementById('camp-time');
+  const timeVal=timeInput?timeInput.value:'';
+
+  if(timeVal){
+    const [h,m]=timeVal.split(':').map(Number);
+    const now=new Date();
+    const target=new Date();
+    target.setHours(h,m,0,0);
+    // If time already passed today, schedule for tomorrow
+    if(target<=now) target.setDate(target.getDate()+1);
+    const diffMs=target-now;
+    const diffMin=Math.round(diffMs/60000);
+    const timeStr=h.toString().padStart(2,'0')+':'+m.toString().padStart(2,'0');
+
+    if(!confirm('Programar campaña: '+filterLabel+' | '+cpLabel+' | '+queue.length+' contactos. Inicio a las '+timeStr+' (en '+diffMin+' min)?')) return;
+
+    campaignQueue=queue;
+    campaignIdx=0;
+    campaignPaused=false;
+
+    // Show scheduled state in bar
+    document.getElementById('camp-bar').classList.add('on');
+    document.getElementById('camp-title').textContent='⏰ Campaña programada para las '+timeStr;
+    document.getElementById('camp-sub').textContent=queue.length+' contactos · Filtro: '+filterLabel+' · '+cpLabel;
+    document.getElementById('camp-fill').style.width='0%';
+    document.getElementById('camp-pct').textContent='00:'+diffMin.toString().padStart(2,'0');
+
+    // Countdown display
+    const countdownIv=setInterval(()=>{
+      const rem=Math.round((target-new Date())/60000);
+      if(rem<=0){clearInterval(countdownIv);return;}
+      document.getElementById('camp-pct').textContent=rem+'min';
+    },30000);
+
+    if(campaignScheduleTimer) clearTimeout(campaignScheduleTimer);
+    campaignScheduleTimer=setTimeout(()=>{
+      clearInterval(countdownIv);
+      campaignRunning=true;
+      document.getElementById('camp-title').textContent='Campaña iniciada';
+      toast('▶ Campaña iniciada a las '+timeStr,'ok');
+      runNextCampaignCall();
+    }, diffMs);
+
+    toast('⏰ Campaña programada para las '+timeStr+' ('+diffMin+' min)','ok');
     return;
   }
+
+  // Immediate start
   if(!confirm('Iniciar campaña "'+filterLabel+'" — '+cpLabel+' — con '+queue.length+' contactos?')) return;
   campaignQueue=queue;
   campaignIdx=0;
   campaignRunning=true;
   campaignPaused=false;
   document.getElementById('camp-bar').classList.add('on');
-  toast('Campaña iniciada — '+queue.length+' contactos ('+filterLabel+')','ok');
+  toast('Campaña iniciada — '+queue.length+' contactos','ok');
   runNextCampaignCall();
 }
 
@@ -681,6 +731,7 @@ function stopCampaign(){
   campaignRunning=false;
   campaignPaused=false;
   if(campaignTimer){clearTimeout(campaignTimer);campaignTimer=null;}
+  if(campaignScheduleTimer){clearTimeout(campaignScheduleTimer);campaignScheduleTimer=null;}
   clearInterval(iv);
   document.getElementById('camp-bar').classList.remove('on');
   document.getElementById('cban').classList.remove('on');
@@ -1114,10 +1165,11 @@ async function callViaProxy(phone,c){
       name:'Agente Factor Energia',
       firstMessageMode:'assistant-speaks-first-with-model-generated-message',
       startSpeakingPlan:{waitSeconds:2,smartEndpointingEnabled:true},
+      stopSpeakingPlan:{numWords:3,voiceSeconds:0.2,backoffSeconds:1},
       firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':(new Date().getHours()<15?'Buenos días. ':'Buenas tardes. ')+'¿Hablo con la empresa '+c.nombre.replace(/,?\s*(S\.L\.|SL|S\.A\.|SA|SCP|S\.C\.P\.|SLP|SAU)\.?$/i,'').trim()+'?',
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
       voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.35,similarityBoost:0.75,style:0.15,useSpeakerBoost:true},
-      transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
+      transcriber:{provider:'deepgram',model:'nova-2',language:'es',endpointing:300},
       endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
       recordingEnabled:true,
       silenceTimeoutSeconds:10,
@@ -1173,27 +1225,130 @@ async function pollCallStatus(callId,contactId){
 
 async function fetchCallNotes(callId,contactId){
   if(!callId) return;
-  for(let attempt=0;attempt<10;attempt++){
-    await new Promise(r=>setTimeout(r,attempt===0?20000:15000));
+  // Poll Vapi directly — no backend needed
+  for(let attempt=0;attempt<15;attempt++){
+    await new Promise(r=>setTimeout(r,attempt===0?15000:12000));
     try{
-      const r=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({callId})});
+      const r=await fetch('https://api.vapi.ai/call/'+callId,{
+        headers:{Authorization:'Bearer '+VAPI_KEY}
+      });
       if(!r.ok) continue;
       const data=await r.json();
-      if(data.retry) continue;
+
+      // Still active — keep waiting
+      if(data.status==='in-progress'||data.status==='ringing') continue;
+
+      const transcript=(data.transcript||'').toLowerCase();
+      const rawTranscript=data.transcript||'';
+      const recordingUrl=data.recordingUrl||data.artifact?.recordingUrl||null;
+      const endedReason=data.endedReason||'';
+      const duration=data.endedAt&&data.startedAt
+        ?Math.round((new Date(data.endedAt)-new Date(data.startedAt))/1000):null;
+
+      // Not enough data yet — retry
+      if(!endedReason&&transcript.length<20&&attempt<5) continue;
+
       const c=C.find(x=>x.id===contactId);if(!c) return;
-      if(data.notas&&data.notas.length>5) c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
-      if(data.resultado&&data.resultado!=='pendiente'&&c.estado!=='visitaOK') c.estado=data.resultado;
+
+      // Save recording URL immediately when found
+      if(recordingUrl&&recordingUrl.length>5){
+        c._recordingUrl=recordingUrl;
+        save();
+        if(curId===contactId) sel(contactId);
+      }
+
+      // Classify result
+      let resultado=null;
+      const noContactReasons=['customer-did-not-answer','no-answer','voicemail',
+        'machine_end_beep','machine_end_silence','machine_end_other'];
+      const shortCall=duration!==null&&duration<15;
+
+      if(noContactReasons.includes(endedReason)||shortCall||transcript.length<30){
+        resultado='noContesta';
+      } else if(
+        (transcript.includes('quedamos')||transcript.includes('de acuerdo')||transcript.includes('nos vemos'))&&
+        transcript.match(/(lunes|martes|mi[eé]rcoles|jueves|viernes|ma[ñn]ana|pasado)/)
+      ){resultado='visitaOK';}
+      else if(
+        transcript.match(/no (me |nos )?(interesa|interesamos|queremos|necesitamos)/)||
+        transcript.match(/no (estamos|estoy) interesad/)||
+        transcript.match(/(no gracias|paso|no me llame|no nos llame|no moleste)/)
+      ){resultado='noInteresa';}
+      else if(
+        transcript.match(/(no est[aá]|no se encuentra|ha salido|est[aá] fuera)/)||
+        transcript.match(/(llame (m[aá]s tarde|luego|ma[ñn]ana|despu[eé]s))/)||
+        transcript.match(/(ahora no (puede|puedo)|no es buen momento)/)||
+        transcript.match(/(no soy (yo|el responsable)|no me encargo)/)
+      ){resultado='rellamar';}
+      else if(transcript.length>30){resultado='duda';}
+
+      // Extract name
       const ag=['carla','carlos'];
-      if(data.nombreContacto&&!c.contactName&&!ag.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
-      if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
-      if(data.emailContacto&&!c.email) c.email=data.emailContacto;
-      if(data.recordingUrl) c._recordingUrl=data.recordingUrl;
+      const sw=['del','de','la','el','un','una','con','por','que','muy','usted',
+        'hola','buenos','dias','tardes','perfecto','claro','vale','factor'];
+      let nombreContacto=null;
+      for(const p of [/(?:me llamo|mi nombre es)\s+([A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,})/i,
+                      /(?:soy\s+)([A-ZÁÉÍÓÚÑ][a-záéíóúñ]{2,})(?:\s*[,.])/i]){
+        const m=rawTranscript.match(p);
+        if(m&&!sw.includes(m[1].toLowerCase())&&!ag.includes(m[1].toLowerCase())){
+          nombreContacto=m[1];break;
+        }
+      }
+
+      // Extract visit date
+      let fechaVisita=null;
+      if(resultado==='visitaOK'){
+        const dm=rawTranscript.match(/(lunes|martes|mi[eé]rcoles|jueves|viernes|ma[ñn]ana|pasado ma[ñn]ana)(\s+a las?\s+\d+[:.h]?\d*)?/i);
+        if(dm) fechaVisita=dm[0];
+      }
+
+      // Extract email
+      let emailContacto=null;
+      const em=rawTranscript.match(/([a-z0-9._-]+)\s+arroba\s+([a-z0-9.-]+)\s+punto\s+([a-z]{2,})/i);
+      if(em) emailContacto=em[1]+'@'+em[2]+'.'+em[3];
+
+      // Build notes
+      const now=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',
+        year:'numeric',hour:'2-digit',minute:'2-digit'});
+      const labels={visitaOK:'🟢 VISITA CONCERTADA',noInteresa:'🔴 No interesa',
+        rellamar:'🟡 Rellamar',noContesta:'⚫ No contestó',duda:'❓ Duda — revisar'};
+
+      let notas=`📞 ${now}${duration?' · '+duration+'s':''}
+`;
+      if(resultado) notas+=`${labels[resultado]||resultado}
+`;
+      if(fechaVisita) notas+=`📅 ${fechaVisita}
+`;
+      if(nombreContacto) notas+=`👤 ${nombreContacto}
+`;
+      if(emailContacto) notas+=`📧 ${emailContacto}
+`;
+
+      const userLines=(rawTranscript.split('\n'))
+        .filter(l=>/^(user|usuario|cliente):/i.test(l))
+        .map(l=>l.replace(/^(user|usuario|cliente):\s*/i,'').trim())
+        .filter(l=>l.length>8&&!l.toLowerCase().includes('soy carla'))
+        .slice(-3);
+      if(userLines.length>0) notas+=`💬 "${userLines.join(' / ').slice(0,300)}"\n`;
+
+      if(recordingUrl&&recordingUrl.length>5) notas+=`🎧 ${recordingUrl}`;
+      else notas+=`🔗 https://dashboard.vapi.ai/calls/${callId}`;
+
+      // Apply to contact
+      if(notas.length>20) c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+notas;
+      if(resultado&&resultado!=='pendiente'&&c.estado!=='visitaOK') c.estado=resultado;
+      if(nombreContacto&&!c.contactName&&!ag.includes(nombreContacto.toLowerCase())) c.contactName=nombreContacto;
+      if(fechaVisita&&!c.visitDate) c.visitDate=fechaVisita;
+      if(emailContacto&&!c.email) c.email=emailContacto;
+      if(recordingUrl) c._recordingUrl=recordingUrl;
+
       save();upStats();renderList();
       if(curId===contactId) sel(contactId);
       toast('✓ Notas guardadas','ok');
       return;
-    }catch(e){console.error('fetchCallNotes',attempt,e);}
+    }catch(e){console.error('fetchCallNotes attempt',attempt,e);}
   }
+  console.log('fetchCallNotes: timeout for',callId);
 }
 
 function copyScript(){
