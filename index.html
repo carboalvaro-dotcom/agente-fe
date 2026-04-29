@@ -214,6 +214,7 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
     <option value="duda" style="color:#000">Duda</option>
     <option value="noContesta" style="color:#000">No contesta</option>
     <option value="todos" style="color:#000">Todos los pendientes</option>
+    <option value="absolutamente_todos" style="color:#000">⚡ TODOS (incluye llamados)</option>
   </select>
   <input type="time" id="camp-time" title="Hora de inicio (vacío = ahora)" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 8px;border-radius:6px;font-family:var(--fn);outline:none;width:80px;cursor:pointer;">
   <button class="btn" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:5px 12px;" onclick="startCampaign()">▶ Iniciar campaña</button>
@@ -501,8 +502,10 @@ function getCampaignOrder(){
     base=base.filter(c=>c.estado==='pendiente'&&(c.llamadas||0)===0);
   } else if(filter==='todos'){
     base=base.filter(c=>c.estado==='pendiente');
+  } else if(filter==='absolutamente_todos'){
+    // All contacts with phone, regardless of status or previous calls
+    // (already filtered by phone above)
   } else {
-    // For rellamar, noContesta, duda, pendiente — filter by estado only
     base=base.filter(c=>c.estado===filter);
   }
   return base.sort((a,b)=>{
@@ -520,7 +523,7 @@ function startCampaign(){
   const filterSel=document.getElementById('camp-filter');
   const filterVal=filterSel?filterSel.value:'nuevos';
   const filterLabel={'nuevos':'Sin llamar','pendiente':'Pendientes','rellamar':'Rellamar',
-    'duda':'Duda','noContesta':'No contesta','todos':'Todos pendientes'}[filterVal]||filterVal;
+    'duda':'Duda','noContesta':'No contesta','todos':'Todos pendientes','absolutamente_todos':'⚡ TODOS'}[filterVal]||filterVal;
   const cpVal=document.getElementById('camp-cp')?.value||'todos';
   const cpLabel=cpVal==='todos'?'Todos los CP':cpVal;
   if(queue.length===0){toast('No hay contactos en filtro: '+filterLabel,'err');return;}
@@ -603,7 +606,7 @@ async function runNextCampaignCall(){
     !c.telefono||c.telefono.trim().length<6 ||
     (filter==='nuevos' && (c.estado!=='pendiente'||(c.llamadas||0)>0)) ||
     (filter==='todos' && c.estado!=='pendiente') ||
-    (filter!=='nuevos'&&filter!=='todos' && c.estado!==filter);
+    (filter!=='nuevos'&&filter!=='todos'&&filter!=='absolutamente_todos' && c.estado!==filter);
   if(skip){
     campaignIdx++;
     runNextCampaignCall();
