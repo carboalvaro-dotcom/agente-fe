@@ -782,7 +782,11 @@ async function pollRemoteChanges(){
 
       const remoteData=Array.isArray(result.data)?result.data:
         (result.data&&result.data.data?result.data.data:[]);
+      const remoteTs=result.data&&result.data._ts?result.data._ts:0;
+      const localTs2=parseInt(localStorage.getItem(SK+'_ts')||'0');
       if(!remoteData||remoteData.length===0){setTimeout(pollRemoteChanges,30000);return;}
+      // Only apply if remote is strictly newer than our local save
+      if(remoteTs>0&&remoteTs<=localTs2){setTimeout(pollRemoteChanges,30000);return;}
 
       let changed=0;
       remoteData.forEach(rd=>{
@@ -821,14 +825,22 @@ async function init(){
 
   // Try GitHub first, fallback to localStorage
   let s=[];
+  const localTs=parseInt(localStorage.getItem(SK+'_ts')||'0');
   const ghData=await loadFromGitHub();
-  if(ghData&&ghData.length>0){
-    s=ghData;
-    localStorage.setItem(SK,JSON.stringify(ghData));
-    console.log('Loaded from GitHub:',ghData.length,'records');
+  const ghTs=ghData&&ghData._ts?ghData._ts:0;
+  const ghArr=Array.isArray(ghData)?ghData:(ghData&&ghData.data?ghData.data:null);
+
+  // Use GitHub data only if it's newer than local
+  if(ghArr&&ghArr.length>0&&ghTs>=localTs){
+    s=ghArr;
+    localStorage.setItem(SK,JSON.stringify(ghArr));
+    localStorage.setItem(SK+'_ts',ghTs||Date.now());
+    console.log('Loaded from GitHub:',ghArr.length,'records (ts:'+ghTs+')');
   } else {
     try{s=JSON.parse(localStorage.getItem(SK)||'[]');}catch{}
-    console.log('Loaded from localStorage:',s.length,'records');
+    console.log('Loaded from localStorage:',s.length,'records (ts:'+localTs+')');
+    // If we have local data, push it to GitHub to keep it in sync
+    if(s.length>0&&localTs>0) setTimeout(()=>syncToGitHub(s),3000);
   }
   try{
     C=RAW.map(r=>{
@@ -865,10 +877,12 @@ async function syncToGitHub(data){
   if(_ghSaving){_ghPendingSave=true;return;}
   _ghSaving=true;
   try{
+    const ts=Date.now();
+    const payload={data,_ts:ts};
     const r=await fetch(SYNC_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({data,sha:_currentSha})
+      body:JSON.stringify({data:payload,sha:_currentSha})
     });
     if(r.ok){
       const result=await r.json();
@@ -893,9 +907,16 @@ async function loadFromGitHub(){
     if(!r.ok) return null;
     const result=await r.json();
     if(result.sha) _currentSha=result.sha;
-    const d=Array.isArray(result.data)?result.data:
-      (result.data&&result.data.data?result.data.data:null);
-    return d&&d.length>0?d:null;
+    // result.data can be: plain array, or {data:[], _ts:N}
+    if(!result.data) return null;
+    if(Array.isArray(result.data)) return result.data;
+    if(result.data.data&&Array.isArray(result.data.data)){
+      // attach _ts to the array so init() can compare
+      const arr=result.data.data;
+      arr._ts=result.data._ts||0;
+      return arr;
+    }
+    return null;
   }catch(e){console.error('loadFromGitHub:',e);return null;}
 }
 
