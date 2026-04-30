@@ -754,6 +754,8 @@ function stopCampaign(){
 let _lastGhSha=null;
 let _pollActive=true;
 
+let _lastLocalSave=0; // timestamp of last local save
+
 async function pollRemoteChanges(){
   if(!_pollActive) return;
   try{
@@ -763,21 +765,29 @@ async function pollRemoteChanges(){
     const sha=result.sha;
 
     // First load - just record SHA
-    if(!_lastGhSha){_lastGhSha=sha;setTimeout(pollRemoteChanges,30000);return;}
+    if(!_lastGhSha){_lastGhSha=sha;if(sha)_currentSha=sha;setTimeout(pollRemoteChanges,30000);return;}
 
-    // SHA changed - someone updated from another device
+    // SHA changed - another device saved something
     if(sha!==_lastGhSha&&!_ghSaving){
+
+      // If WE saved in the last 10 seconds, our version is newer - skip
+      const msSinceLocalSave=Date.now()-_lastLocalSave;
+      if(msSinceLocalSave<10000){
+        _lastGhSha=sha;if(sha)_currentSha=sha;
+        setTimeout(pollRemoteChanges,30000);return;
+      }
+
       _lastGhSha=sha;
       if(sha) _currentSha=sha;
 
-      // Apply remote data - SHA changed means another device saved
       const remoteData=Array.isArray(result.data)?result.data:
         (result.data&&result.data.data?result.data.data:[]);
+      if(!remoteData||remoteData.length===0){setTimeout(pollRemoteChanges,30000);return;}
 
       let changed=0;
-      remoteData.forEach(r=>{
-        const c=C.find(x=>x.id===r.id);
-        if(c){Object.assign(c,r);changed++;}
+      remoteData.forEach(rd=>{
+        const c=C.find(x=>x.id===rd.id);
+        if(c){Object.assign(c,rd);changed++;}
       });
 
       if(changed>0){
@@ -786,10 +796,7 @@ async function pollRemoteChanges(){
         if(curId) sel(curId);
         const syncEl=document.getElementById('sync-status');
         if(syncEl){syncEl.textContent='🔄 Actualizado ('+changed+' cambios)';syncEl.style.color='rgba(255,255,255,.9)';}
-        setTimeout(()=>{
-          const el=document.getElementById('sync-status');
-          if(el) el.style.color='rgba(255,255,255,.5)';
-        },3000);
+        setTimeout(()=>{const el=document.getElementById('sync-status');if(el)el.style.color='rgba(255,255,255,.5)';},3000);
       }
     }
   }catch(e){console.log('poll error:',e);}
@@ -850,6 +857,7 @@ function save(){
   }));
   localStorage.setItem(SK,JSON.stringify(data));
   localStorage.setItem(SK+'_ts',Date.now());
+  _lastLocalSave=Date.now();
   syncToGitHub(data);
 }
 
@@ -864,7 +872,11 @@ async function syncToGitHub(data){
     });
     if(r.ok){
       const result=await r.json();
-      if(result.ok&&result.sha) _currentSha=result.sha;
+      if(result.ok&&result.sha){
+        _currentSha=result.sha;
+        _lastGhSha=result.sha; // so poll won't re-apply our own save
+      }
+      _lastLocalSave=Date.now();
       const syncEl=document.getElementById('sync-status');
       if(syncEl){syncEl.textContent='✓ Sync '+new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});syncEl.style.color='rgba(255,255,255,.7)';}
     }
