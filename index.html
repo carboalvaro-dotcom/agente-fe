@@ -134,6 +134,81 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
 .btn-pause{background:var(--aml);color:var(--am);border:1px solid rgba(180,83,9,.2);padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fn);}
 .btn-stop{background:var(--rdl);color:var(--rd);border:1px solid rgba(192,57,43,.2);padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fn);}
 .stag.duda{background:#f0e6ff;color:#7c3aed;}.sdot.duda{background:#7c3aed;}
+
+@media (max-width:768px){
+  /* Topbar */
+  .tb{flex-wrap:wrap;gap:6px;padding:8px 10px;}
+  .logo{font-size:12px;}
+  .tb-stats{gap:4px;flex-wrap:wrap;}
+  .tstat{min-width:44px;padding:3px 5px;}
+  .tstat-v{font-size:13px;}
+  .tstat-l{font-size:8px;}
+  #camp-cp,#camp-filter,#camp-time{font-size:10px;padding:3px 5px;}
+  .btn{font-size:10px;padding:4px 8px;}
+
+  /* Layout: stack sidebar + detail vertically */
+  .main{flex-direction:column;}
+  .sidebar{width:100%;height:auto;max-height:45vh;border-right:none;border-bottom:1px solid var(--bd);}
+  .det{width:100%;height:auto;flex:1;}
+
+  /* When detail is open, hide list on mobile */
+  .sidebar.hide-mob{display:none;}
+  .det.full-mob{display:flex;}
+
+  /* Contact list items */
+  .item{padding:8px 10px;}
+  .item-name{font-size:12px;}
+  .item-meta{font-size:10px;}
+
+  /* Detail panel */
+  .det-head{padding:10px 12px;flex-direction:column;align-items:flex-start;gap:6px;}
+  .det-name{font-size:14px;}
+  .det-actions{flex-wrap:wrap;gap:4px;}
+  .det-actions .btn{font-size:10px;padding:4px 8px;}
+
+  /* Back button on mobile */
+  .btn-back-mob{display:flex!important;}
+
+  /* Result buttons */
+  .rbtn{font-size:11px;padding:6px 10px;}
+
+  /* Script phases */
+  .phase{margin-bottom:6px;}
+  .ph-head{padding:8px 10px;}
+  .ph-title{font-size:11px;}
+  .ph-body{font-size:11px;padding:8px 10px;}
+
+  /* Call banner */
+  .cban{padding:8px 12px;gap:8px;}
+  #ctm{font-size:18px;}
+
+  /* Camp bar */
+  .camp-bar{flex-wrap:wrap;gap:6px;padding:8px 10px;}
+  .camp-bar-track{width:80px;}
+
+  /* Fields */
+  .fields{grid-template-columns:1fr;}
+  .field-row{padding:6px 10px;}
+  .field-label{font-size:10px;}
+  .field-val{font-size:12px;}
+
+  /* Notes */
+  .notes-area{font-size:12px;padding:8px 10px;}
+
+  /* Filters */
+  .filters{padding:6px 8px;gap:4px;flex-wrap:wrap;}
+  .ftab{font-size:10px;padding:3px 7px;}
+  .search-box{font-size:12px;}
+}
+
+@media (max-width:480px){
+  .tb-stats{gap:3px;}
+  .tstat{min-width:38px;padding:2px 4px;}
+  .tstat-v{font-size:12px;}
+  .tstat-l{font-size:7px;}
+  .det-name{font-size:13px;}
+  .rbtn{font-size:10px;padding:5px 8px;}
+}
 </style>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -415,6 +490,7 @@ function sel(id){
   const pro=isPRO(c);
   document.getElementById('empty').style.display='none';
   document.getElementById('det').classList.add('vis');
+  openMobileDet();
   document.getElementById('d-name').textContent=c.nombre;
   const st=document.getElementById('d-stag');
   st.className='stag '+c.estado;st.textContent=SL[c.estado]||c.estado;
@@ -914,6 +990,20 @@ function stopCampaign(){
   const c=C.find(x=>x.id===curId);
   if(c&&c.estado==='llamando'){c.estado='pendiente';save();upStats();renderList();}
   toast('Campaña detenida','');
+}
+
+
+function openMobileDet(){
+  if(window.innerWidth<=768){
+    document.querySelector('.sidebar')?.classList.add('hide-mob');
+    document.querySelector('.det')?.classList.add('full-mob');
+    document.querySelector('.btn-back-mob')&&(document.querySelector('.btn-back-mob').style.display='flex');
+  }
+}
+function closeMobileDet(){
+  document.querySelector('.sidebar')?.classList.remove('hide-mob');
+  document.querySelector('.det')?.classList.remove('full-mob');
+  document.querySelector('.btn-back-mob')&&(document.querySelector('.btn-back-mob').style.display='none');
 }
 
 async function syncToGitHub(data){
