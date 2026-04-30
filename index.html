@@ -769,20 +769,25 @@ async function pollRemoteChanges(){
     if(sha!==_lastGhSha&&!_ghSaving){
       _lastGhSha=sha;
       if(sha) _currentSha=sha;
-      const remoteData=result.data;
 
-      // Merge: update contacts with remote data
+      // Check timestamps - only apply if remote is strictly newer
+      const localTs=parseInt(localStorage.getItem(SK+'_ts')||'0');
+      const remoteTs=result.data&&result.data.ts?result.data.ts:0;
+      const remoteData=result.data&&result.data.data?result.data.data:result.data;
+
+      if(remoteTs<=localTs){
+        // Local is newer or equal - skip
+        setTimeout(pollRemoteChanges,30000);return;
+      }
+
+      // Merge: apply remote data
       let changed=0;
-      remoteData.forEach(r=>{
-        const c=C.find(x=>x.id===r.id);
-        if(c){
-          // Only update if remote is newer (more llamadas or different estado)
-          if(r.llamadas>=(c.llamadas||0)&&(r.estado!==c.estado||r.notas!==c.notas||r.contactName!==c.contactName)){
-            Object.assign(c,r);
-            changed++;
-          }
-        }
-      });
+      if(Array.isArray(remoteData)){
+        remoteData.forEach(r=>{
+          const c=C.find(x=>x.id===r.id);
+          if(c){Object.assign(c,r);changed++;}
+        });
+      }
 
       if(changed>0){
         localStorage.setItem(SK,JSON.stringify(remoteData));
@@ -851,18 +856,21 @@ function save(){
     llamadas:c.llamadas||0,ultimaLlamada:c.ultimaLlamada||'',
     _callId:c._callId||'',_recordingUrl:c._recordingUrl||''
   }));
+  const payload={ts:Date.now(),data};
   localStorage.setItem(SK,JSON.stringify(data));
-  syncToGitHub(data);
+  localStorage.setItem(SK+'_ts',payload.ts);
+  syncToGitHub(payload);
 }
 
 async function syncToGitHub(data){
   if(_ghSaving){_ghPendingSave=true;return;}
   _ghSaving=true;
   try{
+    const payload=typeof data.ts!=='undefined'?data:{ts:Date.now(),data};
     const r=await fetch(SYNC_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({data,sha:_currentSha})
+      body:JSON.stringify({data:payload,sha:_currentSha})
     });
     if(r.ok){
       const result=await r.json();
@@ -883,7 +891,11 @@ async function loadFromGitHub(){
     if(!r.ok) return null;
     const result=await r.json();
     if(result.sha) _currentSha=result.sha;
-    return result.data&&result.data.length>0?result.data:null;
+    // Handle both formats: {ts, data:[]} and plain []
+    const d=result.data&&result.data.data?result.data.data:result.data;
+    const ts=result.data&&result.data.ts?result.data.ts:0;
+    if(ts) localStorage.setItem(SK+'_ts',ts);
+    return d&&d.length>0?d:null;
   }catch(e){console.error('loadFromGitHub:',e);return null;}
 }
 
