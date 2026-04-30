@@ -141,21 +141,29 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
 <body>
 <div class="tb">
   <div class="logo">
-    <span>FactorEnergía</span>
-    <div class="logo-sep"></div>
-    <span class="logo-sub">Agente CRM · Prospección</span>
+    <span>FactorEnergía — Agente CARLA CRM</span>
   </div>
+  <span style="font-size:11px;color:rgba(255,255,255,.6);margin:0 8px">Al servicio de ACC</span>
+  <span id="sync-status" style="font-size:10px;color:rgba(255,255,255,.5);cursor:pointer;margin-right:6px" onclick="forceSync()">⏳ Conectando...</span>
+  <button class="btn" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:5px 10px;margin-right:4px;" onclick="showDashboard()">📊 Dashboard</button>
   <div class="tb-stats">
-    <div class="tstat" onclick="setF('todos',null)"><div class="tstat-v" id="st">0</div><div class="tstat-l">Total</div></div>
+    <div class="tstat" onclick="setF('todos',null)"><div class="tstat-v" id="st">0</div><div class="tstat-l">TOTAL</div></div>
     <div class="tstat" onclick="setF('prioritario',null)"><div class="tstat-dot dot-pu"></div><div class="tstat-v" id="spr">0</div><div class="tstat-l">PRO</div></div>
-    <div class="tstat" onclick="setF('visitaOK',null)"><div class="tstat-dot dot-gr"></div><div class="tstat-v" id="sv">0</div><div class="tstat-l">Visitas</div></div>
-    <div class="tstat" onclick="setF('rellamar',null)"><div class="tstat-dot dot-am"></div><div class="tstat-v" id="sr">0</div><div class="tstat-l">Rellamar</div></div>
-    <div class="tstat" onclick="setF('noInteresa',null)"><div class="tstat-dot dot-rd"></div><div class="tstat-v" id="sni">0</div><div class="tstat-l">No interesa</div></div>
-    <div class="tstat" onclick="setF('noContesta',null)"><div class="tstat-dot dot-gray"></div><div class="tstat-v" id="snc">0</div><div class="tstat-l">No contesta</div></div>
-    <div class="tstat" onclick="setF('duda',null)"><div class="tstat-dot" style="background:#a78bfa"></div><div class="tstat-v" style="color:#c4b5fd" id="sduda">0</div><div class="tstat-l">Duda</div></div>
-    <div class="tstat" onclick="setF('llamadas',null)"><div class="tstat-dot" style="background:#60a5fa"></div><div class="tstat-v" style="color:#93c5fd" id="sllamadas">0</div><div class="tstat-l">Llamadas</div></div>
+    <div class="tstat" onclick="setF('visitaOK',null)"><div class="tstat-dot dot-gr"></div><div class="tstat-v" id="sv">0</div><div class="tstat-l">VISITAS</div></div>
+    <div class="tstat" onclick="setF('rellamar',null)"><div class="tstat-dot dot-am"></div><div class="tstat-v" id="sr">0</div><div class="tstat-l">RELLAMAR</div></div>
+    <div class="tstat" onclick="setF('noInteresa',null)"><div class="tstat-dot dot-rd"></div><div class="tstat-v" id="sni">0</div><div class="tstat-l">NO INTERESA</div></div>
+    <div class="tstat" onclick="setF('noContesta',null)"><div class="tstat-dot dot-gray"></div><div class="tstat-v" id="snc">0</div><div class="tstat-l">NO CONTESTA</div></div>
+    <div class="tstat" onclick="setF('duda',null)"><div class="tstat-dot" style="background:#a78bfa"></div><div class="tstat-v" style="color:#c4b5fd" id="sduda">0</div><div class="tstat-l">DUDA</div></div>
+    <div class="tstat" onclick="setF('llamadas',null)"><div class="tstat-dot" style="background:#60a5fa"></div><div class="tstat-v" style="color:#93c5fd" id="sllamadas">0</div><div class="tstat-l">LLAMADAS</div></div>
   </div>
-  <select id="camp-filter" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 8px;border-radius:6px;font-family:var(--fn);cursor:pointer;outline:none;">
+  <select id="camp-cp" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 8px;border-radius:6px;font-family:var(--fn);cursor:pointer;outline:none;margin-right:4px;">
+    <option value="" style="color:#000">Todos los CP</option>
+    <option value="08390" style="color:#000">08390 — Montgat</option>
+    <option value="08391" style="color:#000">08391 — Tiana</option>
+    <option value="08329" style="color:#000">08329 — Teià</option>
+    <option value="08911" style="color:#000">08911 — Badalona</option>
+  </select>
+  <select id="camp-filter" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 8px;border-radius:6px;font-family:var(--fn);cursor:pointer;outline:none;margin-right:4px;">
     <option value="nuevos" style="color:#000">Solo nuevos (sin llamar)</option>
     <option value="pendiente" style="color:#000">Pendientes</option>
     <option value="rellamar" style="color:#000">Rellamar</option>
@@ -163,6 +171,7 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
     <option value="noContesta" style="color:#000">No contesta</option>
     <option value="todos" style="color:#000">Todos los pendientes</option>
   </select>
+  <input type="time" id="camp-time" value="09:00" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 6px;border-radius:6px;font-family:var(--mo);outline:none;width:70px;margin-right:4px;" title="Hora inicio campaña">
   <button class="btn" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:5px 12px;" onclick="startCampaign()">▶ Iniciar campaña</button>
 </div>
 <div class="camp-bar" id="camp-bar">
@@ -758,7 +767,8 @@ let campaignQueue=[],campaignIdx=0,campaignRunning=false,campaignPaused=false,ca
 function getCampaignOrder(){
   const filter=document.getElementById('camp-filter')?.value||'nuevos';
   const ss=s=>{if(/restaurante|bar|cafeter/i.test(s))return 5;if(/tienda|comerci/i.test(s))return 4;if(/panader/i.test(s))return 3;if(/industrial|taller/i.test(s))return 2;return 1;};
-  let base=C.filter(c=>c.nif!=='AMIGO'&&c.nif!=='TEST');
+  const cpFilter=document.getElementById('camp-cp')?.value||'';
+  let base=C.filter(c=>c.nif!=='AMIGO'&&c.nif!=='TEST'&&(!cpFilter||c.cp===cpFilter));
   if(filter==='nuevos') base=base.filter(c=>c.estado==='pendiente'&&(c.llamadas||0)===0);
   else if(filter==='todos') base=base.filter(c=>c.estado==='pendiente');
   else base=base.filter(c=>c.estado===filter);
