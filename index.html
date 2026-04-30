@@ -28,6 +28,8 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;display:flex;flex-direction:column;overflow:hidden;font-size:13px;}
 .tb{display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:50px;background:var(--ac);border-bottom:1px solid var(--ach);flex-shrink:0;box-shadow:0 2px 8px rgba(26,86,219,.25);}
+.tb-top{display:none;}.tb-logo{display:none;}
+.tb-stats-row{display:contents;}.tb-camp-row{display:contents;}
 .logo{font-size:13px;font-weight:600;color:#fff;display:flex;align-items:center;gap:10px;}
 .logo-sep{width:1px;height:16px;background:rgba(255,255,255,.3);}
 .logo-sub{font-size:11px;font-weight:400;color:rgba(255,255,255,.75);}
@@ -155,92 +157,26 @@ html.mob-pre body,body.mob{--is-mob:1;}
 /* MOBILE ACCORDION */
 
 
+
+
 @media(max-width:768px){
-  body{overflow:auto;}
-
-  /* TOPBAR: 2 rows */
-  .tb{
-    height:auto!important;
-    flex-direction:column!important;
-    align-items:stretch!important;
-    padding:0!important;
-    gap:0!important;
-  }
-
-  /* Row 1: logo + stats */
-  .tb-row1{
-    display:flex;
-    align-items:center;
-    padding:6px 10px;
-    gap:8px;
-    min-height:38px;
-  }
-  .logo{flex-shrink:0;}
-  .logo span:first-child{font-size:11px!important;font-weight:700;}
-  .tb>span,.tb>#sync-status{display:none!important;}
-  .tb-stats{
-    flex:1;
-    display:flex!important;
-    gap:0!important;
-    justify-content:space-around;
-    align-items:center;
-  }
-  .tstat{
-    flex:1;min-width:0;
-    padding:2px 2px!important;
-    text-align:center;
-    cursor:pointer;
-  }
-  .tstat-v{font-size:11px!important;font-weight:700;}
-  .tstat-l{font-size:7px!important;opacity:.8;}
+  body{overflow-y:auto;overflow-x:hidden;}
+  .tb{display:flex!important;flex-direction:column!important;height:auto!important;padding:0!important;align-items:stretch!important;justify-content:flex-start!important;}
+  .tb-top{display:flex!important;align-items:center;padding:6px 10px;gap:6px;}
+  .tb-logo{display:block!important;font-size:12px;font-weight:700;color:#fff;flex:1;}
+  .tb-stats-row{display:flex!important;overflow-x:auto;-webkit-overflow-scrolling:touch;background:rgba(0,0,0,.15);padding:3px 6px;gap:0;scrollbar-width:none;}
+  .tb-stats-row::-webkit-scrollbar{display:none;}
+  .tstat{display:flex!important;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;min-width:44px;padding:3px 2px!important;border-radius:4px;cursor:pointer;}
+  .tstat:active{background:rgba(255,255,255,.1);}
+  .tstat-v{font-size:13px!important;font-weight:700;line-height:1.1;}
+  .tstat-l{font-size:7px!important;opacity:.8;margin-top:1px;white-space:nowrap;}
   .tstat-dot{width:5px!important;height:5px!important;margin-bottom:1px;}
-
-  /* Row 2: campaign controls */
-  .tb-row2{
-    display:flex!important;
-    align-items:center;
-    padding:5px 8px;
-    gap:5px;
-    border-top:1px solid rgba(255,255,255,.15);
-    background:rgba(0,0,0,.1);
-    flex-wrap:nowrap;
-    overflow-x:auto;
-    -webkit-overflow-scrolling:touch;
-  }
-  #camp-cp,#camp-filter,#camp-time{
-    display:block!important;
-    background:rgba(255,255,255,.15)!important;
-    color:#fff!important;
-    border:1px solid rgba(255,255,255,.25)!important;
-    font-size:10px!important;
-    padding:4px 6px!important;
-    border-radius:6px;
-    font-family:var(--fn);
-    cursor:pointer;
-    outline:none;
-    flex-shrink:0;
-    height:28px;
-  }
-  #camp-cp{max-width:110px;}
-  #camp-filter{max-width:130px;}
-  #camp-time{width:68px;}
-  .tb-row2 .btn{
-    display:block!important;
-    flex-shrink:0;
-    font-size:10px!important;
-    padding:4px 8px!important;
-    height:28px;
-    white-space:nowrap;
-  }
-  /* Hide dashboard btn on mobile to save space */
-  .tb-row2 .btn-dash{display:none!important;}
-
-  /* Main layout */
+  .tb-camp-row{display:flex!important;align-items:center;padding:5px 8px;gap:5px;background:rgba(0,0,0,.1);border-top:1px solid rgba(255,255,255,.1);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .tb-camp-row::-webkit-scrollbar{display:none;}
   .main{flex-direction:column!important;height:auto!important;overflow:visible!important;}
   .lp{width:100%!important;height:auto!important;border-right:none!important;overflow:visible!important;}
   .lp-list{overflow:visible!important;height:auto!important;}
   .det{display:none!important;}
-  .ci{cursor:pointer;}
   .ci-accordion{display:none;background:var(--s1);border-top:1px solid var(--bd);border-bottom:2px solid var(--ac);}
   .ci-accordion.open{display:block;}
 }
@@ -250,44 +186,28 @@ html.mob-pre body,body.mob{--is-mob:1;}
 </head>
 <body>
 <div class="tb">
-  <div class="tb-row1">
-    <div class="logo">
-      <span>FactorEnergía — Agente CARLA CRM</span>
-    </div>
-    <span style="font-size:11px;color:rgba(255,255,255,.6);margin:0 8px">Al servicio de ACC</span>
-    <span id="sync-status" style="font-size:10px;color:rgba(255,255,255,.5);cursor:pointer;margin-right:6px" onclick="forceSync()">⏳ Conectando...</span>
-    <button class="btn btn-dash" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:5px 10px;margin-right:4px;" onclick="showDashboard()">📊 Dashboard</button>
-    <div class="tb-stats">
+  <div class="tb-top">
+    <span class="tb-logo">FactorEnergía CRM</span>
+    <span id="sync-status" onclick="forceSync()" style="font-size:10px;color:rgba(255,255,255,.5);cursor:pointer;">⏳</span>
+    <button onclick="showDashboard()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);font-size:10px;padding:3px 8px;border-radius:5px;cursor:pointer;font-family:var(--fn);">📊</button>
+  </div>
+  <div class="tb-stats-row">
     <div class="tstat" onclick="setF('todos',null)"><div class="tstat-v" id="st">0</div><div class="tstat-l">TOTAL</div></div>
     <div class="tstat" onclick="setF('prioritario',null)"><div class="tstat-dot dot-pu"></div><div class="tstat-v" id="spr">0</div><div class="tstat-l">PRO</div></div>
     <div class="tstat" onclick="setF('visitaOK',null)"><div class="tstat-dot dot-gr"></div><div class="tstat-v" id="sv">0</div><div class="tstat-l">VISITAS</div></div>
-    <div class="tstat" onclick="setF('rellamar',null)"><div class="tstat-dot dot-am"></div><div class="tstat-v" id="sr">0</div><div class="tstat-l">RELLAMAR</div></div>
-    <div class="tstat" onclick="setF('noInteresa',null)"><div class="tstat-dot dot-rd"></div><div class="tstat-v" id="sni">0</div><div class="tstat-l">NO INTERESA</div></div>
-    <div class="tstat" onclick="setF('noContesta',null)"><div class="tstat-dot dot-gray"></div><div class="tstat-v" id="snc">0</div><div class="tstat-l">NO CONTESTA</div></div>
+    <div class="tstat" onclick="setF('rellamar',null)"><div class="tstat-dot dot-am"></div><div class="tstat-v" id="sr">0</div><div class="tstat-l">RELLA</div></div>
+    <div class="tstat" onclick="setF('noInteresa',null)"><div class="tstat-dot dot-rd"></div><div class="tstat-v" id="sni">0</div><div class="tstat-l">N.INT</div></div>
+    <div class="tstat" onclick="setF('noContesta',null)"><div class="tstat-dot dot-gray"></div><div class="tstat-v" id="snc">0</div><div class="tstat-l">N.CON</div></div>
     <div class="tstat" onclick="setF('duda',null)"><div class="tstat-dot" style="background:#a78bfa"></div><div class="tstat-v" style="color:#c4b5fd" id="sduda">0</div><div class="tstat-l">DUDA</div></div>
-    <div class="tstat" onclick="setF('llamadas',null)"><div class="tstat-dot" style="background:#60a5fa"></div><div class="tstat-v" style="color:#93c5fd" id="sllamadas">0</div><div class="tstat-l">LLAMADAS</div></div>
-    </div>
+    <div class="tstat" onclick="setF('llamadas',null)"><div class="tstat-dot" style="background:#60a5fa"></div><div class="tstat-v" style="color:#93c5fd" id="sllamadas">0</div><div class="tstat-l">LLAM</div></div>
   </div>
-  <div class="tb-row2">
-    <select id="camp-cp" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 8px;border-radius:6px;font-family:var(--fn);cursor:pointer;outline:none;margin-right:4px;">
-    <option value="" style="color:#000">Todos los CP</option>
-    <option value="08390" style="color:#000">08390 — Montgat</option>
-    <option value="08391" style="color:#000">08391 — Tiana</option>
-    <option value="08329" style="color:#000">08329 — Teià</option>
-    <option value="08911" style="color:#000">08911 — Badalona</option>
-  </select>
-  <select id="camp-filter" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 8px;border-radius:6px;font-family:var(--fn);cursor:pointer;outline:none;margin-right:4px;">
-    <option value="nuevos" style="color:#000">Solo nuevos (sin llamar)</option>
-    <option value="pendiente" style="color:#000">Pendientes</option>
-    <option value="rellamar" style="color:#000">Rellamar</option>
-    <option value="duda" style="color:#000">Duda</option>
-    <option value="noContesta" style="color:#000">No contesta</option>
-    <option value="todos" style="color:#000">Todos los pendientes</option>
-  </select>
-  <input type="time" id="camp-time" value="" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 6px;border-radius:6px;font-family:var(--mo);outline:none;width:70px;margin-right:4px;" title="Hora inicio (dejar vacío = empezar ya)">
-    <button class="btn" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:5px 12px;" onclick="startCampaign()">▶ Iniciar campaña</button>
+  <div class="tb-camp-row">
+    <select id="camp-cp" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 5px;border-radius:5px;font-family:var(--fn);cursor:pointer;outline:none;max-width:95px;"><option value="" style="color:#000">Todos los CP</option><option value="08390" style="color:#000">08390 Montgat</option><option value="08391" style="color:#000">08391 Tiana</option><option value="08329" style="color:#000">08329 Teià</option><option value="08911" style="color:#000">08911 Badalona</option></select>
+    <select id="camp-filter" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 5px;border-radius:5px;font-family:var(--fn);cursor:pointer;outline:none;flex:1;"><option value="nuevos" style="color:#000">Sin llamar</option><option value="pendiente" style="color:#000">Pendientes</option><option value="rellamar" style="color:#000">Rellamar</option><option value="duda" style="color:#000">Duda</option><option value="noContesta" style="color:#000">No contesta</option><option value="todos" style="color:#000">Todos</option></select>
+    <input type="time" id="camp-time" value="" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 4px;border-radius:5px;font-family:var(--mo);outline:none;width:62px;">
+    <button onclick="startCampaign()" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);font-size:10px;padding:3px 8px;border-radius:5px;cursor:pointer;font-family:var(--fn);white-space:nowrap;">▶ Campaña</button>
   </div>
-</div>
+</div></div>
 <div class="camp-bar" id="camp-bar">
   <div class="camp-wave"><span></span><span></span><span></span><span></span></div>
   <div class="camp-info">
