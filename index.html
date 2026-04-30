@@ -1342,7 +1342,7 @@ async function callViaProxy(phone,c){
       stopSpeakingPlan:{numWords:2,voiceSeconds:0.1,backoffSeconds:0.5},
       firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':(new Date().getHours()<15?'Buenos días. ':'Buenas tardes. ')+'¿Hablo con la empresa '+c.nombre.replace(/,?\s*(S\.L\.|SL|S\.A\.|SA|SCP|S\.C\.P\.|SLP|SAU)\.?$/i,'').trim()+'?',
       model:{provider:'openai',model:'gpt-4o-mini',temperature:0.3,maxTokens:120,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
-      voice:{provider:'11labs',voiceId:voiceId,model:'eleven_flash_v2_5',stability:0.4,similarityBoost:0.75,style:0.1,useSpeakerBoost:true,optimize_streaming_latency:4},
+      voice:{provider:'11labs',voiceId:voiceId,model:'eleven_flash_v2_5',stability:0.4,similarityBoost:0.75,style:0.1,useSpeakerBoost:true},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es',endpointing:100},
       endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
       recordingEnabled:true,
