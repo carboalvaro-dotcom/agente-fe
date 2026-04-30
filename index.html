@@ -788,19 +788,29 @@ async function pollRemoteChanges(){
       // Only apply if remote is strictly newer than our local save
       if(remoteTs>0&&remoteTs<=localTs2){setTimeout(pollRemoteChanges,30000);return;}
 
-      let changed=0;
-      remoteData.forEach(rd=>{
-        const c=C.find(x=>x.id===rd.id);
-        if(c){Object.assign(c,rd);changed++;}
-      });
-
-      if(changed>0){
-        localStorage.setItem(SK,JSON.stringify(remoteData));
-        upStats();renderList();
-        if(curId) sel(curId);
-        const syncEl=document.getElementById('sync-status');
-        if(syncEl){syncEl.textContent='🔄 Actualizado ('+changed+' cambios)';syncEl.style.color='rgba(255,255,255,.9)';}
-        setTimeout(()=>{const el=document.getElementById('sync-status');if(el)el.style.color='rgba(255,255,255,.5)';},3000);
+      // Store remote data for manual apply
+      window._pendingRemote=remoteData;
+      const syncEl=document.getElementById('sync-status');
+      if(syncEl){
+        syncEl.textContent='🔄 Hay cambios del otro dispositivo — clic para aplicar';
+        syncEl.style.color='rgba(255,200,0,.9)';
+        syncEl.style.cursor='pointer';
+        syncEl.onclick=()=>{
+          if(!window._pendingRemote) return;
+          window._pendingRemote.forEach(rd=>{
+            const c=C.find(x=>x.id===rd.id);
+            if(c) Object.assign(c,rd);
+          });
+          localStorage.setItem(SK,JSON.stringify(window._pendingRemote));
+          localStorage.setItem(SK+'_ts', _lastGhSha ? Date.now() : Date.now());
+          window._pendingRemote=null;
+          upStats();renderList();
+          if(curId) sel(curId);
+          syncEl.textContent='✓ Aplicado';
+          syncEl.style.color='rgba(255,255,255,.7)';
+          syncEl.style.cursor='default';
+          syncEl.onclick=null;
+        };
       }
     }
   }catch(e){console.log('poll error:',e);}
@@ -808,15 +818,20 @@ async function pollRemoteChanges(){
 }
 // ─────────────────────────────────────────────────────────────
 
-function forceSync(){
+async function forceSync(){
   const syncEl=document.getElementById('sync-status');
   if(syncEl){syncEl.textContent='⏳ Sincronizando...';syncEl.style.color='rgba(255,255,255,.9)';}
+  // Push local data to GitHub (local always wins)
   const data=C.map(c=>({id:c.id,estado:c.estado,notas:c.notas||'',contactName:c.contactName||'',
     email:c.email||'',visitDate:c.visitDate||'',cups:c.cups||'',consumo:c.consumo||'',
-    telefono2:c.telefono2||'',potencia_kw:c.potencia_kw,llamadas:c.llamadas||0,
+    telefono:c.telefono||'',telefono2:c.telefono2||'',potencia_kw:c.potencia_kw,llamadas:c.llamadas||0,
     ultimaLlamada:c.ultimaLlamada||'',_callId:c._callId||'',_recordingUrl:c._recordingUrl||''}));
   _ghSaving=false;
-  syncToGitHub(data).then(()=>toast('✓ Sincronizado','ok'));
+  _currentSha=null; // force fresh SHA fetch
+  await syncToGitHub(data);
+  localStorage.setItem(SK+'_ts',Date.now());
+  _lastLocalSave=Date.now();
+  toast('✓ Subido a GitHub','ok');
 }
 
 async function init(){
@@ -825,32 +840,10 @@ async function init(){
 
   // Try GitHub first, fallback to localStorage
   let s=[];
-  // Load from GitHub as base, then overlay local changes on top
-  const ghData=await loadFromGitHub();
-  const ghArr=Array.isArray(ghData)?ghData:(ghData&&ghData.data?ghData.data:null);
+  // ALWAYS load from localStorage - never let GitHub overwrite local
   const localData=JSON.parse(localStorage.getItem(SK)||'[]');
-
-  if(ghArr&&ghArr.length>0){
-    // Start with GitHub data
-    s=ghArr;
-    // Overlay any local changes that are newer
-    if(localData.length>0){
-      const localTs=parseInt(localStorage.getItem(SK+'_ts')||'0');
-      const ghTs=ghData&&ghData._ts?ghData._ts:0;
-      if(localTs>ghTs){
-        // Local is newer - use local data and push to GitHub
-        s=localData;
-        console.log('Local newer than GitHub, using local ('+localTs+' > '+ghTs+')');
-        setTimeout(()=>syncToGitHub(localData),2000);
-      } else {
-        console.log('GitHub newer or equal, using GitHub (ghTs:'+ghTs+' localTs:'+localTs+')');
-        localStorage.setItem(SK,JSON.stringify(ghArr));
-      }
-    }
-  } else {
-    s=localData;
-    console.log('Loaded from localStorage:',s.length,'records');
-  }
+  s=localData;
+  console.log('Loaded from localStorage:',s.length,'records');
   try{
     C=RAW.map(r=>{
       const x=s.find(y=>y.id===r.id);
@@ -864,8 +857,7 @@ async function init(){
     });
   }catch{C=RAW.map(r=>({...r,estado:'pendiente',notas:'',contactName:'',visitDate:'',cups:'',consumo:'',telefono2:''}));}
   upStats();renderList();
-  // Start polling for remote changes
-  setTimeout(pollRemoteChanges,10000);
+  // Sync local data to GitHub on startup
 }
 
 function save(){
