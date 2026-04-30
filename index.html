@@ -2,7 +2,14 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<script>
+// Run immediately before CSS renders to avoid flash
+(function(){
+  var isMob = window.innerWidth<=768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if(isMob) document.documentElement.classList.add('mob-pre');
+})();
+</script>
 <title>Factor Energía — Agente CRM</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -143,6 +150,7 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
 
 
 
+html.mob-pre body,body.mob{--is-mob:1;}
 body.mob *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body.mob{overflow:hidden;}
 body.mob .tb{height:auto!important;min-height:50px;padding:6px 10px!important;flex-wrap:wrap!important;gap:3px!important;overflow-x:auto;}
@@ -955,9 +963,12 @@ function stopCampaign(){
 function detectMobile(){
   const isMob = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   document.body.classList.toggle('mob', isMob);
+  document.documentElement.classList.toggle('mob-pre', isMob);
   return isMob;
 }
 window.addEventListener('resize', detectMobile);
+// Run immediately
+detectMobile();
 
 function openMobileDet(){
   if(document.body.classList.contains('mob')){
@@ -1007,7 +1018,6 @@ function forceSync(){
   syncToGitHub(data).then(()=>toast('✓ Sincronizado','ok'));
 }
 
-detectMobile();
 init();
 
 
