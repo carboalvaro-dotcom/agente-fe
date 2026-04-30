@@ -321,12 +321,17 @@ function init(){
 }
 
 function save(){
-  localStorage.setItem(SK,JSON.stringify(C.map(c=>({
+  const data=C.map(c=>({
     id:c.id,estado:c.estado,notas:c.notas||'',contactName:c.contactName||'',
     email:c.email||'',visitDate:c.visitDate||'',cups:c.cups||'',
-    consumo:c.consumo||'',telefono2:c.telefono2||'',potencia_kw:c.potencia_kw,
-    llamadas:c.llamadas||0,ultimaLlamada:c.ultimaLlamada||''
-  }))));
+    consumo:c.consumo||'',telefono:c.telefono||'',telefono2:c.telefono2||'',potencia_kw:c.potencia_kw,
+    llamadas:c.llamadas||0,ultimaLlamada:c.ultimaLlamada||'',
+    _callId:c._callId||'',_recordingUrl:c._recordingUrl||''
+  }));
+  localStorage.setItem(SK,JSON.stringify(data));
+  localStorage.setItem(SK+'_ts',Date.now());
+  _lastLocalSave=Date.now();
+  syncToGitHub(data);
 }
 
 function upStats(){
