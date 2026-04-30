@@ -796,8 +796,7 @@ function startCampaign(){
     const diffH=Math.floor(diffMin/60);
     const diffM=diffMin%60;
     const whenStr=diffH>0?diffH+'h '+diffM+'min':diffM+'min';
-    if(!confirm('Programar campaña "'+fl+'" ('+queue.length+' contactos) para las '+timeVal+'
-Faltan: '+whenStr)) return;
+    if(!confirm('Programar campana "'+fl+'" ('+queue.length+' contactos) para las '+timeVal+'\nFaltan: '+whenStr)) return;
     campaignQueue=queue;campaignIdx=0;campaignRunning=false;campaignPaused=false;
     // Show scheduled in camp-bar
     document.getElementById('camp-bar').classList.add('on');
