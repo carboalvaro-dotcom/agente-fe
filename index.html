@@ -825,22 +825,31 @@ async function init(){
 
   // Try GitHub first, fallback to localStorage
   let s=[];
-  const localTs=parseInt(localStorage.getItem(SK+'_ts')||'0');
+  // Load from GitHub as base, then overlay local changes on top
   const ghData=await loadFromGitHub();
-  const ghTs=ghData&&ghData._ts?ghData._ts:0;
   const ghArr=Array.isArray(ghData)?ghData:(ghData&&ghData.data?ghData.data:null);
+  const localData=JSON.parse(localStorage.getItem(SK)||'[]');
 
-  // Use GitHub data only if it's newer than local
-  if(ghArr&&ghArr.length>0&&ghTs>=localTs){
+  if(ghArr&&ghArr.length>0){
+    // Start with GitHub data
     s=ghArr;
-    localStorage.setItem(SK,JSON.stringify(ghArr));
-    localStorage.setItem(SK+'_ts',ghTs||Date.now());
-    console.log('Loaded from GitHub:',ghArr.length,'records (ts:'+ghTs+')');
+    // Overlay any local changes that are newer
+    if(localData.length>0){
+      const localTs=parseInt(localStorage.getItem(SK+'_ts')||'0');
+      const ghTs=ghData&&ghData._ts?ghData._ts:0;
+      if(localTs>ghTs){
+        // Local is newer - use local data and push to GitHub
+        s=localData;
+        console.log('Local newer than GitHub, using local ('+localTs+' > '+ghTs+')');
+        setTimeout(()=>syncToGitHub(localData),2000);
+      } else {
+        console.log('GitHub newer or equal, using GitHub (ghTs:'+ghTs+' localTs:'+localTs+')');
+        localStorage.setItem(SK,JSON.stringify(ghArr));
+      }
+    }
   } else {
-    try{s=JSON.parse(localStorage.getItem(SK)||'[]');}catch{}
-    console.log('Loaded from localStorage:',s.length,'records (ts:'+localTs+')');
-    // If we have local data, push it to GitHub to keep it in sync
-    if(s.length>0&&localTs>0) setTimeout(()=>syncToGitHub(s),3000);
+    s=localData;
+    console.log('Loaded from localStorage:',s.length,'records');
   }
   try{
     C=RAW.map(r=>{
