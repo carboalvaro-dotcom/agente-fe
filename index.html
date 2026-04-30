@@ -856,13 +856,7 @@ function showCampaignSummary(){
   const ni=done.filter(c=>c.estado==='noInteresa').length;
   const nc=done.filter(c=>c.estado==='noContesta').length;
   const d=done.filter(c=>c.estado==='duda').length;
-  alert('✅ Campaña completada — '+done.length+' llamadas
-
-🟢 Visitas: '+v+'
-🟡 Rellamar: '+r+'
-🔴 No interesa: '+ni+'
-⚫ No contesta: '+nc+'
-❓ Duda: '+d);
+  alert('Campaña completada: '+done.length+' llamadas | Visitas: '+v+' | Rellamar: '+r+' | No interesa: '+ni+' | No contesta: '+nc+' | Duda: '+d);
 }
 
 function toggleCampaignPause(){
