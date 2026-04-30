@@ -151,38 +151,48 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
 
 
 html.mob-pre body,body.mob{--is-mob:1;}
-body.mob *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body.mob{overflow:hidden;}
-body.mob .tb{height:auto!important;min-height:50px;padding:6px 10px!important;flex-wrap:wrap!important;gap:3px!important;overflow-x:auto;}
-body.mob .logo span:first-child{font-size:11px!important;}
-body.mob .tb>span,body.mob #sync-status,body.mob .tb>.btn,body.mob #camp-cp,body.mob #camp-filter,body.mob #camp-time{display:none!important;}
-body.mob .tb-stats{width:100%;display:flex!important;gap:2px!important;justify-content:space-between;}
-body.mob .tstat{flex:1;min-width:0;padding:2px 3px!important;text-align:center;}
-body.mob .tstat-v{font-size:11px!important;}
-body.mob .tstat-l{font-size:7px!important;}
-body.mob .main{display:block!important;position:relative;height:calc(100dvh - 80px);overflow:hidden;}
-body.mob .lp{width:100%!important;height:100%!important;position:absolute!important;top:0;left:0;transform:translateX(0);transition:transform .28s ease;flex-shrink:1!important;}
-body.mob .lp.mob-pushed{transform:translateX(-100%)!important;}
-body.mob .det{display:flex!important;flex-direction:column!important;width:100%!important;height:100%!important;position:absolute!important;top:0!important;left:0!important;padding:0 0 20px!important;transform:translateX(100%);transition:transform .28s ease;background:var(--s0);overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:10;}
-body.mob .det.vis{transform:translateX(0)!important;}
-body.mob #empty{display:none!important;}
-body.mob .btn-back-mob{display:flex!important;align-items:center;gap:4px;background:none;border:none;color:var(--ac);font-size:14px;font-weight:600;cursor:pointer;padding:10px 12px 4px;font-family:var(--fn);}
-body.mob .res-btns{flex-wrap:wrap!important;gap:6px!important;padding:0 12px 8px!important;}
-body.mob .rbtn{font-size:12px!important;padding:8px 10px!important;flex:1;min-width:calc(50% - 6px);}
-body.mob .ficha-grid{grid-template-columns:1fr!important;}
-body.mob .lp-filters{flex-wrap:wrap!important;gap:3px!important;}
-body.mob .ftab{font-size:10px!important;padding:4px 8px!important;}
-body.mob .ch-name{font-size:13px!important;}
-body.mob .ch-meta{font-size:10px!important;}
 
-
-body.mob .ficha-grid{grid-template-columns:1fr!important;}
-body.mob .card-head{flex-wrap:wrap;padding:8px 12px;gap:4px;}
-body.mob .card-head .btn-back-mob{display:flex!important;order:-1;width:100%;margin-bottom:2px;}
-body.mob .card-title{font-size:12px;}
-body.mob .rp{padding:8px 12px;gap:6px;}
-body.mob .nt{padding:0 12px 8px;}
-body.mob .save-bar{padding:6px 12px;}
+/* MOBILE ACCORDION */
+@media(max-width:768px){
+  body{overflow:auto;}
+  .tb{height:auto;min-height:44px;flex-wrap:wrap;gap:3px;padding:5px 8px;}
+  .logo span:first-child{font-size:11px;}
+  .tb>span,.tb>#sync-status,.tb>.btn,#camp-cp,#camp-filter,#camp-time{display:none!important;}
+  .tb-stats{order:2;width:100%;display:flex;gap:1px;justify-content:space-between;}
+  .tstat{flex:1;min-width:0;padding:2px 3px;text-align:center;}
+  .tstat-v{font-size:12px;}
+  .tstat-l{font-size:7px;}
+  .main{flex-direction:column;height:auto;overflow:visible;}
+  .lp{width:100%!important;height:auto;border-right:none;overflow:visible;}
+  .lp-list{overflow:visible;height:auto;}
+  .det{display:none!important;}
+  /* Accordion item */
+  .ci{cursor:pointer;}
+  .ci-accordion{display:none;background:var(--s1);border-top:1px solid var(--bd);border-bottom:2px solid var(--ac);}
+  .ci-accordion.open{display:block;}
+  .ci-accordion-inner{padding:12px;}
+  /* Fields in accordion */
+  .acc-fields{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+  .acc-field{background:var(--s0);border-radius:6px;padding:6px 8px;border:1px solid var(--bd);}
+  .acc-field-label{font-size:9px;color:var(--mt);text-transform:uppercase;font-weight:600;margin-bottom:2px;}
+  .acc-field-val{font-size:12px;font-weight:500;}
+  /* Result buttons in accordion */
+  .acc-results{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;}
+  .acc-rbtn{padding:8px;border-radius:8px;border:1px solid var(--bd);font-size:12px;font-weight:500;cursor:pointer;text-align:center;background:var(--s0);}
+  .acc-rbtn.r-ok{background:var(--grl);color:var(--gr);border-color:rgba(11,122,71,.2);}
+  .acc-rbtn.r-cb{background:var(--aml);color:var(--am);border-color:rgba(180,83,9,.2);}
+  .acc-rbtn.r-ni{background:#fff0f0;color:var(--rd);border-color:rgba(192,57,43,.2);}
+  .acc-rbtn.r-nc{background:var(--s2);color:var(--mt);border-color:var(--bd);}
+  .acc-rbtn.r-du{background:#f0e6ff;color:#7c3aed;border-color:rgba(124,58,237,.2);}
+  .acc-rbtn.full{grid-column:1/-1;}
+  /* Notes */
+  .acc-notes{width:100%;border:1px solid var(--bd);border-radius:8px;padding:8px;font-size:12px;font-family:var(--fn);background:var(--s0);color:var(--tx);resize:none;min-height:60px;margin-bottom:8px;}
+  /* Call button */
+  .acc-call{width:100%;padding:10px;background:var(--ac);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fn);}
+  .acc-call:disabled{opacity:.5;}
+  /* Status tag */
+  .acc-status{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:3px 8px;border-radius:10px;margin-bottom:8px;}
+}
 </style>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -436,11 +446,38 @@ function renderList(){
     </div><div id="cpg_${cp}" style="${isOpen?'':'display:none'}">`;
     groups[cp].forEach(c=>{
       const pro=isPRO(c);
-      html+=`<div class="ci${c.id===curId?' sel':''}" onclick="sel(${c.id})">
+      const isMob=window.innerWidth<=768||/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const stateLabels={pendiente:'● Pendiente',visitaOK:'✓ Visita',rellamar:'↺ Rellamar',noInteresa:'✗ No interesa',noContesta:'— No contesta',duda:'? Duda'};
+      const stateColors={pendiente:'var(--mt)',visitaOK:'var(--gr)',rellamar:'var(--am)',noInteresa:'var(--rd)',noContesta:'var(--mt)',duda:'#7c3aed'};
+      const isOpen=isMob&&c.id===curId;
+      html+=`<div class="ci${isOpen?' sel':''}" onclick="selMob(${c.id},this)">
         <div class="ci-r1"><div class="ci-name">${c.nombre}</div>
           <div class="ci-badges">${pro?'<span class="badge b-pro">PRO</span>':''}${c.prioritario&&!pro?'<span class="badge b-prio">⚡</span>':''}<span class="sdot ${c.estado}"></span></div>
         </div>
         <div class="ci-r2"><span class="ci-sec">${c.sector}</span><span class="ci-tel">${c.telefono}</span><span class="ci-kw">${c.potencia_kw} kW</span>${c.llamadas>0?'<span class="ci-kw" style="background:var(--acl);color:var(--ac)">📞'+c.llamadas+'</span>':''}</div>
+      </div>
+      <div class="ci-accordion${isOpen?' open':''}" id="acc_${c.id}">
+        <div class="ci-accordion-inner">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <span class="acc-status" style="background:${stateColors[c.estado]||'var(--mt)'}22;color:${stateColors[c.estado]||'var(--mt)'}">${stateLabels[c.estado]||c.estado}</span>
+            ${c.ultimaLlamada?`<span style="font-size:10px;color:var(--mt)">📞 ${c.ultimaLlamada}</span>`:''}
+          </div>
+          <div class="acc-fields">
+            <div class="acc-field"><div class="acc-field-label">Teléfono</div><div class="acc-field-val">${c.telefono||'—'}</div></div>
+            <div class="acc-field"><div class="acc-field-label">Potencia</div><div class="acc-field-val">${c.potencia_kw} kW</div></div>
+            <div class="acc-field"><div class="acc-field-label">Sector</div><div class="acc-field-val">${c.sector||'—'}</div></div>
+            <div class="acc-field"><div class="acc-field-label">Contacto</div><div class="acc-field-val">${c.contactName||'—'}</div></div>
+          </div>
+          <textarea class="acc-notes" placeholder="Notas..." onchange="updateNote(${c.id},this.value)">${c.notas||''}</textarea>
+          <div class="acc-results">
+            <div class="acc-rbtn r-ok" onclick="setResMob(${c.id},'visitaOK')">✓ Visita</div>
+            <div class="acc-rbtn r-cb" onclick="setResMob(${c.id},'rellamar')">↺ Rellamar</div>
+            <div class="acc-rbtn r-nc" onclick="setResMob(${c.id},'noContesta')">— No contesta</div>
+            <div class="acc-rbtn r-ni" onclick="setResMob(${c.id},'noInteresa')">✗ No interesa</div>
+            <div class="acc-rbtn r-du full" onclick="setResMob(${c.id},'duda')">? Duda</div>
+          </div>
+          <button class="acc-call" onclick="selAndCall(${c.id})">📞 Llamar con IA</button>
+        </div>
       </div>`;
     });
     html+='</div></div>';
@@ -979,17 +1016,65 @@ window.addEventListener('resize', detectMobile);
 // Run immediately
 detectMobile();
 
-function openMobileDet(){
+
+function selMob(id, el){
   const isMob=window.innerWidth<=768||/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-  if(isMob){
-    document.body.classList.add('mob');
-    document.querySelector('.lp')?.classList.add('mob-pushed');
-    document.querySelectorAll('.btn-back-mob').forEach(b=>{b.style.display='flex';b.style.alignItems='center';});
+  if(!isMob){sel(id);return;}
+  // Toggle accordion
+  if(curId===id){
+    // Close
+    document.getElementById('acc_'+id)?.classList.remove('open');
+    el?.classList.remove('sel');
+    curId=null;
+    return;
+  }
+  // Close previous
+  if(curId!==null){
+    document.getElementById('acc_'+curId)?.classList.remove('open');
+    document.querySelector('.ci.sel')?.classList.remove('sel');
+  }
+  curId=id;
+  sel(id); // update desktop det panel too
+  // Open accordion
+  const acc=document.getElementById('acc_'+id);
+  if(acc){
+    acc.classList.add('open');
+    el?.classList.add('sel');
+    // Scroll into view
+    setTimeout(()=>acc.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
   }
 }
+
+function updateNote(id, val){
+  const c=C.find(x=>x.id===id);
+  if(!c) return;
+  c.notas=val;
+  save();
+}
+
+function setResMob(id, estado){
+  const c=C.find(x=>x.id===id);
+  if(!c) return;
+  c.estado=estado;
+  save();
+  upStats();
+  renderList();
+  // Re-open accordion
+  setTimeout(()=>{
+    const acc=document.getElementById('acc_'+id);
+    if(acc){acc.classList.add('open');}
+  },50);
+}
+
+function selAndCall(id){
+  sel(id);
+  setTimeout(()=>launchCall(),100);
+}
+
+function openMobileDet(){
+  // On mobile, accordion handles detail - no slide needed
+}
 function closeMobileDet(){
-  document.querySelector('.lp')?.classList.remove('mob-pushed');
-  document.getElementById('det')?.classList.remove('vis');
   curId=null;
 }
 
