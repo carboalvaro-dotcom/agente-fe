@@ -119,6 +119,21 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
 .toast{position:fixed;bottom:16px;right:16px;background:var(--s0);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--tx);z-index:999;transform:translateY(40px);opacity:0;transition:all .2s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.1);}
 .toast.show{transform:translateY(0);opacity:1;}.toast.ok{border-color:rgba(11,122,71,.3);color:var(--gr);}.toast.err{border-color:rgba(192,57,43,.3);color:var(--rd);}
 .hidden-cfg{display:none;}
+.camp-bar{display:none;background:linear-gradient(90deg,var(--acl),#f0f5ff);border-top:2px solid var(--ac);padding:10px 18px;align-items:center;gap:12px;flex-shrink:0;}
+.camp-bar.on{display:flex;}
+.camp-wave{display:flex;gap:3px;align-items:center;}
+.camp-wave span{width:3px;background:var(--ac);border-radius:2px;animation:wv .8s infinite ease-in-out;}
+.camp-wave span:nth-child(1){height:8px;}.camp-wave span:nth-child(2){height:14px;animation-delay:.12s;}
+.camp-wave span:nth-child(3){height:10px;animation-delay:.24s;}.camp-wave span:nth-child(4){height:6px;animation-delay:.36s;}
+.camp-info{flex:1;}.camp-title{font-size:12px;font-weight:600;color:var(--ac);}
+.camp-sub{font-size:11px;color:var(--mt);}
+.camp-progress{display:flex;align-items:center;gap:8px;}
+.camp-bar-track{width:140px;height:5px;background:rgba(26,86,219,.15);border-radius:3px;overflow:hidden;}
+.camp-bar-fill{height:100%;background:var(--ac);border-radius:3px;transition:width .3s;}
+.camp-pct{font-size:11px;font-family:var(--mo);color:var(--ac);font-weight:600;}
+.btn-pause{background:var(--aml);color:var(--am);border:1px solid rgba(180,83,9,.2);padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fn);}
+.btn-stop{background:var(--rdl);color:var(--rd);border:1px solid rgba(192,57,43,.2);padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fn);}
+.stag.duda{background:#f0e6ff;color:#7c3aed;}.sdot.duda{background:#7c3aed;}
 </style>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -137,8 +152,31 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
     <div class="tstat" onclick="setF('rellamar',null)"><div class="tstat-dot dot-am"></div><div class="tstat-v" id="sr">0</div><div class="tstat-l">Rellamar</div></div>
     <div class="tstat" onclick="setF('noInteresa',null)"><div class="tstat-dot dot-rd"></div><div class="tstat-v" id="sni">0</div><div class="tstat-l">No interesa</div></div>
     <div class="tstat" onclick="setF('noContesta',null)"><div class="tstat-dot dot-gray"></div><div class="tstat-v" id="snc">0</div><div class="tstat-l">No contesta</div></div>
+    <div class="tstat" onclick="setF('duda',null)"><div class="tstat-dot" style="background:#a78bfa"></div><div class="tstat-v" style="color:#c4b5fd" id="sduda">0</div><div class="tstat-l">Duda</div></div>
     <div class="tstat" onclick="setF('llamadas',null)"><div class="tstat-dot" style="background:#60a5fa"></div><div class="tstat-v" style="color:#93c5fd" id="sllamadas">0</div><div class="tstat-l">Llamadas</div></div>
   </div>
+  <select id="camp-filter" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 8px;border-radius:6px;font-family:var(--fn);cursor:pointer;outline:none;">
+    <option value="nuevos" style="color:#000">Solo nuevos (sin llamar)</option>
+    <option value="pendiente" style="color:#000">Pendientes</option>
+    <option value="rellamar" style="color:#000">Rellamar</option>
+    <option value="duda" style="color:#000">Duda</option>
+    <option value="noContesta" style="color:#000">No contesta</option>
+    <option value="todos" style="color:#000">Todos los pendientes</option>
+  </select>
+  <button class="btn" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:5px 12px;" onclick="startCampaign()">▶ Iniciar campaña</button>
+</div>
+<div class="camp-bar" id="camp-bar">
+  <div class="camp-wave"><span></span><span></span><span></span><span></span></div>
+  <div class="camp-info">
+    <div class="camp-title" id="camp-title">Campaña en curso</div>
+    <div class="camp-sub" id="camp-sub">Preparando...</div>
+  </div>
+  <div class="camp-progress">
+    <div class="camp-bar-track"><div class="camp-bar-fill" id="camp-fill" style="width:0%"></div></div>
+    <div class="camp-pct" id="camp-pct">0%</div>
+  </div>
+  <button class="btn-pause" id="camp-pause-btn" onclick="toggleCampaignPause()">⏸ Pausar</button>
+  <button class="btn-stop" onclick="stopCampaign()">✕ Parar</button>
 </div>
 <div class="main">
   <div class="lp">
@@ -151,6 +189,7 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
         <button class="ftab" onclick="setF('visitaOK',this)">Visitas</button>
         <button class="ftab" onclick="setF('rellamar',this)">Rellamar</button>
         <button class="ftab" onclick="setF('noContesta',this)">No contesta</button>
+        <button class="ftab" onclick="setF('duda',this)">? Duda</button>
       </div>
     </div>
     <div class="lp-list" id="lp-list"></div>
@@ -166,6 +205,7 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
           <div style="display:flex;align-items:center;gap:8px;">
             <span id="d-stag" class="stag pendiente">● Pendiente</span>
             <button class="btn btn-gh btn-sm" onclick="copyScript()">📋 Guión</button>
+            <button class="btn btn-sm" style="background:#fff0f0;color:var(--rd);border:1px solid rgba(192,57,43,.2)" onclick="deleteContact()">🗑</button>
             <button class="btn btn-pr btn-sm" id="bcall" onclick="launchCall()">📞 Llamar con IA</button>
           </div>
         </div>
@@ -192,6 +232,7 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
           <button class="rbtn r-cb" onclick="setRes('rellamar',this)">↺ Rellamar</button>
           <button class="rbtn r-nc" onclick="setRes('noContesta',this)">✕ No contesta</button>
           <button class="rbtn r-ni" onclick="setRes('noInteresa',this)">— No interesa</button>
+          <button class="rbtn" style="background:#f0e6ff;color:#7c3aed;border-color:rgba(124,58,237,.2)" onclick="setRes('duda',this)">? Duda</button>
         </div>
         <textarea class="nt" id="notas" placeholder="Notas: nombre del contacto, fecha visita, objeciones, observaciones..."></textarea>
         <div class="save-bar">
@@ -210,6 +251,21 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
   </div>
 </div>
 <div class="toast" id="toast"></div>
+<div id="dash-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;overflow-y:auto;padding:20px;">
+  <div style="background:var(--s0);border-radius:var(--r2);max-width:900px;margin:0 auto;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3);">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--ac);color:#fff;">
+      <div style="font-size:14px;font-weight:600">📊 Dashboard — Agente CARLA</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <label style="font-size:11px;color:rgba(255,255,255,.8)">Desde</label>
+        <input type="date" id="dash-from" style="font-size:11px;padding:3px 6px;border-radius:4px;border:none;background:rgba(255,255,255,.2);color:#fff;font-family:var(--fn);outline:none;" onchange="renderDashboard()">
+        <label style="font-size:11px;color:rgba(255,255,255,.8)">Hasta</label>
+        <input type="date" id="dash-to" style="font-size:11px;padding:3px 6px;border-radius:4px;border:none;background:rgba(255,255,255,.2);color:#fff;font-family:var(--fn);outline:none;" onchange="renderDashboard()">
+        <button onclick="document.getElementById('dash-modal').style.display='none'" style="background:rgba(255,255,255,.2);border:none;color:#fff;font-size:16px;cursor:pointer;padding:2px 8px;border-radius:4px;">✕</button>
+      </div>
+    </div>
+    <div id="dash-content" style="padding:20px;"></div>
+  </div>
+</div>
 <div class="hidden-cfg">
   <input id="plat" value="vapi">
   <input id="apikey" value="96d7565b-f657-42e2-b144-670153ff65eb">
@@ -271,6 +327,7 @@ function upStats(){
   document.getElementById('sr').textContent=C.filter(c=>c.estado==='rellamar').length;
   document.getElementById('sni').textContent=C.filter(c=>c.estado==='noInteresa').length;
   document.getElementById('snc').textContent=C.filter(c=>c.estado==='noContesta').length;
+  const dudaEl=document.getElementById('sduda');if(dudaEl)dudaEl.textContent=C.filter(c=>c.estado==='duda').length;
   const totalCalls=C.reduce((sum,c)=>sum+(c.llamadas||0),0);
   document.getElementById('sllamadas').textContent=totalCalls;
 }
@@ -292,6 +349,7 @@ function renderList(){
   let list=C;
   if(curF==='prioritario') list=list.filter(c=>isPRO(c));
   else if(curF==='llamadas') list=list.filter(c=>(c.llamadas||0)>0);
+  else if(curF==='duda') list=list.filter(c=>c.estado==='duda');
   else if(curF!=='todos') list=list.filter(c=>c.estado===curF);
   if(q) list=list.filter(c=>
     c.nombre.toLowerCase().includes(q)||
@@ -619,6 +677,200 @@ function toast(m,t){
   const e=document.getElementById('toast');
   e.textContent=m;e.className='toast '+(t||'')+' show';
   setTimeout(()=>e.classList.remove('show'),3000);
+}
+
+
+function deleteContact(){
+  if(curId===null) return;
+  const c=C.find(x=>x.id===curId);
+  if(!c) return;
+  if(!confirm('¿Eliminar '+c.nombre+'? Esta acción no se puede deshacer.')) return;
+  C=C.filter(x=>x.id!==curId);
+  curId=null;
+  save();upStats();renderList();
+  document.getElementById('empty').style.display='';
+  document.getElementById('det').classList.remove('vis');
+  toast('Contacto eliminado','ok');
+}
+
+function showDashboard(){
+  const to=new Date(); const from=new Date(); from.setDate(from.getDate()-30);
+  const fmt=d=>d.toISOString().split('T')[0];
+  document.getElementById('dash-from').value=fmt(from);
+  document.getElementById('dash-to').value=fmt(to);
+  document.getElementById('dash-modal').style.display='block';
+  renderDashboard();
+}
+
+function parseCallDate(str){
+  if(!str) return null;
+  const [datePart]=str.split(' ');
+  if(!datePart) return null;
+  const [d,m,y]=datePart.split('/');
+  if(!d||!m||!y) return null;
+  return new Date(y+'-'+m.padStart(2,'0')+'-'+d.padStart(2,'0'));
+}
+
+function renderDashboard(){
+  const fromVal=document.getElementById('dash-from').value;
+  const toVal=document.getElementById('dash-to').value;
+  const from=fromVal?new Date(fromVal):null;
+  const to=toVal?new Date(toVal+'T23:59:59'):null;
+  const inRange=C.filter(c=>{
+    if(!(c.llamadas>0)) return false;
+    if(!from&&!to) return true;
+    const d=parseCallDate(c.ultimaLlamada);
+    if(!d) return false;
+    if(from&&d<from) return false;
+    if(to&&d>to) return false;
+    return true;
+  });
+  const total=C.length;
+  const llamadas=inRange.length;
+  const visitas=inRange.filter(c=>c.estado==='visitaOK').length;
+  const noContesta=inRange.filter(c=>c.estado==='noContesta').length;
+  const noInteresa=inRange.filter(c=>c.estado==='noInteresa').length;
+  const rellamar=inRange.filter(c=>c.estado==='rellamar').length;
+  const duda=inRange.filter(c=>c.estado==='duda').length;
+  const pendiente=inRange.filter(c=>c.estado==='pendiente').length;
+  const conversion=llamadas>0?Math.round((visitas/llamadas)*100):0;
+  const respuesta=llamadas>0?Math.round(((llamadas-noContesta)/llamadas)*100):0;
+  const bar=(val,max,color)=>'<div style="background:var(--s2);border-radius:4px;height:8px;overflow:hidden;flex:1"><div style="width:'+(max>0?Math.round((val/max)*100):0)+'%;background:'+color+';height:100%;border-radius:4px;"></div></div>';
+  const visitasList=inRange.filter(c=>c.estado==='visitaOK').map(c=>'<tr><td style="padding:5px 8px;font-size:11px;font-weight:500">'+c.nombre+'</td><td style="padding:5px 8px;font-size:11px;color:var(--mt)">'+(c.visitDate||'—')+'</td><td style="padding:5px 8px;font-size:11px;font-family:var(--mo)">'+c.telefono+'</td></tr>').join('');
+  const rellamarList=inRange.filter(c=>c.estado==='rellamar').map(c=>'<tr><td style="padding:5px 8px;font-size:11px;font-weight:500">'+c.nombre+'</td><td style="padding:5px 8px;font-size:11px;color:var(--mt)">'+(c.ultimaLlamada||'—')+'</td></tr>').join('');
+  document.getElementById('dash-content').innerHTML='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">'
+    +[{l:'Total contactos',v:total,c:'var(--ac)',bg:'var(--acl)'},{l:'Llamadas realizadas',v:llamadas,c:'var(--ac)',bg:'var(--acl)'},{l:'Visitas concertadas',v:visitas,c:'var(--gr)',bg:'var(--grl)'},{l:'Tasa conversión',v:conversion+'%',c:'var(--gr)',bg:'var(--grl)'}]
+    .map(k=>'<div style="background:'+k.bg+';border-radius:10px;padding:14px;text-align:center"><div style="font-size:24px;font-weight:700;color:'+k.c+';font-family:var(--mo)">'+k.v+'</div><div style="font-size:10px;color:var(--mt);margin-top:3px">'+k.l+'</div></div>').join('')
+    +'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">'
+    +'<div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:16px;"><div style="font-size:11px;font-weight:600;color:var(--mt);margin-bottom:12px">Resultados</div>'
+    +[{l:'Visitas',v:visitas,c:'var(--gr)'},{l:'Rellamar',v:rellamar,c:'var(--am)'},{l:'No interesa',v:noInteresa,c:'var(--rd)'},{l:'No contesta',v:noContesta,c:'#aaa'},{l:'Duda',v:duda,c:'#7c3aed'},{l:'Pendiente',v:pendiente,c:'var(--mt2)'}]
+    .map(r=>'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="width:80px;font-size:11px">'+r.l+'</div>'+bar(r.v,llamadas,r.c)+'<div style="width:28px;text-align:right;font-size:12px;font-weight:600;color:'+r.c+'">'+r.v+'</div></div>').join('')
+    +'</div><div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:16px;"><div style="font-size:11px;font-weight:600;color:var(--mt);margin-bottom:12px">Métricas</div>'
+    +[{l:'Tasa respuesta',v:respuesta+'%',d:'Contestaron'},{l:'Tasa conversión',v:conversion+'%',d:'Llamadas → Visita'},{l:'Sin llamar',v:C.filter(c=>(c.llamadas||0)===0&&c.estado==='pendiente').length,d:'Contactos nuevos'}]
+    .map(mm=>'<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--bd)"><div style="display:flex;justify-content:space-between"><div style="font-size:11px;color:var(--mt)">'+mm.l+'</div><div style="font-size:18px;font-weight:700;color:var(--ac)">'+mm.v+'</div></div><div style="font-size:10px;color:var(--mt2)">'+mm.d+'</div></div>').join('')
+    +'</div></div>'
+    +(visitas>0?'<div style="background:var(--grl);border:1px solid rgba(11,122,71,.15);border-radius:10px;padding:16px;margin-bottom:16px;"><div style="font-size:11px;font-weight:600;color:var(--gr);margin-bottom:10px">🟢 Visitas concertadas ('+visitas+')</div><table style="width:100%;border-collapse:collapse">'+visitasList+'</table></div>':'')
+    +(rellamar>0?'<div style="background:var(--aml);border:1px solid rgba(180,83,9,.15);border-radius:10px;padding:16px;"><div style="font-size:11px;font-weight:600;color:var(--am);margin-bottom:10px">🟡 Rellamar ('+rellamar+')</div><table style="width:100%;border-collapse:collapse">'+rellamarList+'</table></div>':'');
+}
+
+let campaignQueue=[],campaignIdx=0,campaignRunning=false,campaignPaused=false,campaignTimer=null;
+
+function getCampaignOrder(){
+  const filter=document.getElementById('camp-filter')?.value||'nuevos';
+  const ss=s=>{if(/restaurante|bar|cafeter/i.test(s))return 5;if(/tienda|comerci/i.test(s))return 4;if(/panader/i.test(s))return 3;if(/industrial|taller/i.test(s))return 2;return 1;};
+  let base=C.filter(c=>c.nif!=='AMIGO'&&c.nif!=='TEST');
+  if(filter==='nuevos') base=base.filter(c=>c.estado==='pendiente'&&(c.llamadas||0)===0);
+  else if(filter==='todos') base=base.filter(c=>c.estado==='pendiente');
+  else base=base.filter(c=>c.estado===filter);
+  return base.sort((a,b)=>{const as=(isPRO(a)?10:0)+ss(a.sector);const bs=(isPRO(b)?10:0)+ss(b.sector);return bs-as;}).map(c=>c.id);
+}
+
+function startCampaign(){
+  if(campaignRunning){toast('Campaña ya en curso','');return;}
+  const queue=getCampaignOrder();
+  const fv=document.getElementById('camp-filter')?.value||'nuevos';
+  const fl={'nuevos':'Sin llamar','pendiente':'Pendientes','rellamar':'Rellamar','duda':'Duda','noContesta':'No contesta','todos':'Todos pendientes'}[fv]||fv;
+  if(queue.length===0){toast('No hay contactos en filtro: '+fl,'err');return;}
+  if(!confirm('Iniciar campaña "'+fl+'" con '+queue.length+' contactos?')) return;
+  campaignQueue=queue;campaignIdx=0;campaignRunning=true;campaignPaused=false;
+  document.getElementById('camp-bar').classList.add('on');
+  toast('Campaña iniciada — '+queue.length+' contactos','ok');
+  runNextCampaignCall();
+}
+
+async function runNextCampaignCall(){
+  if(!campaignRunning) return;
+  if(campaignPaused){campaignTimer=setTimeout(runNextCampaignCall,2000);return;}
+  if(campaignIdx>=campaignQueue.length){showCampaignSummary();stopCampaign();return;}
+  const id=campaignQueue[campaignIdx];
+  const c=C.find(x=>x.id===id);
+  const fv=document.getElementById('camp-filter')?.value||'nuevos';
+  const skip=!c||(fv==='nuevos'&&(c.estado!=='pendiente'||(c.llamadas||0)>0))||(fv==='todos'&&c.estado!=='pendiente')||(fv!=='nuevos'&&fv!=='todos'&&c.estado!==fv);
+  if(skip){campaignIdx++;runNextCampaignCall();return;}
+  const done=campaignIdx,total=campaignQueue.length,pct=Math.round((done/total)*100);
+  document.getElementById('camp-title').textContent='Llamando: '+c.nombre.slice(0,35);
+  document.getElementById('camp-sub').textContent=(done+1)+' de '+total;
+  document.getElementById('camp-fill').style.width=pct+'%';
+  document.getElementById('camp-pct').textContent=pct+'%';
+  sel(id);window.scrollTo(0,0);
+  try{
+    const phone=c.telefono.startsWith('+')?c.telefono:'+34'+c.telefono.replace(/\s/g,'');
+    c.estado='llamando';c.llamadas=(c.llamadas||0)+1;
+    c.ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    save();upStats();renderList();
+    document.getElementById('cban').classList.add('on');
+    sec=0;clearInterval(iv);iv=setInterval(()=>{sec++;const mm=Math.floor(sec/60),ss=sec%60;document.getElementById('ctm').textContent=mm+':'+(ss<10?'0':'')+ss;},1000);
+    const resultado=await callViaProxy(phone,c);
+    const callId=resultado?.id||c._callId;
+    if(callId){fetchCallNotes(callId,id);await waitForCallEnd(callId,id);}
+  }catch(e){
+    console.error('Campaign error:',e);
+    const cx=C.find(x=>x.id===id);
+    if(cx&&cx.estado==='llamando'){cx.estado='pendiente';save();}
+    clearInterval(iv);document.getElementById('cban').classList.remove('on');
+  }
+  campaignIdx++;
+  if(campaignRunning&&!campaignPaused){
+    document.getElementById('camp-sub').textContent='Esperando 45s...';
+    await new Promise(r=>{campaignTimer=setTimeout(r,45000);});
+  }
+  runNextCampaignCall();
+}
+
+async function waitForCallEnd(callId,contactId){
+  for(let i=0;i<60;i++){
+    await new Promise(r=>setTimeout(r,5000));
+    if(!campaignRunning) return;
+    try{
+      const r=await fetch('https://api.vapi.ai/call/'+callId,{headers:{Authorization:'Bearer '+VAPI_KEY}});
+      if(!r.ok) continue;
+      const data=await r.json();
+      if(data.status==='ended'||data.status==='failed'){
+        const c=C.find(x=>x.id===contactId);
+        if(c&&c.estado==='llamando'){
+          clearInterval(iv);document.getElementById('cban').classList.remove('on');
+          if(data.endedReason==='customer-did-not-answer'||data.endedReason?.includes('voicemail')) c.estado='noContesta';
+          else c.estado='pendiente';
+          save();upStats();renderList();if(curId===contactId)sel(contactId);
+        }
+        return;
+      }
+    }catch(e){}
+  }
+}
+
+function showCampaignSummary(){
+  const done=campaignQueue.slice(0,campaignIdx).map(id=>C.find(x=>x.id===id)).filter(Boolean);
+  const v=done.filter(c=>c.estado==='visitaOK').length;
+  const r=done.filter(c=>c.estado==='rellamar').length;
+  const ni=done.filter(c=>c.estado==='noInteresa').length;
+  const nc=done.filter(c=>c.estado==='noContesta').length;
+  const d=done.filter(c=>c.estado==='duda').length;
+  alert('✅ Campaña completada — '+done.length+' llamadas
+
+🟢 Visitas: '+v+'
+🟡 Rellamar: '+r+'
+🔴 No interesa: '+ni+'
+⚫ No contesta: '+nc+'
+❓ Duda: '+d);
+}
+
+function toggleCampaignPause(){
+  campaignPaused=!campaignPaused;
+  const btn=document.getElementById('camp-pause-btn');
+  if(campaignPaused){btn.textContent='▶ Reanudar';document.getElementById('camp-title').textContent='Campaña pausada';if(campaignTimer){clearTimeout(campaignTimer);campaignTimer=null;}toast('Campaña pausada','');}
+  else{btn.textContent='⏸ Pausar';document.getElementById('camp-title').textContent='Campaña reanudada';toast('Campaña reanudada','ok');runNextCampaignCall();}
+}
+
+function stopCampaign(){
+  campaignRunning=false;campaignPaused=false;
+  if(campaignTimer){clearTimeout(campaignTimer);campaignTimer=null;}
+  clearInterval(iv);
+  document.getElementById('camp-bar').classList.remove('on');
+  document.getElementById('cban').classList.remove('on');
+  const c=C.find(x=>x.id===curId);
+  if(c&&c.estado==='llamando'){c.estado='pendiente';save();upStats();renderList();}
+  toast('Campaña detenida','');
 }
 
 async function syncToGitHub(data){
