@@ -1149,6 +1149,7 @@ function buildUI(c){
 async function launchCall(){
   const c=C.find(x=>x.id===curId);if(!c) return;
   if(!c.telefono||c.telefono.trim().length<6){toast('Sin teléfono','err');return;}
+  const phone=c.telefono.startsWith('+')?c.telefono:'+34'+c.telefono.replace(/\s/g,'');
   try{
     const resultado=await callViaProxy(phone,c);
     toast('✓ Llamada lanzada al '+phone,'ok');
