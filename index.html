@@ -135,80 +135,38 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
 .btn-stop{background:var(--rdl);color:var(--rd);border:1px solid rgba(192,57,43,.2);padding:5px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fn);}
 .stag.duda{background:#f0e6ff;color:#7c3aed;}.sdot.duda{background:#7c3aed;}
 
-@media (max-width:768px){
-  /* Topbar */
-  .tb{flex-wrap:wrap;gap:6px;padding:8px 10px;}
-  .logo{font-size:12px;}
-  .tb-stats{gap:4px;flex-wrap:wrap;}
-  .tstat{min-width:44px;padding:3px 5px;}
-  .tstat-v{font-size:13px;}
-  .tstat-l{font-size:8px;}
-  #camp-cp,#camp-filter,#camp-time{font-size:10px;padding:3px 5px;}
-  .btn{font-size:10px;padding:4px 8px;}
 
-  /* Layout: stack sidebar + detail vertically */
-  .main{flex-direction:column;}
-  .sidebar{width:100%;height:auto;max-height:45vh;border-right:none;border-bottom:1px solid var(--bd);}
-  .det{width:100%;height:auto;flex:1;}
-
-  /* When detail is open, hide list on mobile */
-  .sidebar.hide-mob{display:none;}
-  .det.full-mob{display:flex;}
-
-  /* Contact list items */
-  .item{padding:8px 10px;}
-  .item-name{font-size:12px;}
-  .item-meta{font-size:10px;}
-
-  /* Detail panel */
-  .det-head{padding:10px 12px;flex-direction:column;align-items:flex-start;gap:6px;}
-  .det-name{font-size:14px;}
-  .det-actions{flex-wrap:wrap;gap:4px;}
-  .det-actions .btn{font-size:10px;padding:4px 8px;}
-
-  /* Back button on mobile */
-  .btn-back-mob{display:flex!important;}
-
-  /* Result buttons */
-  .rbtn{font-size:11px;padding:6px 10px;}
-
-  /* Script phases */
-  .phase{margin-bottom:6px;}
-  .ph-head{padding:8px 10px;}
-  .ph-title{font-size:11px;}
-  .ph-body{font-size:11px;padding:8px 10px;}
-
-  /* Call banner */
-  .cban{padding:8px 12px;gap:8px;}
-  #ctm{font-size:18px;}
-
-  /* Camp bar */
-  .camp-bar{flex-wrap:wrap;gap:6px;padding:8px 10px;}
-  .camp-bar-track{width:80px;}
-
-  /* Fields */
-  .fields{grid-template-columns:1fr;}
-  .field-row{padding:6px 10px;}
-  .field-label{font-size:10px;}
-  .field-val{font-size:12px;}
-
-  /* Notes */
-  .notes-area{font-size:12px;padding:8px 10px;}
-
-  /* Filters */
-  .filters{padding:6px 8px;gap:4px;flex-wrap:wrap;}
-  .ftab{font-size:10px;padding:3px 7px;}
-  .search-box{font-size:12px;}
 }
 
-@media (max-width:480px){
-  .tb-stats{gap:3px;}
-  .tstat{min-width:38px;padding:2px 4px;}
+@media(max-width:768px){
+  .tb{flex-wrap:wrap;gap:4px;padding:6px 8px;}
+  .logo{font-size:11px;}
+  .tb-stats{gap:3px;flex-wrap:wrap;}
+  .tstat{min-width:40px;padding:2px 4px;}
   .tstat-v{font-size:12px;}
   .tstat-l{font-size:7px;}
-  .det-name{font-size:13px;}
-  .rbtn{font-size:10px;padding:5px 8px;}
+  #camp-cp,#camp-filter,#camp-time,#sync-status{display:none;}
+  .main{flex-direction:column;height:calc(100vh - 48px);}
+  .lp{width:100%!important;height:50vh;border-right:none;border-bottom:1px solid var(--bd);flex-shrink:0;}
+  .det{width:100%!important;height:50vh;overflow-y:auto;}
+  .det.mob-full{height:calc(100vh - 48px);position:fixed;top:48px;left:0;right:0;bottom:0;z-index:50;background:var(--s0);}
+  .lp.mob-hide{display:none;}
+  .ch-name{font-size:12px;}
+  .ch-meta{font-size:10px;}
+  .card-head{padding:10px 12px;flex-wrap:wrap;gap:6px;}
+  .card-title{font-size:13px;}
+  .res-btns{flex-wrap:wrap;gap:4px;}
+  .rbtn{font-size:11px;padding:6px 8px;}
+  .ficha-grid{grid-template-columns:1fr!important;}
+  .rp{padding:10px 12px;}
+  .nt{padding:0 12px 10px;}
+  .lp-filters{padding:6px 8px;}
+  .ftab{font-size:10px;padding:3px 6px;}
+  .lp-search input{font-size:12px;}
+  .cban{padding:6px 10px;gap:6px;}
+  .camp-bar{flex-wrap:wrap;gap:4px;padding:6px 8px;}
 }
+
 </style>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -995,15 +953,15 @@ function stopCampaign(){
 
 function openMobileDet(){
   if(window.innerWidth<=768){
-    document.querySelector('.sidebar')?.classList.add('hide-mob');
-    document.querySelector('.det')?.classList.add('full-mob');
-    document.querySelector('.btn-back-mob')&&(document.querySelector('.btn-back-mob').style.display='flex');
+    document.querySelector('.lp')?.classList.add('mob-hide');
+    document.querySelector('.det')?.classList.add('mob-full');
+    const bb=document.querySelector('.btn-back-mob');if(bb)bb.style.display='flex';
   }
 }
 function closeMobileDet(){
-  document.querySelector('.sidebar')?.classList.remove('hide-mob');
-  document.querySelector('.det')?.classList.remove('full-mob');
-  document.querySelector('.btn-back-mob')&&(document.querySelector('.btn-back-mob').style.display='none');
+  document.querySelector('.lp')?.classList.remove('mob-hide');
+  document.querySelector('.det')?.classList.remove('mob-full');
+  const bb=document.querySelector('.btn-back-mob');if(bb)bb.style.display='none';
 }
 
 async function syncToGitHub(data){
