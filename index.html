@@ -971,8 +971,11 @@ window.addEventListener('resize', detectMobile);
 detectMobile();
 
 function openMobileDet(){
-  if(document.body.classList.contains('mob')){
+  const isMob=window.innerWidth<=768||/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if(isMob){
+    document.body.classList.add('mob');
     document.querySelector('.lp')?.classList.add('mob-pushed');
+    document.querySelectorAll('.btn-back-mob').forEach(b=>b.style.display='flex');
   }
 }
 function closeMobileDet(){
