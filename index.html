@@ -82,7 +82,7 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .ch-name{font-size:20px;font-weight:600;line-height:1.2;margin-bottom:6px;}
 .ch-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .ch-badge{font-size:10px;padding:2px 9px;border-radius:20px;font-weight:500;}
-.ficha-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:0 14px 16px;}
+.ficha-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;padding:0 14px 16px;}
 .fg-item{display:flex;flex-direction:column;gap:3px;}
 .fg-item.span2{grid-column:span 2;}
 .fg-label{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--mt);font-weight:500;}
@@ -175,6 +175,14 @@ body.mob .ftab{font-size:10px!important;padding:4px 8px!important;}
 body.mob .ch-name{font-size:13px!important;}
 body.mob .ch-meta{font-size:10px!important;}
 
+
+body.mob .ficha-grid{grid-template-columns:1fr!important;}
+body.mob .card-head{flex-wrap:wrap;padding:8px 12px;gap:4px;}
+body.mob .card-head .btn-back-mob{display:flex!important;order:-1;width:100%;margin-bottom:2px;}
+body.mob .card-title{font-size:12px;}
+body.mob .rp{padding:8px 12px;gap:6px;}
+body.mob .nt{padding:0 12px 8px;}
+body.mob .save-bar{padding:6px 12px;}
 </style>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -251,6 +259,7 @@ body.mob .ch-meta{font-size:10px!important;}
       <!-- FICHA CLIENTE -->
       <div class="card">
         <div class="card-head">
+          <button class="btn-back-mob" onclick="closeMobileDet()" style="display:none">← Volver</button>
           <div class="card-title">Ficha del cliente</div>
           <div style="display:flex;align-items:center;gap:8px;">
             <span id="d-stag" class="stag pendiente">● Pendiente</span>
@@ -975,7 +984,7 @@ function openMobileDet(){
   if(isMob){
     document.body.classList.add('mob');
     document.querySelector('.lp')?.classList.add('mob-pushed');
-    document.querySelectorAll('.btn-back-mob').forEach(b=>b.style.display='flex');
+    document.querySelectorAll('.btn-back-mob').forEach(b=>{b.style.display='flex';b.style.alignItems='center';});
   }
 }
 function closeMobileDet(){
