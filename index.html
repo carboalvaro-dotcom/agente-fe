@@ -785,7 +785,13 @@ async function pollRemoteChanges(){
       if(Array.isArray(remoteData)){
         remoteData.forEach(r=>{
           const c=C.find(x=>x.id===r.id);
-          if(c){Object.assign(c,r);changed++;}
+          if(c){
+            // Apply all fields including telefono
+            Object.assign(c,r);
+            // telefono fallback: keep original if remote is empty
+            if(!r.telefono&&c._origTel) c.telefono=c._origTel;
+            changed++;
+          }
         });
       }
 
@@ -839,7 +845,8 @@ async function init(){
         email:x.email||r.email||'',visitDate:x.visitDate||'',cups:x.cups||r.cups||'',
         consumo:x.consumo||r.consumo||'',telefono2:x.telefono2||'',potencia_kw:x.potencia_kw||r.potencia_kw,
         llamadas:x.llamadas||0,ultimaLlamada:x.ultimaLlamada||'',
-        _callId:x._callId||'',_recordingUrl:x._recordingUrl||''}
+        _callId:x._callId||'',_recordingUrl:x._recordingUrl||'',
+        telefono:x.telefono||c.telefono||''}
         :{...r,estado:'pendiente',notas:r.notas_extra||'',contactName:'',visitDate:'',cups:r.cups||'',consumo:r.consumo||'',telefono2:''};
     });
   }catch{C=RAW.map(r=>({...r,estado:'pendiente',notas:'',contactName:'',visitDate:'',cups:'',consumo:'',telefono2:''}));}
@@ -852,7 +859,7 @@ function save(){
   const data=C.map(c=>({
     id:c.id,estado:c.estado,notas:c.notas||'',contactName:c.contactName||'',
     email:c.email||'',visitDate:c.visitDate||'',cups:c.cups||'',
-    consumo:c.consumo||'',telefono2:c.telefono2||'',potencia_kw:c.potencia_kw,
+    consumo:c.consumo||'',telefono:c.telefono||'',telefono2:c.telefono2||'',potencia_kw:c.potencia_kw,
     llamadas:c.llamadas||0,ultimaLlamada:c.ultimaLlamada||'',
     _callId:c._callId||'',_recordingUrl:c._recordingUrl||''
   }));
