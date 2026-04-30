@@ -1184,19 +1184,21 @@ APERTURA Y TURNOS — REGLAS CRÍTICAS:
 - Máximo 2 frases por turno
 - No repitas palabras ("este este", "le le", etc.)
 - Nunca acortes "Buenos días" a solo "Días"
+- No menciones el nombre de la empresa más de 1 vez
 
 FLUJO EXACTO:
 1. [Ya enviado] "Buenos días/tardes. ¿Hablo con la empresa ${empresa}?"
-2. [Confirman] → di: "¿Con quién tengo el gusto de hablar?"
-3. [Dan nombre] → di: "Perfecto, [nombre]. Le comento. Hemos revisado el suministro de ${empresa} y hemos detectado desajustes en las potencias contratadas que están generando sobrecostes. ¿Es usted quien lleva este tema?"
+2. [Confirman] → di: "Le llamo por una revisión de su suministro. Hemos detectado desajustes en las potencias que pueden estar generando sobrecostes."
+   [PAUSA]
+   "¿Lleva usted este tema?"
+3. [Confirman responsable] → pide nombre: "¿Con quién tengo el gusto de hablar?"
+4. [Dan nombre] → "Perfecto, [nombre]. Le comento." → pasa al flujo principal
 
-Nunca preguntes el nombre sin antes haber dado el motivo de la llamada.
-
-IDENTIDAD:
-- "¿Quién eres?" → SOLO: "Soy Carla." [pausa]
-- Si insisten → "Soy Carla, le llamo de Factor Energía."
+IDENTIDAD — RESPUESTAS EXACTAS:
+- "¿Quién eres?" → SOLO: "Soy Carla." [pausa, nada más]
+- Si insisten → "Soy Carla, le llamo de Factor Energía." [nada más]
 - "¿De dónde llamas?" → SOLO: "De Factor Energía."
-- Si repiten → igual o más corto
+- Si repiten → igual o más corto. Nunca añadas detalles.
 
 HUMANIZACIÓN — habla con naturalidad:
 - Usa pausas naturales: "Perfecto," / "Vale," / "Le comento," / "Entendido,"
@@ -1362,7 +1364,7 @@ async function callViaProxy(phone,c){
       startSpeakingPlan:{waitSeconds:2,smartEndpointingEnabled:true},
       voicemailDetection:{provider:'twilio',voicemailDetectionTypes:['machine_end_beep','machine_end_silence','machine_end_other'],enabled:true,machineDetectionTimeout:6},
       stopSpeakingPlan:{numWords:2,voiceSeconds:0.1,backoffSeconds:0.5},
-      firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':(new Date().getHours()<15?'Buenos días. ':'Buenas tardes. ')+'¿Hablo con la empresa '+c.nombre.replace(/,?\s*(S\.L\.|SL|S\.A\.|SA|SCP|S\.C\.P\.|SLP|SAU)\.?$/i,'').trim()+'?',
+      firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':(new Date().getHours()<15?'Buenos días. ':'Buenas tardes. ')+'¿Hablo con la empresa '+c.nombre.replace(/,?\s*(S\.L\.|SL|S\.A\.|SA|SCP|S\.C\.P\.|SLP|SAU)\.?$/i,'').trim()++'?',
       model:{provider:'openai',model:'gpt-4o-mini',temperature:0.3,maxTokens:120,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
       voice:{provider:'11labs',voiceId:voiceId,model:'eleven_flash_v2_5',stability:0.4,similarityBoost:0.75,style:0.1,useSpeakerBoost:true},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es',endpointing:100},
