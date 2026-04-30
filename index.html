@@ -840,10 +840,28 @@ async function init(){
 
   // Try GitHub first, fallback to localStorage
   let s=[];
-  // ALWAYS load from localStorage - never let GitHub overwrite local
   const localData=JSON.parse(localStorage.getItem(SK)||'[]');
-  s=localData;
-  console.log('Loaded from localStorage:',s.length,'records');
+  const localTs=parseInt(localStorage.getItem(SK+'_ts')||'0');
+
+  if(localData.length===0){
+    // Mobile or first load - pull from GitHub
+    console.log('localStorage empty, loading from GitHub...');
+    const ghResult=await fetch(SYNC_URL,{cache:'no-store'}).then(r=>r.json()).catch(()=>null);
+    if(ghResult&&ghResult.data){
+      const arr=Array.isArray(ghResult.data)?ghResult.data:(ghResult.data.data||[]);
+      const ghTs=ghResult.data._ts||0;
+      if(arr.length>0){
+        s=arr;
+        localStorage.setItem(SK,JSON.stringify(arr));
+        localStorage.setItem(SK+'_ts',ghTs||Date.now());
+        console.log('Loaded from GitHub:',arr.length,'records');
+      }
+    }
+  } else {
+    // Has local data - use it (local always wins)
+    s=localData;
+    console.log('Loaded from localStorage:',s.length,'records (ts:'+localTs+')');
+  }
   try{
     C=RAW.map(r=>{
       const x=s.find(y=>y.id===r.id);
@@ -852,7 +870,7 @@ async function init(){
         consumo:x.consumo||r.consumo||'',telefono2:x.telefono2||'',potencia_kw:x.potencia_kw||r.potencia_kw,
         llamadas:x.llamadas||0,ultimaLlamada:x.ultimaLlamada||'',
         _callId:x._callId||'',_recordingUrl:x._recordingUrl||'',
-        telefono:x.telefono||c.telefono||''}
+        telefono:x.telefono||r.telefono||''}
         :{...r,estado:'pendiente',notas:r.notas_extra||'',contactName:'',visitDate:'',cups:r.cups||'',consumo:r.consumo||'',telefono2:''};
     });
   }catch{C=RAW.map(r=>({...r,estado:'pendiente',notas:'',contactName:'',visitDate:'',cups:'',consumo:'',telefono2:''}));}
