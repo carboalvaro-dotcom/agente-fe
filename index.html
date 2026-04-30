@@ -770,30 +770,15 @@ async function pollRemoteChanges(){
       _lastGhSha=sha;
       if(sha) _currentSha=sha;
 
-      // Check timestamps - only apply if remote is strictly newer
-      const localTs=parseInt(localStorage.getItem(SK+'_ts')||'0');
-      const remoteTs=result.data&&result.data.ts?result.data.ts:0;
-      const remoteData=result.data&&result.data.data?result.data.data:result.data;
+      // Apply remote data - SHA changed means another device saved
+      const remoteData=Array.isArray(result.data)?result.data:
+        (result.data&&result.data.data?result.data.data:[]);
 
-      if(remoteTs<=localTs){
-        // Local is newer or equal - skip
-        setTimeout(pollRemoteChanges,30000);return;
-      }
-
-      // Merge: apply remote data
       let changed=0;
-      if(Array.isArray(remoteData)){
-        remoteData.forEach(r=>{
-          const c=C.find(x=>x.id===r.id);
-          if(c){
-            // Apply all fields including telefono
-            Object.assign(c,r);
-            // telefono fallback: keep original if remote is empty
-            if(!r.telefono&&c._origTel) c.telefono=c._origTel;
-            changed++;
-          }
-        });
-      }
+      remoteData.forEach(r=>{
+        const c=C.find(x=>x.id===r.id);
+        if(c){Object.assign(c,r);changed++;}
+      });
 
       if(changed>0){
         localStorage.setItem(SK,JSON.stringify(remoteData));
@@ -819,7 +804,7 @@ function forceSync(){
     email:c.email||'',visitDate:c.visitDate||'',cups:c.cups||'',consumo:c.consumo||'',
     telefono2:c.telefono2||'',potencia_kw:c.potencia_kw,llamadas:c.llamadas||0,
     ultimaLlamada:c.ultimaLlamada||'',_callId:c._callId||'',_recordingUrl:c._recordingUrl||''}));
-  _ghSaving=false;_currentSha=null;
+  _ghSaving=false;
   syncToGitHub(data).then(()=>toast('✓ Sincronizado','ok'));
 }
 
@@ -863,21 +848,19 @@ function save(){
     llamadas:c.llamadas||0,ultimaLlamada:c.ultimaLlamada||'',
     _callId:c._callId||'',_recordingUrl:c._recordingUrl||''
   }));
-  const payload={ts:Date.now(),data};
   localStorage.setItem(SK,JSON.stringify(data));
-  localStorage.setItem(SK+'_ts',payload.ts);
-  syncToGitHub(payload);
+  localStorage.setItem(SK+'_ts',Date.now());
+  syncToGitHub(data);
 }
 
 async function syncToGitHub(data){
   if(_ghSaving){_ghPendingSave=true;return;}
   _ghSaving=true;
   try{
-    const payload=typeof data.ts!=='undefined'?data:{ts:Date.now(),data};
     const r=await fetch(SYNC_URL,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({data:payload,sha:_currentSha})
+      body:JSON.stringify({data,sha:_currentSha})
     });
     if(r.ok){
       const result=await r.json();
@@ -888,7 +871,7 @@ async function syncToGitHub(data){
   }catch(e){console.error('sync:',e);}
   finally{
     _ghSaving=false;
-    if(_ghPendingSave){_ghPendingSave=false;const d=C.map(c=>({id:c.id,estado:c.estado,notas:c.notas||'',contactName:c.contactName||'',email:c.email||'',visitDate:c.visitDate||'',cups:c.cups||'',consumo:c.consumo||'',telefono2:c.telefono2||'',potencia_kw:c.potencia_kw,llamadas:c.llamadas||0,ultimaLlamada:c.ultimaLlamada||'',_callId:c._callId||'',_recordingUrl:c._recordingUrl||''}));syncToGitHub(d);}
+    if(_ghPendingSave){_ghPendingSave=false;const d=C.map(c=>({id:c.id,estado:c.estado,notas:c.notas||'',contactName:c.contactName||'',email:c.email||'',visitDate:c.visitDate||'',cups:c.cups||'',consumo:c.consumo||'',telefono:c.telefono||'',telefono2:c.telefono2||'',potencia_kw:c.potencia_kw,llamadas:c.llamadas||0,ultimaLlamada:c.ultimaLlamada||'',_callId:c._callId||'',_recordingUrl:c._recordingUrl||''}));syncToGitHub(d);}
   }
 }
 
@@ -898,10 +881,8 @@ async function loadFromGitHub(){
     if(!r.ok) return null;
     const result=await r.json();
     if(result.sha) _currentSha=result.sha;
-    // Handle both formats: {ts, data:[]} and plain []
-    const d=result.data&&result.data.data?result.data.data:result.data;
-    const ts=result.data&&result.data.ts?result.data.ts:0;
-    if(ts) localStorage.setItem(SK+'_ts',ts);
+    const d=Array.isArray(result.data)?result.data:
+      (result.data&&result.data.data?result.data.data:null);
     return d&&d.length>0?d:null;
   }catch(e){console.error('loadFromGitHub:',e);return null;}
 }
