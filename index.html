@@ -852,7 +852,7 @@ async function init(){
         consumo:x.consumo||r.consumo||'',telefono2:x.telefono2||'',potencia_kw:x.potencia_kw||r.potencia_kw,
         llamadas:x.llamadas||0,ultimaLlamada:x.ultimaLlamada||'',
         _callId:x._callId||'',_recordingUrl:x._recordingUrl||'',
-        telefono:x.telefono||r.telefono||''}
+        telefono:x.telefono||c.telefono||''}
         :{...r,estado:'pendiente',notas:r.notas_extra||'',contactName:'',visitDate:'',cups:r.cups||'',consumo:r.consumo||'',telefono2:''};
     });
   }catch{C=RAW.map(r=>({...r,estado:'pendiente',notas:'',contactName:'',visitDate:'',cups:'',consumo:'',telefono2:''}));}
