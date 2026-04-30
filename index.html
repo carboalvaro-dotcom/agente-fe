@@ -893,6 +893,10 @@ function save(){
 }
 
 async function syncToGitHub(data){
+  if(!data||data.length===0) return; // never sync empty data
+  // Check if there's anything worth syncing (any non-pending state or notes)
+  const hasRealData=data.some(c=>c.estado!=='pendiente'||c.notas||c.llamadas>0||c.contactName||c.telefono!==''&&c.telefono!==undefined);
+  if(!hasRealData) return; // don't overwrite GitHub with pristine data
   if(_ghSaving){_ghPendingSave=true;return;}
   _ghSaving=true;
   try{
