@@ -171,7 +171,7 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
     <option value="noContesta" style="color:#000">No contesta</option>
     <option value="todos" style="color:#000">Todos los pendientes</option>
   </select>
-  <input type="time" id="camp-time" value="09:00" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 6px;border-radius:6px;font-family:var(--mo);outline:none;width:70px;margin-right:4px;" title="Hora inicio campaña">
+  <input type="time" id="camp-time" value="" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 6px;border-radius:6px;font-family:var(--mo);outline:none;width:70px;margin-right:4px;" title="Hora inicio (dejar vacío = empezar ya)">
   <button class="btn" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:5px 12px;" onclick="startCampaign()">▶ Iniciar campaña</button>
 </div>
 <div class="camp-bar" id="camp-bar">
@@ -781,11 +781,43 @@ function startCampaign(){
   const fv=document.getElementById('camp-filter')?.value||'nuevos';
   const fl={'nuevos':'Sin llamar','pendiente':'Pendientes','rellamar':'Rellamar','duda':'Duda','noContesta':'No contesta','todos':'Todos pendientes'}[fv]||fv;
   if(queue.length===0){toast('No hay contactos en filtro: '+fl,'err');return;}
-  if(!confirm('Iniciar campaña "'+fl+'" con '+queue.length+' contactos?')) return;
-  campaignQueue=queue;campaignIdx=0;campaignRunning=true;campaignPaused=false;
-  document.getElementById('camp-bar').classList.add('on');
-  toast('Campaña iniciada — '+queue.length+' contactos','ok');
-  runNextCampaignCall();
+  
+  const timeVal=document.getElementById('camp-time')?.value||'';
+  
+  if(timeVal){
+    // Scheduled start
+    const [hh,mm]=timeVal.split(':').map(Number);
+    const now=new Date();
+    const startAt=new Date();
+    startAt.setHours(hh,mm,0,0);
+    if(startAt<=now) startAt.setDate(startAt.getDate()+1); // next day if past
+    const diffMs=startAt-now;
+    const diffMin=Math.round(diffMs/60000);
+    const diffH=Math.floor(diffMin/60);
+    const diffM=diffMin%60;
+    const whenStr=diffH>0?diffH+'h '+diffM+'min':diffM+'min';
+    if(!confirm('Programar campaña "'+fl+'" ('+queue.length+' contactos) para las '+timeVal+'
+Faltan: '+whenStr)) return;
+    campaignQueue=queue;campaignIdx=0;campaignRunning=false;campaignPaused=false;
+    // Show scheduled in camp-bar
+    document.getElementById('camp-bar').classList.add('on');
+    document.getElementById('camp-title').textContent='Campaña programada para las '+timeVal;
+    document.getElementById('camp-sub').textContent='Empieza en '+whenStr+' — '+queue.length+' contactos';
+    toast('Campaña programada para las '+timeVal,'ok');
+    campaignTimer=setTimeout(()=>{
+      campaignRunning=true;
+      document.getElementById('camp-title').textContent='Campaña iniciada';
+      toast('Campaña iniciada — '+queue.length+' contactos','ok');
+      runNextCampaignCall();
+    }, diffMs);
+  } else {
+    // Immediate start
+    if(!confirm('Iniciar campaña "'+fl+'" ahora con '+queue.length+' contactos?')) return;
+    campaignQueue=queue;campaignIdx=0;campaignRunning=true;campaignPaused=false;
+    document.getElementById('camp-bar').classList.add('on');
+    toast('Campaña iniciada — '+queue.length+' contactos','ok');
+    runNextCampaignCall();
+  }
 }
 
 async function runNextCampaignCall(){
@@ -872,6 +904,9 @@ function stopCampaign(){
   clearInterval(iv);
   document.getElementById('camp-bar').classList.remove('on');
   document.getElementById('cban').classList.remove('on');
+  // Clear scheduled time
+  const timeEl=document.getElementById('camp-time');
+  if(timeEl) timeEl.value='';
   const c=C.find(x=>x.id===curId);
   if(c&&c.estado==='llamando'){c.estado='pendiente';save();upStats();renderList();}
   toast('Campaña detenida','');
