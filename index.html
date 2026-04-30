@@ -620,42 +620,10 @@ function toast(m,t){
 }
 
 init();
+
+
+
+
 </script>
 </body>
 </html>
-async function syncToGitHub(data){
-  if(!data||data.length===0) return;
-  const hasRealData=data.some(c=>c.estado!=='pendiente'||c.notas||c.llamadas>0||c.contactName);
-  if(!hasRealData) return;
-  if(_ghSaving){_ghPendingSave=true;return;}
-  _ghSaving=true;
-  try{
-    const ts=Date.now();
-    const payload={data,_ts:ts};
-    const r=await fetch(SYNC_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:payload,sha:_currentSha})});
-    if(r.ok){
-      const result=await r.json();
-      if(result.ok&&result.sha){_currentSha=result.sha;_lastGhSha=result.sha;}
-      _lastLocalSave=Date.now();
-      const syncEl=document.getElementById('sync-status');
-      if(syncEl){syncEl.textContent='✓ Sync '+new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});syncEl.style.color='rgba(255,255,255,.7)';}
-    }
-  }catch(e){console.error('sync:',e);}
-  finally{
-    _ghSaving=false;
-    if(_ghPendingSave){_ghPendingSave=false;syncToGitHub(data);}
-  }
-}
-
-async function loadFromGitHub(){
-  try{
-    const r=await fetch(SYNC_URL,{cache:'no-store'});
-    if(!r.ok) return null;
-    const result=await r.json();
-    if(result.sha) _currentSha=result.sha;
-    const d=Array.isArray(result.data)?result.data:(result.data&&result.data.data?result.data.data:null);
-    return d&&d.length>0?d:null;
-  }catch(e){return null;}
-}
-
-
