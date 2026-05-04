@@ -733,7 +733,7 @@ async function callViaProxy(phone,c){
   return data;
 }
 
-async async function stopCall(){
+async function stopCall(){
   const c=C.find(x=>x.id===curId);
   const callId=c?._callId||_activeCallId;
   // End call on Vapi
