@@ -56,8 +56,8 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .cp-name{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--mt);}
 .cp-count{font-size:10px;font-family:var(--mo);color:var(--mt2);}
 .cp-arrow{font-size:9px;color:var(--mt2);transition:transform .15s;}.cp-arrow.open{transform:rotate(90deg);}
-.ci{padding:9px 12px;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .1s;}
-.ci:hover{background:var(--s1);}.ci.sel{background:var(--acl);border-left:3px solid var(--ac);}
+.ci{padding:9px 12px 9px 15px;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .1s;border-left:3px solid transparent;}
+.ci:hover{background:var(--s1);}.ci.sel{background:var(--acl);}
 .ci-r1{display:flex;align-items:flex-start;justify-content:space-between;gap:4px;margin-bottom:2px;}
 .ci-name{font-size:12px;font-weight:500;line-height:1.3;flex:1;}
 .ci-badges{display:flex;gap:3px;flex-shrink:0;align-items:center;margin-top:1px;}
@@ -223,6 +223,15 @@ body.dark .fg-input{background:var(--s2);color:var(--tx);}
 body.dark .card{background:var(--s1);border-color:var(--bd);}
 body.dark .rbtn{background:var(--s2);color:var(--tx);}
 body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
+
+.ci.est-pendiente{border-left-color:var(--bd);}
+.ci.est-visitaOK{border-left-color:var(--gr);}
+.ci.est-rellamar{border-left-color:var(--am);}
+.ci.est-noInteresa{border-left-color:var(--rd);}
+.ci.est-noContesta{border-left-color:#aaa;}
+.ci.est-duda{border-left-color:#7c3aed;}
+.ci.est-llamando{border-left-color:var(--ac);}
+.ci.sel{background:var(--acl);border-left-color:var(--ac)!important;}
 </style>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -262,6 +271,12 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
   <div class="camp-progress">
     <div class="camp-bar-track"><div class="camp-bar-fill" id="camp-fill" style="width:0%"></div></div>
     <div class="camp-pct" id="camp-pct">0%</div>
+  </div>
+  <div id="camp-live-stats" style="display:flex;gap:8px;align-items:center;font-size:11px;font-family:var(--mo);">
+    <span style="color:var(--gr);font-weight:600;" id="cls-v">✓ 0</span>
+    <span style="color:var(--am);font-weight:600;" id="cls-r">↺ 0</span>
+    <span style="color:#aaa;font-weight:600;" id="cls-nc">— 0</span>
+    <span style="color:var(--rd);font-weight:600;" id="cls-ni">✗ 0</span>
   </div>
   <button class="btn-pause" id="camp-pause-btn" onclick="toggleCampaignPause()">⏸ Pausar</button>
   <button class="btn-stop" onclick="stopCampaign()">✕ Parar</button>
@@ -482,7 +497,7 @@ function renderList(){
       const stateLabels={pendiente:'● Pendiente',visitaOK:'✓ Visita',rellamar:'↺ Rellamar',noInteresa:'✗ No interesa',noContesta:'— No contesta',duda:'? Duda'};
       const stateColors={pendiente:'var(--mt)',visitaOK:'var(--gr)',rellamar:'var(--am)',noInteresa:'var(--rd)',noContesta:'var(--mt)',duda:'#7c3aed'};
       const isOpen=isMob&&c.id===curId;
-      html+=`<div class="ci${isOpen?' sel':''}" onclick="selMob(${c.id},this)">
+      html+=`<div class="ci est-${c.estado}${isOpen?' sel':''}" onclick="selMob(${c.id},this)">
         <div class="ci-r1"><div class="ci-name">${c.nombre}</div>
           <div class="ci-badges">${pro?'<span class="badge b-pro">PRO</span>':''}${c.prioritario&&!pro?'<span class="badge b-prio">⚡</span>':''}<span class="sdot ${c.estado}"></span></div>
         </div>
@@ -1053,6 +1068,7 @@ function startCampaign(){
     if(!confirm('Iniciar campaña "'+fl+'" ahora con '+queue.length+' contactos?')) return;
     campaignQueue=queue;campaignIdx=0;campaignRunning=true;campaignPaused=false;
     document.getElementById('camp-bar').classList.add('on');
+    ['cls-v','cls-r','cls-nc','cls-ni'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=el.textContent[0]+el.textContent[1]+' 0';});
     toast('Campaña iniciada — '+queue.length+' contactos','ok');
     runNextCampaignCall();
   }
@@ -1093,7 +1109,7 @@ async function runNextCampaignCall(){
     if(cx&&cx.estado==='llamando'){cx.estado='pendiente';save();}
     clearInterval(iv);document.getElementById('cban').classList.remove('on');
   }
-  campaignIdx++;
+  campaignIdx++;updateCampLiveStats();
   if(campaignRunning&&!campaignPaused){
     document.getElementById('camp-sub').textContent='Esperando 45s...';
     await new Promise(r=>{campaignTimer=setTimeout(r,45000);});
@@ -1312,6 +1328,19 @@ function showCampHistory(){
       +'<div style="font-size:11px;color:#7c3aed">? '+h.duda+'</div>'
       +'</div>').join('');
   modal.style.display='block';
+}
+
+
+function updateCampLiveStats(){
+  const done=campaignQueue.slice(0,campaignIdx).map(id=>C.find(x=>x.id===id)).filter(Boolean);
+  const v=document.getElementById('cls-v');
+  const r=document.getElementById('cls-r');
+  const nc=document.getElementById('cls-nc');
+  const ni=document.getElementById('cls-ni');
+  if(v) v.textContent='✓ '+done.filter(c=>c.estado==='visitaOK').length;
+  if(r) r.textContent='↺ '+done.filter(c=>c.estado==='rellamar').length;
+  if(nc) nc.textContent='— '+done.filter(c=>c.estado==='noContesta').length;
+  if(ni) ni.textContent='✗ '+done.filter(c=>c.estado==='noInteresa').length;
 }
 
 async function syncToGitHub(data){
