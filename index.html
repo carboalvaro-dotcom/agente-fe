@@ -306,6 +306,14 @@ html.mob-pre body,body.mob{--is-mob:1;}
           <button class="rbtn r-ni" onclick="setRes('noInteresa',this)">— No interesa</button>
           <button class="rbtn" style="background:#f0e6ff;color:#7c3aed;border-color:rgba(124,58,237,.2)" onclick="setRes('duda',this)">? Duda</button>
         </div>
+        <div id="last-call-panel" style="display:none;margin:0 14px 10px;padding:12px;background:linear-gradient(135deg,var(--acl) 0%,#fff 100%);border:1px solid rgba(26,86,219,.2);border-radius:8px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-size:11px;font-weight:600;color:var(--ac);text-transform:uppercase;letter-spacing:.05em;">📞 Última llamada</span>
+            <span id="last-call-time" style="font-size:10px;color:var(--mt);"></span>
+          </div>
+          <div id="last-call-summary" style="font-size:12px;color:var(--tx);line-height:1.5;margin-bottom:8px;"></div>
+          <audio id="last-call-audio" controls style="width:100%;height:32px;display:none;"></audio>
+        </div>
         <textarea class="nt" id="notas" placeholder="Notas: nombre del contacto, fecha visita, objeciones, observaciones..."></textarea>
         <div class="save-bar">
           <button class="btn btn-gh btn-sm" onclick="clearRes()">Limpiar</button>
@@ -524,6 +532,21 @@ function sel(id){
   `;
 
   document.getElementById('notas').value=c.notas||'';
+  // Last call panel
+  const lcp=document.getElementById('last-call-panel');
+  if(lcp){
+    if(c.llamadas>0&&(c._recordingUrl||c._lastSummary||c.notas)){
+      lcp.style.display='block';
+      document.getElementById('last-call-time').textContent=c.ultimaLlamada||'';
+      const summary=c._lastSummary||c.notas||'Sin resumen disponible';
+      document.getElementById('last-call-summary').textContent=summary.length>300?summary.slice(0,300)+'...':summary;
+      const audio=document.getElementById('last-call-audio');
+      if(c._recordingUrl){audio.src=c._recordingUrl;audio.style.display='block';}
+      else{audio.style.display='none';audio.src='';}
+    } else {
+      lcp.style.display='none';
+    }
+  }
   // Llamadas badge
   const lbadge=document.getElementById('llamadas-badge');
   if(lbadge) lbadge.textContent=c.llamadas>0?'📞 LLAMADAS: '+c.llamadas+(c.ultimaLlamada?' · Última: '+c.ultimaLlamada:''):'';
@@ -753,9 +776,13 @@ async function fetchCallNotes(callId,contactId){
     if(!r.ok) return;
     const data=await r.json();
     const c=C.find(x=>x.id===contactId);if(!c) return;
+    // Save call info
+    c._callId=callId;
+    if(data.recordingUrl) c._recordingUrl=data.recordingUrl;
+    if(data.summary) c._lastSummary=data.summary;
+    else if(data.notas) c._lastSummary=data.notas;
     if(data.notas) c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
     if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
-    // Never save agent name (Carla) as contact name
     const agentNames=['carla','carlos'];
     if(data.nombreContacto&&!c.contactName&&!agentNames.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
     if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
