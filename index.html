@@ -541,32 +541,36 @@ function sel(id){
     if(c.llamadas>0&&(c._recordingUrl||c._lastSummary||c.notas)){
       lcp.style.display='block';
       document.getElementById('last-call-time').textContent=c.ultimaLlamada||'';
-      // Extract recording URL from notas if not in _recordingUrl
+      // Get recording URL - check _recordingUrl first, then extract from notas
       let recUrl=c._recordingUrl||'';
       if(!recUrl&&c.notas){
         const si=c.notas.indexOf('https://storage.vapi.ai/');
-        if(si>-1){const ei=c.notas.indexOf('\n',si);recUrl=ei>-1?c.notas.slice(si,ei):c.notas.slice(si);}
+        if(si>-1){
+          const ei=c.notas.indexOf('\n',si);
+          recUrl=ei>-1?c.notas.slice(si,ei).trim():c.notas.slice(si).trim();
+        }
       }
-      // Clean summary - remove the URL line and emoji prefix lines for display
+      // Build clean summary - remove URL line
       let summary=c._lastSummary||c.notas||'';
-      // Remove URL lines from display
-      summary=summary.replace(/https:\/\/storage\.vapi\.ai\/[^\s
-]+/g,'').replace(/
-{3,}/g,'
-
-').trim();
-      document.getElementById('last-call-summary').textContent=summary.length>400?summary.slice(0,400)+'...':summary;
+      if(summary){
+        const si2=summary.indexOf('https://storage.vapi.ai/');
+        if(si2>-1){
+          const ei2=summary.indexOf('\n',si2);
+          summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();
+        }
+      }
+      document.getElementById('last-call-summary').textContent=summary.slice(0,400)+(summary.length>400?'...':'');
+      // Show audio player
       const audio=document.getElementById('last-call-audio');
       if(recUrl){
         audio.src=recUrl;
         audio.style.display='block';
-        // Also save back to _recordingUrl if missing
         if(!c._recordingUrl){c._recordingUrl=recUrl;save();}
-      } else {
+      }else{
         audio.style.display='none';
         audio.src='';
       }
-    } else {
+    }else{
       lcp.style.display='none';
     }
   }
