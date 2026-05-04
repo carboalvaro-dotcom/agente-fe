@@ -108,10 +108,10 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
 .ph-title{font-size:11px;font-weight:600;flex:1;}.ph-tag{font-size:10px;color:var(--mt2);}
 .ph-body{padding:10px 14px;font-size:12px;line-height:1.85;color:#3a4a6b;border-top:1px solid var(--bd);white-space:pre-wrap;display:none;}
 .ph-body.op{display:block;}
-.cban{display:none;background:linear-gradient(90deg,var(--acl),#f0f5ff);border:1px solid rgba(26,86,219,.2);border-radius:var(--r);padding:10px 14px;align-items:center;gap:10px;}
+.cban{display:none;background:linear-gradient(90deg,#1e40af,#2563eb);border-bottom:2px solid rgba(255,255,255,.2);padding:8px 18px;align-items:center;gap:12px;flex-shrink:0;}
 .cban.on{display:flex;}
 .cwave{display:flex;gap:3px;align-items:center;}
-.cwave span{width:3px;background:var(--ac);border-radius:2px;animation:wv .8s infinite ease-in-out;}
+.cwave span{width:3px;background:#fff;border-radius:2px;animation:wv .8s infinite ease-in-out;}
 .cwave span:nth-child(1){height:8px;}.cwave span:nth-child(2){height:14px;animation-delay:.12s;}
 .cwave span:nth-child(3){height:10px;animation-delay:.24s;}.cwave span:nth-child(4){height:6px;animation-delay:.36s;}
 @keyframes wv{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}}
@@ -249,6 +249,15 @@ html.mob-pre body,body.mob{--is-mob:1;}
   <button class="btn-pause" id="camp-pause-btn" onclick="toggleCampaignPause()">⏸ Pausar</button>
   <button class="btn-stop" onclick="stopCampaign()">✕ Parar</button>
 </div>
+<div class="cban" id="cban">
+  <div class="cwave"><span></span><span></span><span></span><span></span></div>
+  <div style="flex:1;min-width:0;">
+    <div class="ct" id="cban-name" style="font-size:13px;font-weight:600;color:var(--ac);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Llamada en curso</div>
+    <div class="ct" style="font-size:11px;color:var(--mt);">Agente IA hablando...</div>
+  </div>
+  <div class="ctm" id="ctm">0:00</div>
+  <button class="btn btn-dn btn-sm" onclick="stopCall()">Colgar</button>
+</div>
 <div class="main">
   <div class="lp">
     <div class="lp-top">
@@ -289,12 +298,7 @@ html.mob-pre body,body.mob{--is-mob:1;}
       </div>
 
       <!-- CALLING BANNER -->
-      <div class="cban" id="cban">
-        <div class="cwave"><span></span><span></span><span></span><span></span></div>
-        <div class="ct">Llamada en curso — agente IA hablando...</div>
-        <div class="ctm" id="ctm">0:00</div>
-        <button class="btn btn-dn btn-sm" onclick="stopCall()">Colgar</button>
-      </div>
+
 
       <!-- RESULTADO -->
       <div class="card">
@@ -1000,6 +1004,10 @@ async function runNextCampaignCall(){
     c.estado='llamando';c.llamadas=(c.llamadas||0)+1;
     c.ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
     save();upStats();renderList();
+    const cbanName=document.getElementById('cban-name');
+    if(cbanName){const cx=C.find(x=>x.id===curId);cbanName.textContent=cx?'📞 '+cx.nombre:'Llamada en curso';}
+    const cbanNameC=document.getElementById('cban-name');
+    if(cbanNameC) cbanNameC.textContent='📞 '+c.nombre;
     document.getElementById('cban').classList.add('on');
     sec=0;clearInterval(iv);iv=setInterval(()=>{sec++;const mm=Math.floor(sec/60),ss=sec%60;document.getElementById('ctm').textContent=mm+':'+(ss<10?'0':'')+ss;},1000);
     const resultado=await callViaProxy(phone,c);
