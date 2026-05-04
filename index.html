@@ -541,11 +541,32 @@ function sel(id){
     if(c.llamadas>0&&(c._recordingUrl||c._lastSummary||c.notas)){
       lcp.style.display='block';
       document.getElementById('last-call-time').textContent=c.ultimaLlamada||'';
-      const summary=c._lastSummary||c.notas||'Sin resumen disponible';
-      document.getElementById('last-call-summary').textContent=summary.length>300?summary.slice(0,300)+'...':summary;
+      // Extract recording URL from notas if not in _recordingUrl
+      let recUrl=c._recordingUrl||'';
+      if(!recUrl&&c.notas){
+        const urlMatch=c.notas.match(/https:\/\/storage\.vapi\.ai\/[^\s
+]+/);
+        if(urlMatch) recUrl=urlMatch[0];
+      }
+      // Clean summary - remove the URL line and emoji prefix lines for display
+      let summary=c._lastSummary||c.notas||'';
+      // Remove URL lines from display
+      summary=summary.replace(/https:\/\/storage\.vapi\.ai\/[^\s
+]+/g,'').replace(/
+{3,}/g,'
+
+').trim();
+      document.getElementById('last-call-summary').textContent=summary.length>400?summary.slice(0,400)+'...':summary;
       const audio=document.getElementById('last-call-audio');
-      if(c._recordingUrl){audio.src=c._recordingUrl;audio.style.display='block';}
-      else{audio.style.display='none';audio.src='';}
+      if(recUrl){
+        audio.src=recUrl;
+        audio.style.display='block';
+        // Also save back to _recordingUrl if missing
+        if(!c._recordingUrl){c._recordingUrl=recUrl;save();}
+      } else {
+        audio.style.display='none';
+        audio.src='';
+      }
     } else {
       lcp.style.display='none';
     }
