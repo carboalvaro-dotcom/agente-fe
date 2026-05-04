@@ -544,9 +544,8 @@ function sel(id){
       // Extract recording URL from notas if not in _recordingUrl
       let recUrl=c._recordingUrl||'';
       if(!recUrl&&c.notas){
-        const urlMatch=c.notas.match(/https:\/\/storage\.vapi\.ai\/[^\s
-]+/);
-        if(urlMatch) recUrl=urlMatch[0];
+        const si=c.notas.indexOf('https://storage.vapi.ai/');
+        if(si>-1){const ei=c.notas.indexOf('\n',si);recUrl=ei>-1?c.notas.slice(si,ei):c.notas.slice(si);}
       }
       // Clean summary - remove the URL line and emoji prefix lines for display
       let summary=c._lastSummary||c.notas||'';
