@@ -17,7 +17,7 @@
   --bg:#f0f4f8;--s0:#ffffff;--s1:#f7f9fc;--s2:#edf1f7;
   --bd:#dde3ed;--bd2:#c5cfe0;
   --tx:#1a2540;--mt:#6b7a99;--mt2:#9aa3b8;
-  --ac:#1a56db;--acl:#e8effe;--ach:#1344b0;
+  --ac:#3152a1;--acl:#e8effe;--ach:#1344b0;
   --gr:#0b7a47;--grl:#e6f7ef;
   --rd:#c0392b;--rdl:#fdecea;
   --am:#b45309;--aml:#fef3e2;
@@ -217,7 +217,7 @@ body.dark{
   --grl:rgba(16,185,129,.1);--aml:rgba(245,158,11,.1);
   --pul:rgba(139,92,246,.1);--rdl:rgba(239,68,68,.1);
 }
-body.dark .tb{background:#1e3a5f;}
+body.dark .tb{background:#1e2d5a;}
 body.dark .ci.sel{background:rgba(59,130,246,.15);border-left-color:var(--ac);}
 body.dark .fg-input{background:var(--s2);color:var(--tx);}
 body.dark .card{background:var(--s1);border-color:var(--bd);}
@@ -239,7 +239,10 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
 <body>
 <div class="tb">
   <div class="tb-top">
-    <span class="tb-logo">FactorEnergía CRM</span>
+    <div style="display:flex;align-items:center;gap:8px;flex:1;">
+      <div style="background:#3152a1;border:2px solid rgba(255,255,255,.3);border-radius:6px;padding:2px 7px;font-size:14px;font-weight:900;color:#fff;letter-spacing:-0.5px;line-height:1.3;font-family:Arial,sans-serif;">fe</div>
+      <span class="tb-logo">FactorEnergía CRM</span>
+    </div>
     <span id="sync-status" onclick="forceSync()" style="font-size:10px;color:rgba(255,255,255,.5);cursor:pointer;">⏳</span>
     <button onclick="showDashboard()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);font-size:10px;padding:3px 8px;border-radius:5px;cursor:pointer;font-family:var(--fn);">📊</button>
   </div>
