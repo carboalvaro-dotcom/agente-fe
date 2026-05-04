@@ -700,7 +700,20 @@ AL CERRAR VISITA:
 IDIOMA: Castellano. Si contestan en catalán, responde en catalán.`
 }
 
-function setRes(e,b){curR=e;document.querySelectorAll('.rbtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');}
+function setRes(e,b){
+  curR=e;
+  document.querySelectorAll('.rbtn').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  // Save immediately
+  if(curId===null) return;
+  const c=C.find(x=>x.id===curId);
+  if(!c) return;
+  c.estado=e;
+  const notasEl=document.getElementById('notas');
+  if(notasEl) c.notas=notasEl.value;
+  save();upStats();renderList();
+  toast('✓ '+b.textContent.trim(),'ok');
+}
 
 function saveRes(){
   if(curId===null) return;
