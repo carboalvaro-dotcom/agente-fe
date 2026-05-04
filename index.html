@@ -208,6 +208,21 @@ html.mob-pre body,body.mob{--is-mob:1;}
   .acc-rbtn.active{box-shadow:0 0 0 2px currentColor;font-weight:700;}
   .acc-call{width:100%;padding:10px;background:var(--ac);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fn);}
 }
+
+body.dark{
+  --s0:#1a1b1e;--s1:#25262b;--s2:#2c2e33;
+  --tx:#e9ecef;--mt:#909296;--mt2:#5c5f66;
+  --bd:#373a40;--bg:#141517;
+  --acl:rgba(59,130,246,.12);--ach:rgba(59,130,246,.3);
+  --grl:rgba(16,185,129,.1);--aml:rgba(245,158,11,.1);
+  --pul:rgba(139,92,246,.1);--rdl:rgba(239,68,68,.1);
+}
+body.dark .tb{background:#1e3a5f;}
+body.dark .ci.sel{background:rgba(59,130,246,.15);border-left-color:var(--ac);}
+body.dark .fg-input{background:var(--s2);color:var(--tx);}
+body.dark .card{background:var(--s1);border-color:var(--bd);}
+body.dark .rbtn{background:var(--s2);color:var(--tx);}
+body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
 </style>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -234,6 +249,8 @@ html.mob-pre body,body.mob{--is-mob:1;}
     <select id="camp-filter" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 5px;border-radius:5px;font-family:var(--fn);cursor:pointer;outline:none;flex:1;"><option value="nuevos" style="color:#000">Sin llamar</option><option value="pendiente" style="color:#000">Pendientes</option><option value="rellamar" style="color:#000">Rellamar</option><option value="duda" style="color:#000">Duda</option><option value="noContesta" style="color:#000">No contesta</option><option value="todos" style="color:#000">Todos</option></select>
     <input type="time" id="camp-time" value="" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 4px;border-radius:5px;font-family:var(--mo);outline:none;width:62px;">
     <button onclick="startCampaign()" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);font-size:10px;padding:3px 8px;border-radius:5px;cursor:pointer;font-family:var(--fn);white-space:nowrap;">▶ Campaña</button>
+    <button onclick="exportExcel()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 8px;border-radius:5px;cursor:pointer;font-family:var(--fn);white-space:nowrap;">📥 Excel</button>
+    <button onclick="toggleDark()" id="btn-dark" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 8px;border-radius:5px;cursor:pointer;font-family:var(--fn);">🌙</button>
   </div>
 </div></div>
 <div class="camp-bar" id="camp-bar">
@@ -342,6 +359,7 @@ html.mob-pre body,body.mob{--is-mob:1;}
         <input type="date" id="dash-from" style="font-size:11px;padding:3px 6px;border-radius:4px;border:none;background:rgba(255,255,255,.2);color:#fff;font-family:var(--fn);outline:none;" onchange="renderDashboard()">
         <label style="font-size:11px;color:rgba(255,255,255,.8)">Hasta</label>
         <input type="date" id="dash-to" style="font-size:11px;padding:3px 6px;border-radius:4px;border:none;background:rgba(255,255,255,.2);color:#fff;font-family:var(--fn);outline:none;" onchange="renderDashboard()">
+        <button onclick="showCampHistory()" style="background:rgba(255,255,255,.2);border:none;color:#fff;font-size:11px;cursor:pointer;padding:3px 8px;border-radius:4px;margin-right:4px;">📋 Historial</button>
         <button onclick="document.getElementById('dash-modal').style.display='none'" style="background:rgba(255,255,255,.2);border:none;color:#fff;font-size:16px;cursor:pointer;padding:2px 8px;border-radius:4px;">✕</button>
       </div>
     </div>
@@ -1132,6 +1150,7 @@ function showCampaignSummary(){
   const ni=done.filter(c=>c.estado==='noInteresa').length;
   const nc=done.filter(c=>c.estado==='noContesta').length;
   const d=done.filter(c=>c.estado==='duda').length;
+  saveCampHistory(done.length,{visitas:v,rellamar:r,noContesta:nc,noInteresa:ni,duda:d});
   alert('Campaña completada: '+done.length+' llamadas | Visitas: '+v+' | Rellamar: '+r+' | No interesa: '+ni+' | No contesta: '+nc+' | Duda: '+d);
 }
 
@@ -1226,6 +1245,75 @@ function closeMobileDet(){
   curId=null;
 }
 
+
+// ── DARK MODE ────────────────────────────────────────────────────
+function toggleDark(){
+  const isDark=document.body.classList.toggle('dark');
+  localStorage.setItem('fe_dark', isDark?'1':'0');
+  document.getElementById('btn-dark').textContent=isDark?'☀️':'🌙';
+}
+function initDark(){
+  if(localStorage.getItem('fe_dark')==='1'){
+    document.body.classList.add('dark');
+    const btn=document.getElementById('btn-dark');
+    if(btn) btn.textContent='☀️';
+  }
+}
+
+// ── EXPORT EXCEL (CSV) ───────────────────────────────────────────
+function exportExcel(){
+  const headers=['Nombre','Teléfono','Teléfono2','Email','Contacto','Estado','Llamadas','Última llamada','Potencia kW','Consumo kWh','Tarifa','Comercializadora','Dirección','CP','Sector','Fecha visita','Notas','NIF'];
+  const stateLabel={pendiente:'Pendiente',visitaOK:'Visita concertada',rellamar:'Rellamar',noContesta:'No contesta',noInteresa:'No interesa',duda:'Duda'};
+  const rows=C.map(c=>[
+    c.nombre,c.telefono,c.telefono2||'',c.email||'',c.contactName||'',
+    stateLabel[c.estado]||c.estado,c.llamadas||0,c.ultimaLlamada||'',
+    c.potencia_kw,c.consumo||'',c.tarifa,c.comercializadora||'',
+    c.direccion,c.cp||'',c.sector,c.visitDate||'',
+    (c.notas||'').replace(/\n/g,' | '),c.nif
+  ]);
+  const csv=[headers,...rows].map(r=>r.map(v=>'"'+String(v||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='agente_carla_'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
+  toast('✓ Excel descargado','ok');
+}
+
+// ── CAMPAIGN HISTORY ─────────────────────────────────────────────
+const HIST_KEY='fe_camp_hist';
+function saveCampHistory(total,results){
+  const hist=JSON.parse(localStorage.getItem(HIST_KEY)||'[]');
+  hist.unshift({
+    date:new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}),
+    total,
+    visitas:results.visitas||0,
+    rellamar:results.rellamar||0,
+    noContesta:results.noContesta||0,
+    noInteresa:results.noInteresa||0,
+    duda:results.duda||0
+  });
+  localStorage.setItem(HIST_KEY,JSON.stringify(hist.slice(0,30)));
+}
+function showCampHistory(){
+  const hist=JSON.parse(localStorage.getItem(HIST_KEY)||'[]');
+  if(!hist.length){toast('Sin historial de campañas','');return;}
+  const modal=document.getElementById('dash-modal');
+  const content=document.getElementById('dash-content');
+  if(!modal||!content) return;
+  content.innerHTML='<div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:14px;">📋 Historial de campañas</div>'
+    +hist.map(h=>'<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--s2);border-radius:8px;margin-bottom:6px;">'
+      +'<div style="flex:1;font-size:11px;color:var(--mt)">'+h.date+'</div>'
+      +'<div style="font-size:11px;font-weight:600">📞 '+h.total+'</div>'
+      +'<div style="font-size:11px;color:var(--gr)">✓ '+h.visitas+'</div>'
+      +'<div style="font-size:11px;color:var(--am)">↺ '+h.rellamar+'</div>'
+      +'<div style="font-size:11px;color:var(--mt)">— '+h.noContesta+'</div>'
+      +'<div style="font-size:11px;color:var(--rd)">✗ '+h.noInteresa+'</div>'
+      +'<div style="font-size:11px;color:#7c3aed">? '+h.duda+'</div>'
+      +'</div>').join('');
+  modal.style.display='block';
+}
+
 async function syncToGitHub(data){
   if(!data||data.length===0) return;
   const hasRealData=data.some(c=>c.estado!=='pendiente'||c.notas||c.llamadas>0||c.contactName);
@@ -1263,6 +1351,8 @@ function forceSync(){
   syncToGitHub(data).then(()=>toast('✓ Sincronizado','ok'));
 }
 
+detectMobile();
+initDark();
 init();
 
 
