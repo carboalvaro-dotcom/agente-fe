@@ -71,10 +71,10 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .sdot.noInteresa{background:var(--rd);}.sdot.rellamar{background:var(--am);animation:pulse 1.2s infinite;}
 .sdot.noContesta{background:#aaa;}.sdot.llamando{background:var(--ac);box-shadow:0 0 5px var(--ac);animation:pulse .8s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.rp{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);}
+.rp{flex:1;display:flex;flex-direction:column;overflow:visible;background:var(--bg);}
 .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--mt2);}
 .empty-icon{font-size:40px;opacity:.25;}.empty p{font-size:13px;}
-.det{flex:1;overflow-y:auto;padding:16px 20px 30px;display:none;flex-direction:column;gap:14px;}
+.det{flex:1;overflow-y:auto;padding:10px 14px 30px;display:none;flex-direction:column;gap:8px;min-height:0;}
 .det.vis{display:flex;}
 .det::-webkit-scrollbar{width:3px;}.det::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px;}
 .card{background:var(--s0);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
@@ -84,11 +84,11 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .ch-name{font-size:13px;font-weight:600;line-height:1.3;margin-bottom:2px;}
 .ch-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
 .ch-badge{font-size:10px;padding:2px 9px;border-radius:20px;font-weight:500;}
-.ficha-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;padding:0 14px 16px;}
+.ficha-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:0 12px 10px;}
 .fg-item{display:flex;flex-direction:column;gap:3px;}
-.fg-item.span2{grid-column:span 2;}
+.fg-item.span2{grid-column:span 2;}.fg-item.span3{grid-column:span 3;}.fg-item.span4{grid-column:span 4;}
 .fg-label{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--mt);font-weight:500;}
-.fg-input{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:4px 7px;font-size:12px;font-family:var(--mo);color:var(--tx);outline:none;transition:border-color .15s;}
+.fg-input{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:3px 6px;font-size:11px;font-family:var(--mo);color:var(--tx);outline:none;transition:border-color .15s;}
 .fg-input:focus{border-color:var(--ac);background:var(--s0);}
 .res-btns{display:flex;gap:6px;flex-wrap:wrap;padding:12px 14px 8px;}
 .rbtn{padding:6px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fn);border:1px solid transparent;transition:all .15s;}
@@ -519,19 +519,19 @@ function sel(id){
     (c.prioritario?`<span class="ch-badge" style="background:var(--aml);color:var(--am);padding:2px 9px;border-radius:20px;font-size:10px;font-weight:500">Potencia desajustada</span>`:'');
 
   document.getElementById('ficha-grid').innerHTML=`
-    <div class="fg-item"><div class="fg-label">Teléfono</div><input class="fg-input" value="${c.telefono}" onchange="saveField(${id},'telefono',this.value)"></div>
-    <div class="fg-item"><div class="fg-label">Teléfono 2</div><input class="fg-input" value="${c.telefono2||''}" placeholder="—" onchange="saveField(${id},'telefono2',this.value)"></div>
-    <div class="fg-item"><div class="fg-label">Email</div><input class="fg-input" value="${c.email||''}" placeholder="—" onchange="saveField(${id},'email',this.value)"></div>
-    <div class="fg-item"><div class="fg-label">Nombre contacto</div><input class="fg-input" value="${c.contactName||''}" placeholder="—" onchange="saveField(${id},'contactName',this.value)"></div>
+    <div class="fg-item span2"><div class="fg-label">Teléfono</div><input class="fg-input" value="${c.telefono}" onchange="saveField(${id},'telefono',this.value)"></div>
+    <div class="fg-item span2"><div class="fg-label">Teléfono 2</div><input class="fg-input" value="${c.telefono2||''}" placeholder="—" onchange="saveField(${id},'telefono2',this.value)"></div>
+    <div class="fg-item span2"><div class="fg-label">Email</div><input class="fg-input" value="${c.email||''}" placeholder="—" onchange="saveField(${id},'email',this.value)"></div>
+    <div class="fg-item span2"><div class="fg-label">Nombre contacto</div><input class="fg-input" value="${c.contactName||''}" placeholder="—" onchange="saveField(${id},'contactName',this.value)"></div>
     <div class="fg-item"><div class="fg-label">Potencia (kW)</div><input class="fg-input" value="${c.potencia_kw}" onchange="saveField(${id},'potencia_kw',parseFloat(this.value)||0)"></div>
-    <div class="fg-item"><div class="fg-label">Consumo anual (kWh)</div><input class="fg-input" value="${c.consumo||''}" placeholder="Escribe consumo..." onchange="saveField(${id},'consumo',this.value)"></div>
+    <div class="fg-item"><div class="fg-label">Consumo (kWh)</div><input class="fg-input" value="${c.consumo||''}" placeholder="—" onchange="saveField(${id},'consumo',this.value)"></div>
     <div class="fg-item"><div class="fg-label">Tarifa</div><input class="fg-input" value="${c.tarifa}" onchange="saveField(${id},'tarifa',this.value)"></div>
     <div class="fg-item"><div class="fg-label">Comercializadora</div><input class="fg-input" value="${c.comercializadora||''}" placeholder="—" onchange="saveField(${id},'comercializadora',this.value)"></div>
-    <div class="fg-item span2"><div class="fg-label">Dirección</div><input class="fg-input" value="${c.direccion}" onchange="saveField(${id},'direccion',this.value)"></div>
-    <div class="fg-item span2"><div class="fg-label">CUPS</div><input class="fg-input" value="${c.cups||''}" placeholder="ES00314050..." style="font-size:10px;font-family:var(--mo)" onchange="saveField(${id},'cups',this.value)"></div>
+    <div class="fg-item span4"><div class="fg-label">Dirección</div><input class="fg-input" value="${c.direccion}" onchange="saveField(${id},'direccion',this.value)"></div>
+    <div class="fg-item span2"><div class="fg-label">CUPS</div><input class="fg-input" value="${c.cups||''}" placeholder="ES003140..." style="font-size:10px;" onchange="saveField(${id},'cups',this.value)"></div>
     <div class="fg-item"><div class="fg-label">Fecha visita</div><input class="fg-input" value="${c.visitDate||''}" placeholder="—" onchange="saveField(${id},'visitDate',this.value)"></div>
     <div class="fg-item"><div class="fg-label">Sector</div><input class="fg-input" value="${c.sector}" onchange="saveField(${id},'sector',this.value)"></div>
-    <div class="fg-item"><div class="fg-label">NIF</div><input class="fg-input" value="${c.nif}" onchange="saveField(${id},'nif',this.value)"></div>
+    <div class="fg-item span2"><div class="fg-label">NIF</div><input class="fg-input" value="${c.nif}" onchange="saveField(${id},'nif',this.value)"></div>
   `;
 
   document.getElementById('notas').value=c.notas||'';
