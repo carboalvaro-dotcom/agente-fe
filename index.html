@@ -743,30 +743,64 @@ async function stopCall(){
   if(c&&c.estado==='llamando'){c.estado='pendiente';save();upStats();renderList();sel(curId);}
 }
 
+function endCall(contactId, reason){
+  clearInterval(iv);
+  document.getElementById('cban').classList.remove('on');
+  const c=C.find(x=>x.id===contactId);
+  if(!c) return;
+  if(c.estado==='llamando'){
+    if(!reason||reason==='pendiente') c.estado='pendiente';
+    else c.estado=reason;
+  }
+  save();upStats();renderList();
+  if(curId===contactId) sel(contactId);
+}
+
 async function pollCallStatus(callId,contactId){
-  for(let i=0;i<30;i++){
+  const POLL_BACKEND = BACKEND_URL.replace('/call-notes','/call-status');
+  for(let i=0;i<24;i++){
     await new Promise(r=>setTimeout(r,5000));
     try{
-      const r=await fetch('https://api.vapi.ai/call/'+callId,{headers:{Authorization:'Bearer '+VAPI_KEY}});
+      // Try via backend to avoid CORS
+      const r=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({callId,checkStatus:true})});
       if(!r.ok) continue;
       const data=await r.json();
-      if(data.status==='ended'||data.status==='failed'){
-        const c=C.find(x=>x.id===contactId);
-        if(c&&c.estado==='llamando'){
-          clearInterval(iv);
-          document.getElementById('cban').classList.remove('on');
-          if(data.endedReason==='customer-did-not-answer'||data.endedReason==='no-answer'){c.estado='noContesta';toast('Sin respuesta','');}
-          else if(data.endedReason?.includes('voicemail')){c.estado='noContesta';toast('Buzón de voz','');}
-          else{c.estado='pendiente';}
-          save();upStats();renderList();
-          if(curId===contactId) sel(contactId);
-        }
+      // Backend returns status field when checkStatus=true
+      const status=data.callStatus||data.status;
+      const endedReason=data.callEndedReason||data.endedReason;
+      if(status==='ended'||status==='failed'){
+        const reason=
+          endedReason==='customer-did-not-answer'||endedReason==='no-answer'?'noContesta':
+          endedReason?.includes('voicemail')?'noContesta':'pendiente';
+        endCall(contactId, reason);
+        // Now fetch notes
+        await new Promise(r=>setTimeout(r,2000));
+        fetchCallNotes(callId,contactId);
+        return;
+      }
+      // If backend returned notas it means call ended and was analyzed
+      if(data.notas){
+        endCall(contactId,'pendiente');
+        const c=C.find(x=>x.id===contactId);if(!c) return;
+        c._callId=callId;
+        if(data.recordingUrl) c._recordingUrl=data.recordingUrl;
+        if(data.notas) c._lastSummary=data.notas;
+        if(data.notas) c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
+        if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
+        const agentNames=['carla','carlos'];
+        if(data.nombreContacto&&!c.contactName&&!agentNames.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
+        if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
+        save();upStats();renderList();
+        if(curId===contactId) sel(contactId);
+        toast('✓ Notas guardadas','ok');
         return;
       }
     }catch(e){}
   }
-  const c=C.find(x=>x.id===curId);
-  if(c&&c.estado==='llamando'){c.estado='pendiente';clearInterval(iv);document.getElementById('cban').classList.remove('on');save();upStats();renderList();if(curId)sel(curId);}
+  // Timeout - force end
+  endCall(contactId,'pendiente');
+  toast('Llamada finalizada','');
 }
 
 async function fetchCallNotes(callId,contactId){
