@@ -384,7 +384,8 @@ function init(){
       return x?{...r,estado:x.estado||'pendiente',notas:x.notas||'',contactName:x.contactName||'',
         email:x.email||r.email||'',visitDate:x.visitDate||'',cups:x.cups||r.cups||'',
         consumo:x.consumo||r.consumo||'',telefono2:x.telefono2||'',potencia_kw:x.potencia_kw||r.potencia_kw,
-        llamadas:x.llamadas||0,ultimaLlamada:x.ultimaLlamada||''}
+        llamadas:x.llamadas||0,ultimaLlamada:x.ultimaLlamada||'',
+        _callId:x._callId||'',_recordingUrl:x._recordingUrl||'',_lastSummary:x._lastSummary||''}
         :{...r,estado:'pendiente',notas:'',contactName:'',visitDate:'',cups:'',consumo:'',telefono2:''};
     });
   }catch{C=RAW.map(r=>({...r,estado:'pendiente',notas:'',contactName:'',visitDate:'',cups:'',consumo:'',telefono2:''}));}
@@ -397,7 +398,7 @@ function save(){
     email:c.email||'',visitDate:c.visitDate||'',cups:c.cups||'',
     consumo:c.consumo||'',telefono:c.telefono||'',telefono2:c.telefono2||'',potencia_kw:c.potencia_kw,
     llamadas:c.llamadas||0,ultimaLlamada:c.ultimaLlamada||'',
-    _callId:c._callId||'',_recordingUrl:c._recordingUrl||''
+    _callId:c._callId||'',_recordingUrl:c._recordingUrl||'',_lastSummary:c._lastSummary||''
   }));
   localStorage.setItem(SK,JSON.stringify(data));
   localStorage.setItem(SK+'_ts',Date.now());
@@ -1129,7 +1130,7 @@ async function loadFromGitHub(){
 }
 
 function forceSync(){
-  const data=C.map(c=>({id:c.id,estado:c.estado,notas:c.notas||'',contactName:c.contactName||'',email:c.email||'',visitDate:c.visitDate||'',telefono:c.telefono||'',telefono2:c.telefono2||'',potencia_kw:c.potencia_kw,llamadas:c.llamadas||0,ultimaLlamada:c.ultimaLlamada||'',_callId:c._callId||'',_recordingUrl:c._recordingUrl||''}));
+  const data=C.map(c=>({id:c.id,estado:c.estado,notas:c.notas||'',contactName:c.contactName||'',email:c.email||'',visitDate:c.visitDate||'',telefono:c.telefono||'',telefono2:c.telefono2||'',potencia_kw:c.potencia_kw,llamadas:c.llamadas||0,ultimaLlamada:c.ultimaLlamada||'',_callId:c._callId||'',_recordingUrl:c._recordingUrl||'',_lastSummary:c._lastSummary||''}));
   _ghSaving=false;
   syncToGitHub(data).then(()=>toast('✓ Sincronizado','ok'));
 }
