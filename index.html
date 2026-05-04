@@ -310,13 +310,15 @@ html.mob-pre body,body.mob{--is-mob:1;}
           <button class="rbtn r-ni" onclick="setRes('noInteresa',this)">— No interesa</button>
           <button class="rbtn" style="background:#f0e6ff;color:#7c3aed;border-color:rgba(124,58,237,.2)" onclick="setRes('duda',this)">? Duda</button>
         </div>
-        <div id="last-call-panel" style="display:none;margin:0 14px 10px;padding:12px;background:linear-gradient(135deg,var(--acl) 0%,#fff 100%);border:1px solid rgba(26,86,219,.2);border-radius:8px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-            <span style="font-size:11px;font-weight:600;color:var(--ac);text-transform:uppercase;letter-spacing:.05em;">📞 Última llamada</span>
+        <div id="last-call-panel" style="display:none;margin:0 14px 10px;background:var(--acl);border:1px solid rgba(26,86,219,.15);border-radius:10px;overflow:hidden;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(26,86,219,.08);">
+            <span style="font-size:11px;font-weight:700;color:var(--ac);">📞 Última llamada</span>
             <span id="last-call-time" style="font-size:10px;color:var(--mt);"></span>
           </div>
-          <div id="last-call-summary" style="font-size:12px;color:var(--tx);line-height:1.5;margin-bottom:8px;"></div>
-          <audio id="last-call-audio" controls style="width:100%;height:32px;display:none;"></audio>
+          <div style="padding:8px 12px;">
+            <div id="last-call-summary" style="font-size:12px;color:var(--tx);line-height:1.6;margin-bottom:8px;white-space:pre-line;"></div>
+            <audio id="last-call-audio" controls style="width:100%;height:36px;display:none;border-radius:6px;"></audio>
+          </div>
         </div>
         <textarea class="nt" id="notas" placeholder="Notas: nombre del contacto, fecha visita, objeciones, observaciones..."></textarea>
         <div class="save-bar">
@@ -817,29 +819,24 @@ async function pollCallStatus(callId,contactId){
   toast('Llamada finalizada','');
 }
 
-async function fetchCallNotes(callId,contactId){
+async function fetchCallNotes(callId,contactId,retries=5){
   if(!callId) return;
   toast('Analizando llamada...','');
-  try{
-    const r=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({callId})});
-    if(!r.ok) return;
-    const data=await r.json();
-    const c=C.find(x=>x.id===contactId);if(!c) return;
-    // Save call info
-    c._callId=callId;
-    if(data.recordingUrl) c._recordingUrl=data.recordingUrl;
-    if(data.summary) c._lastSummary=data.summary;
-    else if(data.notas) c._lastSummary=data.notas;
-    if(data.notas) c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
-    if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
-    const agentNames=['carla','carlos'];
-    if(data.nombreContacto&&!c.contactName&&!agentNames.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
-    if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
-    if(data.emailContacto&&!c.email) c.email=data.emailContacto;
-    save();upStats();renderList();
-    if(curId===contactId) sel(contactId);
-    toast('✓ Notas guardadas','ok');
-  }catch(e){console.error('fetchCallNotes:',e);}
+  for(let i=0;i<retries;i++){
+    try{
+      const r=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({callId})});
+      if(!r.ok){await new Promise(r=>setTimeout(r,8000));continue;}
+      const data=await r.json();
+      if(data.retry){
+        toast('Procesando...','');
+        await new Promise(r=>setTimeout(r,10000));
+        continue;
+      }
+      applyCallResult(data,callId,contactId);
+      return;
+    }catch(e){await new Promise(r=>setTimeout(r,8000));}
+  }
+  toast('No se pudo obtener análisis','err');
 }
 
 function copyScript(){
@@ -1028,41 +1025,45 @@ async function runNextCampaignCall(){
 }
 
 async function waitForCallEnd(callId,contactId){
-  // Poll backend every 6s max 3min
-  for(let i=0;i<36;i++){
-    await new Promise(r=>setTimeout(r,6000));
-    if(!campaignRunning) return;
+  // Wait 15s first for call to end + Vapi to process
+  await new Promise(r=>setTimeout(r,15000));
+  // Then poll backend every 8s, max 20 attempts (160s)
+  for(let i=0;i<20;i++){
+    if(!campaignRunning&&i>0) return;
     try{
       const r=await fetch(BACKEND_URL,{method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({callId})});
-      if(!r.ok) continue;
+      if(!r.ok){await new Promise(r=>setTimeout(r,8000));continue;}
       const data=await r.json();
-      // If backend returns notas, call is done and analyzed
-      if(data.notas||data.resultado){
-        const c=C.find(x=>x.id===contactId);
-        if(c){
-          clearInterval(iv);
-          document.getElementById('cban').classList.remove('on');
-          c._callId=callId;
-          if(data.recordingUrl) c._recordingUrl=data.recordingUrl;
-          if(data.notas) c._lastSummary=data.notas;
-          if(data.notas) c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
-          if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
-          else if(c.estado==='llamando') c.estado='pendiente';
-          const agentNames=['carla','carlos'];
-          if(data.nombreContacto&&!c.contactName&&!agentNames.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
-          if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
-          save();upStats();renderList();
-          if(curId===contactId) sel(contactId);
-          toast('✓ '+c.nombre+' analizado','ok');
-        }
-        return;
-      }
-    }catch(e){}
+      // retry:true means Vapi hasn't processed yet - wait more
+      if(data.retry){await new Promise(r=>setTimeout(r,10000));continue;}
+      // Got result
+      applyCallResult(data,callId,contactId);
+      return;
+    }catch(e){await new Promise(r=>setTimeout(r,8000));}
   }
-  // Timeout fallback
   endCall(contactId,'pendiente');
+}
+
+function applyCallResult(data,callId,contactId){
+  const c=C.find(x=>x.id===contactId);
+  if(!c) return;
+  endCall(contactId, data.resultado&&data.resultado!=='pendiente'?data.resultado:'pendiente');
+  c._callId=callId;
+  if(data.recordingUrl) c._recordingUrl=data.recordingUrl;
+  if(data.notas){
+    c._lastSummary=data.notas;
+    c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
+  }
+  if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
+  const agentNames=['carla','carlos'];
+  if(data.nombreContacto&&!c.contactName&&!agentNames.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
+  if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
+  if(data.emailContacto&&!c.email) c.email=data.emailContacto;
+  save();upStats();renderList();
+  if(curId===contactId) sel(contactId);
+  toast('✓ '+c.nombre+' — '+( data.resultado==='visitaOK'?'VISITA':'analizado'),'ok');
 }
 
 function showCampaignSummary(){
