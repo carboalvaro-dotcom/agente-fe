@@ -433,7 +433,7 @@ function renderList(){
       </div>
       <div class="ci-accordion${isOpen?' open':''}" id="acc_${c.id}">
         <div class="ci-accordion-inner">
-          <div style="display:flex;align-items:center;gap:10px;padding:2px 0 10px;">
+          <div style="display:flex;align-items:center;gap:10px;padding:2px 0 8px;">
             <a href="tel:${c.telefono}" style="font-size:16px;font-weight:700;color:var(--ac);text-decoration:none;flex:1;">${c.telefono||'—'}</a>
             ${c.llamadas>0?`<span style="font-size:11px;color:var(--mt);background:var(--acl);padding:2px 7px;border-radius:10px;">📞 ${c.llamadas}x</span>`:''}
           </div>
@@ -444,7 +444,6 @@ function renderList(){
             <div class="acc-rbtn r-ni${c.estado==='noInteresa'?' active':''}" onclick="setResMob(${c.id},'noInteresa')">✗ No interesa</div>
             <div class="acc-rbtn r-du full${c.estado==='duda'?' active':''}" onclick="setResMob(${c.id},'duda')">? Duda</div>
           </div>
-          <textarea class="acc-notes" placeholder="Notas de la llamada..." onchange="updateNote(${c.id},this.value)">${c.notas||''}</textarea>
           <button class="acc-call" onclick="selAndCall(${c.id})">📞 Llamar con IA</button>
         </div>
       </div>`;
