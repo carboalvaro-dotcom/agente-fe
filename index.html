@@ -429,7 +429,7 @@ function renderList(){
         <div class="ci-r1"><div class="ci-name">${c.nombre}</div>
           <div class="ci-badges">${pro?'<span class="badge b-pro">PRO</span>':''}${c.prioritario&&!pro?'<span class="badge b-prio">⚡</span>':''}<span class="sdot ${c.estado}"></span></div>
         </div>
-        <div class="ci-r2"><span class="ci-sec">${c.sector}</span><span class="ci-tel">${c.telefono}</span><span class="ci-kw">${c.potencia_kw} kW</span>${c.llamadas>0?'<span class="ci-kw" style="background:var(--acl);color:var(--ac)">📞'+c.llamadas+'</span>':''}</div>
+        <div class="ci-r2"><span class="ci-tel">${c.telefono}</span>${c.llamadas>0?'<span class="ci-kw" style="background:var(--acl);color:var(--ac)">📞'+c.llamadas+'</span>':''}</div>
       </div>
       <div class="ci-accordion${isOpen?' open':''}" id="acc_${c.id}">
         <div class="ci-accordion-inner">
