@@ -733,14 +733,22 @@ async function callViaProxy(phone,c){
   return data;
 }
 
-async function stopCall(){
-  clearInterval(iv);
-  document.getElementById('cban').classList.remove('on');
+async async function stopCall(){
   const c=C.find(x=>x.id===curId);
-  if(c?._callId){
-    try{await fetch('https://api.vapi.ai/call/'+c._callId,{method:'PATCH',headers:{Authorization:'Bearer '+VAPI_KEY,'Content-Type':'application/json'},body:JSON.stringify({status:'ended'})});}catch(e){}
+  const callId=c?._callId||_activeCallId;
+  // End call on Vapi
+  if(callId){
+    try{
+      await fetch('https://api.vapi.ai/call/'+callId,{
+        method:'PATCH',
+        headers:{Authorization:'Bearer '+VAPI_KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({status:'ended'})
+      });
+    }catch(e){}
   }
-  if(c&&c.estado==='llamando'){c.estado='pendiente';save();upStats();renderList();sel(curId);}
+  endCall(curId,'pendiente');
+  // Fetch notes after short delay
+  if(callId&&curId) setTimeout(()=>fetchCallNotes(callId,curId),3000);
 }
 
 function endCall(contactId, reason){
