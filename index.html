@@ -813,7 +813,7 @@ async function callViaProxy(phone,c){
     customer:{number:phone,name:c.nombre},
     assistant:{
       name:'Agente Factor Energia',
-      firstMessageMode:'assistant-speaks-first-with-model-generated-message',
+      firstMessageMode:'assistant-speaks-first',
       startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},stopSpeakingPlan:{numWords:2,voiceSeconds:0.1,backoffSeconds:1},
       firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':'Buenos días. Le llamo por una revisión de su suministro. Hemos detectado desajustes en las potencias que pueden estar generando sobrecostes. ¿Es usted quien lleva este tema?',
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
