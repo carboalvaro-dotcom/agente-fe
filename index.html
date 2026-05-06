@@ -849,7 +849,7 @@ async function callViaProxy(phone,c){
       name:'Agente Factor Energia',
       firstMessageMode:'assistant-speaks-first',
       startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},stopSpeakingPlan:{numWords:2,voiceSeconds:0.1,backoffSeconds:1},
-      firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':'Buenos días, ¿hablo con ${c.nombre}?',
+      firstMessage:c.nif==="AMIGO"?"Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.":`Buenos días, ¿hablo con ${c.nombre}?`,
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
       voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
