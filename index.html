@@ -260,6 +260,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
     <select id="camp-cp" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 5px;border-radius:5px;font-family:var(--fn);cursor:pointer;outline:none;max-width:95px;"><option value="" style="color:#000">Todos los CP</option><option value="08390" style="color:#000">08390 Montgat</option><option value="08391" style="color:#000">08391 Tiana</option><option value="08329" style="color:#000">08329 Teià</option><option value="08911" style="color:#000">08911 Badalona</option></select>
     <select id="camp-filter" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 5px;border-radius:5px;font-family:var(--fn);cursor:pointer;outline:none;flex:1;"><option value="nuevos" style="color:#000">Sin llamar</option><option value="pendiente" style="color:#000">Pendientes</option><option value="rellamar" style="color:#000">Rellamar</option><option value="duda" style="color:#000">Duda</option><option value="noContesta" style="color:#000">No contesta</option><option value="todos" style="color:#000">Todos</option></select>
     <input type="time" id="camp-time" value="" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 4px;border-radius:5px;font-family:var(--mo);outline:none;width:62px;">
+    <select id="camp-duration" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 5px;border-radius:5px;font-family:var(--fn);cursor:pointer;outline:none;max-width:80px;"><option value="" style="color:#000">∞</option><option value="30" style="color:#000">30m</option><option value="60" style="color:#000">1h</option><option value="90" style="color:#000">1h30</option><option value="120" style="color:#000">2h</option><option value="180" style="color:#000">3h</option><option value="240" style="color:#000">4h</option></select>
     <button onclick="startCampaign()" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);font-size:10px;padding:3px 8px;border-radius:5px;cursor:pointer;font-family:var(--fn);white-space:nowrap;">▶ Campaña</button>
     <button onclick="exportExcel()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 8px;border-radius:5px;cursor:pointer;font-family:var(--fn);white-space:nowrap;">📥 Excel</button>
     <button onclick="toggleDark()" id="btn-dark" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 8px;border-radius:5px;cursor:pointer;font-family:var(--fn);">🌙</button>
@@ -1029,7 +1030,7 @@ function renderDashboard(){
     +(rellamar>0?'<div style="background:var(--aml);border:1px solid rgba(180,83,9,.15);border-radius:10px;padding:16px;"><div style="font-size:11px;font-weight:600;color:var(--am);margin-bottom:10px">🟡 Rellamar ('+rellamar+')</div><table style="width:100%;border-collapse:collapse">'+rellamarList+'</table></div>':'');
 }
 
-let campaignQueue=[],campaignIdx=0,campaignRunning=false,campaignPaused=false,campaignTimer=null;
+let campaignQueue=[],campaignIdx=0,campaignRunning=false,campaignPaused=false,campaignTimer=null,_campStartTime=0,_campMaxMs=0;
 
 function getCampaignOrder(){
   const filter=document.getElementById('camp-filter')?.value||'nuevos';
@@ -1065,6 +1066,7 @@ function startCampaign(){
     const whenStr=diffH>0?diffH+'h '+diffM+'min':diffM+'min';
     if(!confirm('Programar campana "'+fl+'" ('+queue.length+' contactos) para las '+timeVal+'\nFaltan: '+whenStr)) return;
     campaignQueue=queue;campaignIdx=0;campaignRunning=false;campaignPaused=false;
+    _campMaxMs=parseInt(document.getElementById('camp-duration')?.value||'0')*60*1000;
     // Show scheduled in camp-bar
     document.getElementById('camp-bar').classList.add('on');
     document.getElementById('camp-title').textContent='Campaña programada para las '+timeVal;
@@ -1090,6 +1092,12 @@ function startCampaign(){
 async function runNextCampaignCall(){
   if(!campaignRunning) return;
   if(campaignPaused){campaignTimer=setTimeout(runNextCampaignCall,2000);return;}
+  // Check duration limit
+  if(_campMaxMs>0&&_campStartTime>0&&(Date.now()-_campStartTime)>=_campMaxMs){
+    const elapsed=Math.round((Date.now()-_campStartTime)/60000);
+    toast('⏱ Campaña completada — tiempo límite alcanzado ('+elapsed+' min)','ok');
+    showCampaignSummary();stopCampaign();return;
+  }
   if(campaignIdx>=campaignQueue.length){showCampaignSummary();stopCampaign();return;}
   const id=campaignQueue[campaignIdx];
   const c=C.find(x=>x.id===id);
@@ -1098,7 +1106,10 @@ async function runNextCampaignCall(){
   if(skip){campaignIdx++;runNextCampaignCall();return;}
   const done=campaignIdx,total=campaignQueue.length,pct=Math.round((done/total)*100);
   document.getElementById('camp-title').textContent='Llamando: '+c.nombre.slice(0,35);
-  document.getElementById('camp-sub').textContent=(done+1)+' de '+total;
+  const elapsed=_campStartTime?Math.round((Date.now()-_campStartTime)/60000):0;
+  const remaining=_campMaxMs?Math.round((_campMaxMs-(Date.now()-_campStartTime))/60000):null;
+  const timeStr=remaining!==null?' · ⏱'+remaining+'min restantes':'';
+  document.getElementById('camp-sub').textContent=(done+1)+' de '+total+timeStr;
   document.getElementById('camp-fill').style.width=pct+'%';
   document.getElementById('camp-pct').textContent=pct+'%';
   sel(id);window.scrollTo(0,0);
