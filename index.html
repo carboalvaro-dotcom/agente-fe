@@ -697,7 +697,7 @@ PASO 1 — Al descolgar di SOLO esto y espera respuesta:
 "Buenos días, ¿hablo con la empresa ${c.nombre}?"
 
 PASO 2A — Si confirman que SÍ es esa empresa:
-"Le llamo porque estamos detectando sobrecostes en empresas de la zona, en algunos casos bastante significativos. Queremos revisar si su suministro tiene alguno. ¿Es usted quien lleva este tema?"
+"Le llamo del departamento técnico. Estamos revisando suministros eléctricos de la zona porque estamos detectando potencias mal ajustadas que generan sobrecostes en la factura de la luz. ¿Es usted quien lleva este tema?"
 
 PASO 2B — Si dicen que NO es esa empresa o no la conocen:
 "Entiendo. Le llamo porque en el suministro de ${c.direccion} hemos detectado una incidencia en las potencias contratadas que puede estar generando sobrecostes. ¿Tiene usted relación con ese local o suministro?"
@@ -849,7 +849,7 @@ async function callViaProxy(phone,c){
       name:'Agente Factor Energia',
       firstMessageMode:'assistant-speaks-first',
       startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},stopSpeakingPlan:{numWords:2,voiceSeconds:0.1,backoffSeconds:1},
-      firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':'Buenos días, ¿hablo con la empresa ${c.nombre}?',
+      firstMessage:c.nif==='AMIGO'?'Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.':'Buenos días, ¿hablo con ${c.nombre}?',
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
       voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
