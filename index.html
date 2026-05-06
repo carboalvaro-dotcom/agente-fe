@@ -669,11 +669,16 @@ OBJETIVO: Despertar curiosidad, generar urgencia y cerrar visita de 10 minutos. 
 
 APERTURA — sigue este flujo exacto:
 
-PASO 1 — Al descolgar di SOLO esto y espera confirmación:
+PASO 1 — Al descolgar di SOLO esto y espera respuesta:
 "Buenos días, ¿hablo con la empresa ${c.nombre}?"
 
-PASO 2 — Solo si confirman que sí:
+PASO 2A — Si confirman que SÍ es esa empresa:
 "Le llamo porque estamos detectando sobrecostes en empresas de la zona, en algunos casos bastante significativos. Queremos revisar si su suministro tiene alguno. ¿Es usted quien lleva este tema?"
+
+PASO 2B — Si dicen que NO es esa empresa o no la conocen:
+"Entiendo. Le llamo porque en el suministro de ${c.direccion} hemos detectado una incidencia en las potencias contratadas que puede estar generando sobrecostes. ¿Tiene usted relación con ese local o suministro?"
+- Si tienen relación → continúa el guión normal desde PASO 2A
+- Si definitivamente no tienen relación → "Disculpe la molestia, que tenga buen día." Y CUELGA.
 
 GANCHO ECONÓMICO — úsalo cuando el cliente duda o pide más info:
 "En empresas similares a la suya estamos encontrando entre 800 y 2.000 euros al año de sobrecoste. A veces es menos, a veces más. En 10 minutos le digo exactamente en qué lado está usted."
