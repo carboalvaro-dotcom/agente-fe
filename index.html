@@ -28,8 +28,10 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;display:flex;flex-direction:column;overflow:hidden;font-size:13px;}
 .tb{display:flex;flex-direction:column;background:var(--ac);border-bottom:1px solid var(--ach);flex-shrink:0;box-shadow:0 2px 8px rgba(26,86,219,.25);}
-.tb-top{display:flex;align-items:center;gap:8px;padding:6px 18px;height:44px;}.tb-logo{display:block;font-size:13px;font-weight:700;color:#fff;white-space:nowrap;}
-.tb-stats-row{display:flex;align-items:center;gap:2px;flex:1;}.tb-camp-row{display:flex;align-items:center;gap:5px;padding:4px 18px;background:rgba(0,0,0,.1);border-top:1px solid rgba(255,255,255,.1);}
+.tb-row1{display:flex;align-items:center;padding:5px 14px;gap:4px;min-height:42px;}
+.tb-row2{display:flex;align-items:center;padding:4px 14px;gap:6px;background:rgba(0,0,0,.12);border-top:1px solid rgba(255,255,255,.1);}
+.tb-top{display:none;}.tb-logo{display:block;font-size:13px;font-weight:700;color:#fff;white-space:nowrap;}
+.tb-stats-row{display:flex;align-items:center;gap:2px;flex:1;}.tb-camp-row{display:none;}.tb-logo{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;}
 .logo{font-size:13px;font-weight:600;color:#fff;display:flex;align-items:center;gap:10px;}
 .logo-sep{width:1px;height:16px;background:rgba(255,255,255,.3);}
 .logo-sub{font-size:11px;font-weight:400;color:rgba(255,255,255,.75);}
@@ -238,34 +240,55 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
 </head>
 <body>
 <div class="tb">
-  <div class="tb-top">
-    <div style="display:flex;align-items:center;gap:8px;flex:1;">
+  <div class="tb-row1">
+    <div style="display:flex;align-items:center;gap:8px;">
       <div style="background:#3152a1;border:2px solid rgba(255,255,255,.3);border-radius:6px;padding:2px 7px;font-size:14px;font-weight:900;color:#fff;letter-spacing:-0.5px;line-height:1.3;font-family:Arial,sans-serif;">fe</div>
       <span class="tb-logo">FactorEnergía CRM</span>
     </div>
-    <span id="sync-status" onclick="forceSync()" style="font-size:10px;color:rgba(255,255,255,.5);cursor:pointer;">⏳</span>
-    <button onclick="showDashboard()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);font-size:10px;padding:3px 8px;border-radius:5px;cursor:pointer;font-family:var(--fn);">📊</button>
+    <span id="sync-status" onclick="forceSync()" style="font-size:10px;color:rgba(255,255,255,.5);cursor:pointer;margin:0 6px;">⏳</span>
+    <div class="tb-stats-row">
+      <div class="tstat" onclick="setF('todos',null)"><div class="tstat-v" id="st">0</div><div class="tstat-l">TOTAL</div></div>
+      <div class="tstat" onclick="setF('prioritario',null)"><div class="tstat-dot dot-pu"></div><div class="tstat-v" id="spr">0</div><div class="tstat-l">PRO</div></div>
+      <div class="tstat" onclick="setF('visitaOK',null)"><div class="tstat-dot dot-gr"></div><div class="tstat-v" id="sv">0</div><div class="tstat-l">VISITAS</div></div>
+      <div class="tstat" onclick="setF('rellamar',null)"><div class="tstat-dot dot-am"></div><div class="tstat-v" id="sr">0</div><div class="tstat-l">RELLA</div></div>
+      <div class="tstat" onclick="setF('noInteresa',null)"><div class="tstat-dot dot-rd"></div><div class="tstat-v" id="sni">0</div><div class="tstat-l">N.INT</div></div>
+      <div class="tstat" onclick="setF('noContesta',null)"><div class="tstat-dot dot-gray"></div><div class="tstat-v" id="snc">0</div><div class="tstat-l">N.CON</div></div>
+      <div class="tstat" onclick="setF('duda',null)"><div class="tstat-dot" style="background:#a78bfa"></div><div class="tstat-v" style="color:#c4b5fd" id="sduda">0</div><div class="tstat-l">DUDA</div></div>
+      <div class="tstat" onclick="setF('llamadas',null)"><div class="tstat-dot" style="background:#60a5fa"></div><div class="tstat-v" style="color:#93c5fd" id="sllamadas">0</div><div class="tstat-l">LLAM</div></div>
+    </div>
+    <button onclick="showDashboard()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 9px;border-radius:5px;cursor:pointer;font-family:var(--fn);margin-left:6px;">📊</button>
+    <button onclick="exportExcel()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 9px;border-radius:5px;cursor:pointer;font-family:var(--fn);">📥</button>
+    <button id="btn-dark" onclick="toggleDark()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 9px;border-radius:5px;cursor:pointer;font-family:var(--fn);">🌙</button>
   </div>
-  <div class="tb-stats-row">
-    <div class="tstat" onclick="setF('todos',null)"><div class="tstat-v" id="st">0</div><div class="tstat-l">TOTAL</div></div>
-    <div class="tstat" onclick="setF('prioritario',null)"><div class="tstat-dot dot-pu"></div><div class="tstat-v" id="spr">0</div><div class="tstat-l">PRO</div></div>
-    <div class="tstat" onclick="setF('visitaOK',null)"><div class="tstat-dot dot-gr"></div><div class="tstat-v" id="sv">0</div><div class="tstat-l">VISITAS</div></div>
-    <div class="tstat" onclick="setF('rellamar',null)"><div class="tstat-dot dot-am"></div><div class="tstat-v" id="sr">0</div><div class="tstat-l">RELLA</div></div>
-    <div class="tstat" onclick="setF('noInteresa',null)"><div class="tstat-dot dot-rd"></div><div class="tstat-v" id="sni">0</div><div class="tstat-l">N.INT</div></div>
-    <div class="tstat" onclick="setF('noContesta',null)"><div class="tstat-dot dot-gray"></div><div class="tstat-v" id="snc">0</div><div class="tstat-l">N.CON</div></div>
-    <div class="tstat" onclick="setF('duda',null)"><div class="tstat-dot" style="background:#a78bfa"></div><div class="tstat-v" style="color:#c4b5fd" id="sduda">0</div><div class="tstat-l">DUDA</div></div>
-    <div class="tstat" onclick="setF('llamadas',null)"><div class="tstat-dot" style="background:#60a5fa"></div><div class="tstat-v" style="color:#93c5fd" id="sllamadas">0</div><div class="tstat-l">LLAM</div></div>
+  <div class="tb-row2">
+    <select id="camp-cp" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 6px;border-radius:5px;font-family:var(--fn);cursor:pointer;outline:none;">
+      <option value="" style="color:#000">Todos los CP</option>
+      <option value="08390" style="color:#000">08390 Montgat</option>
+      <option value="08391" style="color:#000">08391 Tiana</option>
+      <option value="08329" style="color:#000">08329 Teià</option>
+      <option value="08911" style="color:#000">08911 Badalona</option>
+    </select>
+    <select id="camp-filter" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 6px;border-radius:5px;font-family:var(--fn);cursor:pointer;outline:none;">
+      <option value="nuevos" style="color:#000">Sin llamar</option>
+      <option value="pendiente" style="color:#000">Pendientes</option>
+      <option value="rellamar" style="color:#000">Rellamar</option>
+      <option value="duda" style="color:#000">Duda</option>
+      <option value="noContesta" style="color:#000">No contesta</option>
+      <option value="todos" style="color:#000">Todos</option>
+    </select>
+    <input type="time" id="camp-time" value="" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 5px;border-radius:5px;font-family:var(--mo);outline:none;width:70px;" title="Hora inicio (vacío = ahora)">
+    <select id="camp-duration" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 6px;border-radius:5px;font-family:var(--fn);cursor:pointer;outline:none;" title="Duración máxima">
+      <option value="" style="color:#000">Sin límite</option>
+      <option value="30" style="color:#000">30 min</option>
+      <option value="60" style="color:#000">1 hora</option>
+      <option value="90" style="color:#000">1h 30min</option>
+      <option value="120" style="color:#000">2 horas</option>
+      <option value="180" style="color:#000">3 horas</option>
+      <option value="240" style="color:#000">4 horas</option>
+    </select>
+    <button onclick="startCampaign()" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);font-size:11px;padding:4px 12px;border-radius:5px;cursor:pointer;font-family:var(--fn);font-weight:600;">▶ Iniciar campaña</button>
   </div>
-  <div class="tb-camp-row">
-    <select id="camp-cp" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 5px;border-radius:5px;font-family:var(--fn);cursor:pointer;outline:none;max-width:95px;"><option value="" style="color:#000">Todos los CP</option><option value="08390" style="color:#000">08390 Montgat</option><option value="08391" style="color:#000">08391 Tiana</option><option value="08329" style="color:#000">08329 Teià</option><option value="08911" style="color:#000">08911 Badalona</option></select>
-    <select id="camp-filter" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 5px;border-radius:5px;font-family:var(--fn);cursor:pointer;outline:none;flex:1;"><option value="nuevos" style="color:#000">Sin llamar</option><option value="pendiente" style="color:#000">Pendientes</option><option value="rellamar" style="color:#000">Rellamar</option><option value="duda" style="color:#000">Duda</option><option value="noContesta" style="color:#000">No contesta</option><option value="todos" style="color:#000">Todos</option></select>
-    <input type="time" id="camp-time" value="" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 4px;border-radius:5px;font-family:var(--mo);outline:none;width:62px;">
-    <select id="camp-duration" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 5px;border-radius:5px;font-family:var(--fn);cursor:pointer;outline:none;max-width:80px;"><option value="" style="color:#000">∞</option><option value="30" style="color:#000">30m</option><option value="60" style="color:#000">1h</option><option value="90" style="color:#000">1h30</option><option value="120" style="color:#000">2h</option><option value="180" style="color:#000">3h</option><option value="240" style="color:#000">4h</option></select>
-    <button onclick="startCampaign()" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);font-size:10px;padding:3px 8px;border-radius:5px;cursor:pointer;font-family:var(--fn);white-space:nowrap;">▶ Campaña</button>
-    <button onclick="exportExcel()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 8px;border-radius:5px;cursor:pointer;font-family:var(--fn);white-space:nowrap;">📥 Excel</button>
-    <button onclick="toggleDark()" id="btn-dark" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:10px;padding:3px 8px;border-radius:5px;cursor:pointer;font-family:var(--fn);">🌙</button>
-  </div>
-</div></div>
+</div>
 <div class="camp-bar" id="camp-bar">
   <div class="camp-wave"><span></span><span></span><span></span><span></span></div>
   <div class="camp-info">
