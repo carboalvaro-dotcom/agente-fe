@@ -1252,7 +1252,7 @@ let campaignQueue=[],campaignIdx=0,campaignRunning=false,campaignPaused=false,ca
 function getCampaignOrder(){
   const filter=document.getElementById('camp-filter')?.value||'nuevos';
   const cpFilter=document.getElementById('camp-cp')?.value||'';
-  let base=C.filter(c=>c.nif!=='AMIGO'&&c.nif!=='TEST'&&(!cpFilter||c.cp===cpFilter));
+  let base=C.filter(c=>c.nif!=='AMIGO'&&c.nif!=='TEST'&&(!cpFilter||c.cp===cpFilter)&&c.telefono&&c.telefono.length>=9);
   if(filter==='nuevos') base=base.filter(c=>c.estado==='pendiente'&&(c.llamadas||0)===0);
   else if(filter==='todos') base=base.filter(c=>c.estado==='pendiente');
   else base=base.filter(c=>c.estado===filter);
