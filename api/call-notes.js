@@ -102,13 +102,21 @@ export default async function handler(req, res) {
     const now = new Date().toLocaleDateString('es-ES', {
       day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
     });
+    // Extract rellamar date/time
+    let rellamarHora = null;
+    if (resultado === 'rellamar') {
+      const horaM = rawTranscript.match(/(?:a las?|las?)\s*(\d{1,2}(?::\d{2})?)/i);
+      const diaM = rawTranscript.match(/\b(esta tarde|esta noche|ma[\u00f1n]ana|pasado|lunes|martes|mi[\u00e9e]rcoles|jueves|viernes)\b/i);
+      if (horaM || diaM) rellamarHora = [diaM?.[1], horaM?.[1]].filter(Boolean).join(' a las ');
+    }
+
     const labels = {
       visitaOK:'🟢 VISITA CONCERTADA', noInteresa:'🔴 No interesa',
       rellamar:'🟡 Rellamar', noContesta:'⚫ No contestó', duda:'❓ Duda — revisar'
     };
 
     let notas = `📞 ${now}${duration?' · '+duration+'s':''}\n`;
-    notas += `${labels[resultado]}\n`;
+    notas += `${labels[resultado]}${rellamarHora ? ' — ' + rellamarHora : ''}\n`;
     if (fechaVisita) notas += `📅 ${fechaVisita}\n`;
     if (nombreContacto) notas += `👤 ${nombreContacto}\n`;
     if (emailContacto) notas += `📧 ${emailContacto}\n`;
