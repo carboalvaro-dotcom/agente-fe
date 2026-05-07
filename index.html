@@ -228,8 +228,8 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
 
 .ci.est-pendiente{border-left-color:var(--bd);}
 .ci.est-visitaOK{border-left-color:var(--gr);}
-.ci.est-rellamar{border-left-color:var(--am);}
-.ci.est-noInteresa{border-left-color:var(--rd);}
+.ci.est-rellamar{border-left-color:#f97316;}
+.ci.est-noInteresa{border-left-color:#dc2626;}
 .ci.est-noContesta{border-left-color:#aaa;}
 .ci.est-duda{border-left-color:#7c3aed;}
 .ci.est-llamando{border-left-color:var(--ac);}
@@ -1112,6 +1112,16 @@ async function pollCallStatus(callId,contactId){
         if(data.notas) c._lastSummary=data.notas;
         if(data.notas) c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
         if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
+    // Auto-detect visit if notes mention it
+    if(c.estado!=='visitaOK'&&c.notas){
+      const n=c.notas.toLowerCase();
+      if((n.includes('visita') || n.includes('cita') || n.includes('nos vemos') || n.includes('quedamos')) && 
+         (n.includes('lunes')||n.includes('martes')||n.includes('miercoles')||n.includes('miércoles')||
+          n.includes('jueves')||n.includes('viernes')||n.includes('semana')||
+          /\d{1,2}[:/]\d{2}/.test(n)||/a las \d/.test(n))){
+        c.estado='visitaOK';
+      }
+    }
         const agentNames=['carla','carlos'];
         if(data.nombreContacto&&!c.contactName&&!agentNames.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
         if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
