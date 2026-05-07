@@ -1319,7 +1319,7 @@ async function runNextCampaignCall(){
   const id=campaignQueue[campaignIdx];
   const c=C.find(x=>x.id===id);
   const fv=document.getElementById('camp-filter')?.value||'nuevos';
-  const skip=!c||(fv==='nuevos'&&(c.estado!=='pendiente'||(c.llamadas||0)>0))||(fv==='todos'&&c.estado!=='pendiente')||(fv!=='nuevos'&&fv!=='todos'&&c.estado!==fv);
+  const skip=!c||!c.telefono||c.telefono.length<9||(fv==='nuevos'&&(c.estado!=='pendiente'||(c.llamadas||0)>0))||(fv==='todos'&&c.estado!=='pendiente')||(fv!=='nuevos'&&fv!=='todos'&&c.estado!==fv);
   if(skip){campaignIdx++;runNextCampaignCall();return;}
   const done=campaignIdx,total=campaignQueue.length,pct=Math.round((done/total)*100);
   document.getElementById('camp-title').textContent='Llamando: '+c.nombre.slice(0,35);
