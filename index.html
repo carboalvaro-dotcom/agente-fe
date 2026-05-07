@@ -692,6 +692,16 @@ function renderList(){
   );
   const groups={};
   list.forEach(c=>{const cp=c.cp||'OTRO';if(!groups[cp])groups[cp]=[];groups[cp].push(c);});
+  // Sort each CP group: contacts with recent calls first (most recent on top), then pending
+  Object.keys(groups).forEach(cp=>{
+    groups[cp].sort((a,b)=>{
+      const pa=a.ultimaLlamada||'';const pb=b.ultimaLlamada||'';
+      if(pa&&pb) return pb.localeCompare(pa);
+      if(pa) return -1;
+      if(pb) return 1;
+      return 0;
+    });
+  });
   const cpOrder=Object.keys(groups).sort();
   let html='';
   cpOrder.forEach(cp=>{
