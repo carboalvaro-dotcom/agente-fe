@@ -722,13 +722,13 @@ function renderList(){
         <div class="ci-r1"><div class="ci-name">${c.nombre}</div>
           <div class="ci-badges">${pro?'<span class="badge b-pro">PRO</span>':''}${c.prioritario&&!pro?'<span class="badge b-prio">⚡</span>':''}<span class="sdot ${c.estado}"></span></div>
         </div>
-        <div class="ci-r2"><span class="ci-tel">${c.telefono}</span>${c.llamadas>0?'<span class="ci-kw" style="background:var(--acl);color:var(--ac)">📞'+c.llamadas+'</span>':''}</div>
+        <div class="ci-r2"><span class="ci-tel">${c.telefono}</span>${c.llamadas>0?'<span class="ci-kw" style="background:var(--acl);color:var(--ac)">📞'+c.llamadas+'</span>':''}${c.llamadas>0&&c.ultimaLlamada?'<span style="font-size:10px;color:var(--mt);margin-left:4px;">'+c.ultimaLlamada+'</span>':''}</div>
       </div>${isMob?`
       <div class="ci-accordion${isOpen?' open':''}" id="acc_${c.id}">
         <div class="ci-accordion-inner">
           <div style="display:flex;align-items:center;gap:10px;padding:2px 0 8px;">
             <a href="tel:${c.telefono}" style="font-size:16px;font-weight:700;color:var(--ac);text-decoration:none;flex:1;">${c.telefono||'—'}</a>
-            ${c.llamadas>0?`<span style="font-size:11px;color:var(--mt);background:var(--acl);padding:2px 7px;border-radius:10px;">📞 ${c.llamadas}x</span>`:''}
+            ${c.llamadas>0?`<span style="font-size:11px;color:var(--mt);background:var(--acl);padding:2px 7px;border-radius:10px;">📞 ${c.llamadas}x${c.ultimaLlamada?' · '+c.ultimaLlamada:''}</span>`:''}
           </div>
           <div class="acc-results">
             <div class="acc-rbtn r-ok${c.estado==='visitaOK'?' active':''}" onclick="setResMob(${c.id},'visitaOK')">✓ Visita</div>
