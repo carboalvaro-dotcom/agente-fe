@@ -789,6 +789,7 @@ function renderList(){
   list.forEach(c=>{const cp=c.cp||'OTRO';if(!groups[cp])groups[cp]=[];groups[cp].push(c);});
   // Sort each CP group: contacts with recent calls first (most recent on top), then pending
   Object.keys(groups).forEach(cp=>{
+    groups[cp]=groups[cp].filter(c=>c&&c.id!==undefined);
     groups[cp].sort((a,b)=>{
       const pa=a.ultimaLlamada||'';const pb=b.ultimaLlamada||'';
       if(pa&&pb) return pb.localeCompare(pa);
