@@ -2105,7 +2105,7 @@ function accOpen2(id){
     +'<div class="fg-item span2"><div class="fg-label">Email</div>'
     +'<input class="fg-input" value="'+a.email+'" readonly></div>'
     +'<div class="fg-item span2"><div class="fg-label">Nombre contacto</div>'
-    +'<input class="fg-input" id="acc-cont-'+id+'" value="'+(st.contacto||a.contacto||'')+'" placeholder="Nombre de la persona..." onchange="accSaveContacto(''+id+'',this.value)"></div>'
+    +'<input class="fg-input" id="acc-cont-'+id+'" value="'+(st.contacto||a.contacto||'')+'" placeholder="Nombre de la persona..." onchange="accSaveContacto(\''+id+'\',this.value)"></div>'
     +'<div class="fg-item span2"><div class="fg-label">Zona</div>'
     +'<input class="fg-input" value="'+a.zona+'" readonly></div>'
     +'</div>'
