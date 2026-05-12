@@ -2073,7 +2073,16 @@ function accHide(){
 // Parche selMob: restaurar panel normal antes de llamar al original
 var _sm=window.selMob;
 window.selMob=function(id,el){
-  accHide();
+  // Ocultar ficha ACC y quitar seleccion
+  var fw=document.getElementById('acc-ficha-wrap');
+  if(fw)fw.style.display='none';
+  accSel=null;
+  document.querySelectorAll('.acc-admin-item').forEach(function(e){e.classList.remove('sel');});
+  // Restaurar visibilidad del panel normal ANTES del original
+  var det=document.getElementById('det'),emp=document.getElementById('empty');
+  if(det)det.style.removeProperty('display');
+  if(emp)emp.style.removeProperty('display');
+  // Llamar al selMob original
   if(_sm)_sm(id,el);
 };
 (function t(){var l=document.getElementById('acc-list');if(l){accRenderList();}else{setTimeout(t,300);}})();
