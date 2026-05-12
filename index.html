@@ -1359,9 +1359,28 @@ async function callViaProxy(phone,c){
 }
 
 async function stopCall(){
+  // Check if it's an ACC admin call first
+  if(window._accActiveCallId){
+    const callId=window._accActiveCallId;
+    const accId=window._accActiveId;
+    try{
+      await fetch('https://api.vapi.ai/call/'+callId,{
+        method:'PATCH',
+        headers:{Authorization:'Bearer '+VAPI_KEY,'Content-Type':'application/json'},
+        body:JSON.stringify({status:'ended'})
+      });
+    }catch(e){}
+    clearInterval(iv);
+    document.getElementById('cban').classList.remove('on');
+    window._accActiveCallId=null;
+    if(accId){
+      setTimeout(()=>fetchCallNotes(callId,'ACC:'+accId),3000);
+    }
+    return;
+  }
+  // Normal client call
   const c=C.find(x=>x.id===curId);
   const callId=c?._callId||_activeCallId;
-  // End call on Vapi
   if(callId){
     try{
       await fetch('https://api.vapi.ai/call/'+callId,{
@@ -1372,7 +1391,6 @@ async function stopCall(){
     }catch(e){}
   }
   endCall(curId,'pendiente');
-  // Fetch notes after short delay
   if(callId&&curId) setTimeout(()=>fetchCallNotes(callId,curId),3000);
 }
 
@@ -1410,6 +1428,10 @@ async function pollCallStatus(callId,contactId){
         // Now fetch notes
         await new Promise(r=>setTimeout(r,2000));
         fetchCallNotes(callId,contactId);
+        // Clear acc active call if this was an ACC call
+        if(typeof contactId==='string'&&contactId.startsWith('ACC:')){
+          window._accActiveCallId=null;window._accActiveId=null;
+        }
         return;
       }
       // If backend returned notas it means call ended and was analyzed
@@ -2225,17 +2247,26 @@ async function accLlamar(id){
     }
   };
   try{
+    console.log('[ACC] Llamando a Vapi, phone:', phone, 'admin:', a.nombre);
     var r=await fetch('https://api.vapi.ai/call',{
       method:'POST',
       headers:{Authorization:'Bearer '+VAPI_KEY,'Content-Type':'application/json'},
       body:JSON.stringify(payload)
     });
-    if(!r.ok){var t=await r.text();throw new Error('Vapi '+r.status+': '+t.slice(0,160));}
+    if(!r.ok){
+      var t=await r.text();
+      var errMsg='Vapi '+r.status+': '+t.slice(0,200);
+      console.error('[ACC] Error Vapi:', errMsg);
+      throw new Error(errMsg);
+    }
     var data=await r.json();
     var callId=data&&data.id?data.id:null;
     if(callId){
       accSt[id]._callId=callId;
       accSave();
+      // Guardar globalmente para que stopCall pueda colgar
+      window._accActiveCallId=callId;
+      window._accActiveId=id;
       toast('\u2713 Llamada lanzada a '+a.nombre,'ok');
       // Fetch notas y resultado igual que cliente
       fetchCallNotes(callId,'ACC:'+id);
