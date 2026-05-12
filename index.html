@@ -241,20 +241,20 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
 .acc-header:hover{background:rgba(49,82,161,0.14);}
 .acc-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ac);}
 .acc-count{font-size:10px;font-family:var(--mo);color:var(--ac);}
-.acc-admin-item{display:flex;align-items:center;gap:8px;padding:8px 12px 6px 10px;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .12s;}
+.acc-admin-item{display:block;padding:9px 12px 7px 21px;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .12s;border-left:9px solid var(--bd2);}
 .acc-admin-item:hover{background:var(--s2);}
 .acc-admin-item.sel{background:var(--s2);}
-.acc-adot{width:4px;flex-shrink:0;align-self:stretch;border-radius:2px;background:var(--bd2);}
-.acc-adot.visita{background:#0b7a47;}
-.acc-adot.rellamar{background:rgb(180,83,9);}
-.acc-adot.noContesta{background:#aaa;}
-.acc-adot.noInteresa{background:rgb(192,57,43);}
-.acc-adot.duda{background:rgb(124,58,237);}
-.acc-adot.sinLlamar{background:var(--bd2);}
-.acc-admin-name{font-size:12px;font-weight:600;color:var(--tx);}
-.acc-admin-meta{font-size:10px;color:var(--mt2);margin-top:1px;}
-.acc-admin-right{text-align:right;flex-shrink:0;margin-left:auto;}
-.acc-admin-cups{font-size:11px;font-family:var(--mo);color:var(--ac);font-weight:600;}
+.acc-admin-item.est-visita{border-left-color:#0b7a47;}
+.acc-admin-item.est-rellamar{border-left-color:rgb(180,83,9);}
+.acc-admin-item.est-noContesta{border-left-color:#aaa;}
+.acc-admin-item.est-noInteresa{border-left-color:rgb(192,57,43);}
+.acc-admin-item.est-duda{border-left-color:rgb(124,58,237);}
+.acc-admin-item.est-sinLlamar{border-left-color:var(--bd2);}
+.acc-ai-r1{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
+.acc-admin-name{font-size:12px;font-weight:500;color:var(--tx);}
+.acc-admin-cups{font-size:10px;font-family:var(--mo);color:var(--ac);font-weight:600;}
+.acc-ai-r2{display:flex;align-items:center;gap:6px;}
+.acc-admin-meta{font-size:10px;color:var(--ac);}
 .acc-admin-margen{font-size:10px;color:var(--mt2);}
 .acc-ficha-wrap{flex:1;overflow-y:auto;display:none;flex-direction:column;}
 </style>
@@ -1982,12 +1982,11 @@ function accRenderList(){
   var hdr=document.getElementById('acc-hdr-count');if(hdr)hdr.textContent=ACC.admins.length+' admins \u00b7 '+tot+' CUPS';
   el.innerHTML=ACC.admins.map(function(a){
     var st=accSt[a.id]||{estado:'sinLlamar'};
-    return '<div class="acc-admin-item'+(accSel===a.id?' sel':'')+'" id="aci-'+a.id+'" onclick="accOpen2(\''+a.id+'\')">'
-      +'<div class="acc-adot '+st.estado+'"></div>'
-      +'<div style="flex:1;min-width:0"><div class="acc-admin-name">'+a.nombre+'</div>'
-      +'<div class="acc-admin-meta">'+a.zona+'</div></div>'
-      +'<div class="acc-admin-right"><div class="acc-admin-cups">'+a.totalCups+' CUPS</div>'
-      +'<div class="acc-admin-margen">'+a.margenTotal.toLocaleString('es-ES')+'&euro;/a&ntilde;o</div></div></div>';
+    return '<div class="acc-admin-item est-'+st.estado+(accSel===a.id?' sel':'')+'" id="aci-'+a.id+'" onclick="accOpen2(\''+a.id+'\')">'
+      +'<div class="acc-ai-r1"><div class="acc-admin-name">'+a.nombre+'</div>'
+      +'<div class="acc-admin-cups">'+a.totalCups+' CUPS</div></div>'
+      +'<div class="acc-ai-r2"><span class="acc-admin-meta">'+a.zona+'</span>'
+      +'<span class="acc-admin-margen">&nbsp;&middot;&nbsp;'+a.margenTotal.toLocaleString('es-ES')+'&euro;/a&ntilde;o</span></div></div>';
   }).join('');
 }
 
