@@ -286,6 +286,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
   <div class="tb-row2">
     <select id="camp-cp" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 6px;border-radius:5px;font-family:var(--fn);cursor:pointer;outline:none;">
       <option value="" style="color:#000">Todos los CP</option>
+      <option value="ACC">&#127970; Administradores ACC</option>
       <option value="08390" style="color:#000">08390 Montgat</option>
       <option value="08391" style="color:#000">08391 Tiana</option>
       <option value="08329" style="color:#000">08329 Teià</option>
@@ -1576,6 +1577,20 @@ let campaignQueue=[],campaignIdx=0,campaignRunning=false,campaignPaused=false,ca
 function getCampaignOrder(){
   const filter=document.getElementById('camp-filter')?.value||'nuevos';
   const cpFilter=document.getElementById('camp-cp')?.value||'';
+  // ACC mode: return admin IDs
+  if(cpFilter==='ACC'){
+    var accStData=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}');
+    var admins=ACC&&ACC.admins?ACC.admins:[];
+    var filterMap={nuevos:'sinLlamar',rellamar:'rellamar',duda:'duda',noContesta:'noContesta',todos:null,pendiente:null};
+    var estadoFilter=filterMap[filter];
+    var filtered=admins.filter(function(a){
+      var st=(accStData[a.id]||{estado:'sinLlamar'}).estado;
+      if(filter==='nuevos') return st==='sinLlamar';
+      if(filter==='todos'||filter==='pendiente') return st!=='visita'&&st!=='noInteresa';
+      return st===estadoFilter;
+    });
+    return filtered.map(function(a){return 'ACC:'+a.id;});
+  }
   let base=C.filter(c=>c.nif!=='AMIGO'&&c.nif!=='TEST'&&(!cpFilter||c.cp===cpFilter)&&c.telefono&&c.telefono.length>=9);
   if(filter==='nuevos') base=base.filter(c=>c.estado==='pendiente'&&(c.llamadas||0)===0);
   else if(filter==='todos') base=base.filter(c=>c.estado==='pendiente');
@@ -1643,6 +1658,38 @@ async function runNextCampaignCall(){
   }
   if(campaignIdx>=campaignQueue.length){showCampaignSummary();stopCampaign();return;}
   const id=campaignQueue[campaignIdx];
+  // === ACC admin call ===
+  if(typeof id==='string'&&id.startsWith('ACC:')){
+    const accId=id.substring(4);
+    const admins=ACC&&ACC.admins?ACC.admins:[];
+    const a=admins.find(function(x){return x.id===accId;});
+    if(!a){campaignIdx++;runNextCampaignCall();return;}
+    const done=campaignIdx,total=campaignQueue.length,pct=Math.round((done/total)*100);
+    document.getElementById('camp-title').textContent='Llamando: '+a.nombre.slice(0,35);
+    const elapsed2=_campStartTime?Math.round((Date.now()-_campStartTime)/60000):0;
+    const remaining2=_campMaxMs?Math.round((_campMaxMs-(Date.now()-_campStartTime))/60000):null;
+    document.getElementById('camp-sub').textContent=(done+1)+' de '+total+(remaining2!==null?' · ⏱'+remaining2+'min restantes':'');
+    document.getElementById('camp-fill').style.width=pct+'%';
+    document.getElementById('camp-pct').textContent=pct+'%';
+    // Open admin ficha and call
+    accOpen2(accId);window.scrollTo(0,0);
+    // Set estado llamando
+    if(!accSt[accId])accSt[accId]={};
+    accSt[accId].estado='rellamar'; // mark as rellamar while calling
+    accSave();accRenderList();
+    // Launch the call via the acc call button
+    accLlamar(accId);
+    // Wait 60s then move to next (admin calls are manual-review)
+    await new Promise(r=>{campaignTimer=setTimeout(r,60000);});
+    campaignIdx++;updateCampLiveStats();
+    if(campaignRunning&&!campaignPaused){
+      document.getElementById('camp-sub').textContent='Esperando 45s...';
+      await new Promise(r=>{campaignTimer=setTimeout(r,45000);});
+    }
+    runNextCampaignCall();
+    return;
+  }
+  // === Normal CP contact call ===
   const c=C.find(x=>x.id===id);
   const fv=document.getElementById('camp-filter')?.value||'nuevos';
   const skip=!c||!c.telefono||c.telefono.length<9||(fv==='nuevos'&&(c.estado!=='pendiente'||(c.llamadas||0)>0))||(fv==='todos'&&c.estado!=='pendiente')||(fv!=='nuevos'&&fv!=='todos'&&c.estado!==fv);
