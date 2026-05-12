@@ -241,20 +241,21 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
 .acc-header:hover{background:rgba(49,82,161,0.14);}
 .acc-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ac);}
 .acc-count{font-size:10px;font-family:var(--mo);color:var(--ac);}
-.acc-admin-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px 6px 16px;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .12s;}
+.acc-admin-item{display:flex;align-items:center;gap:8px;padding:8px 12px 6px 10px;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .12s;}
 .acc-admin-item:hover{background:var(--s2);}
-.acc-admin-item.sel{background:var(--s2);border-left:3px solid var(--ac);padding-left:13px;}
+.acc-admin-item.sel{background:var(--s2);}
+.acc-adot{width:4px;flex-shrink:0;align-self:stretch;border-radius:2px;background:var(--bd2);}
+.acc-adot.visita{background:#0b7a47;}
+.acc-adot.rellamar{background:rgb(180,83,9);}
+.acc-adot.noContesta{background:#aaa;}
+.acc-adot.noInteresa{background:rgb(192,57,43);}
+.acc-adot.duda{background:rgb(124,58,237);}
+.acc-adot.sinLlamar{background:var(--bd2);}
 .acc-admin-name{font-size:12px;font-weight:600;color:var(--tx);}
 .acc-admin-meta{font-size:10px;color:var(--mt2);margin-top:1px;}
-.acc-admin-right{text-align:right;flex-shrink:0;margin-left:8px;}
+.acc-admin-right{text-align:right;flex-shrink:0;margin-left:auto;}
 .acc-admin-cups{font-size:11px;font-family:var(--mo);color:var(--ac);font-weight:600;}
 .acc-admin-margen{font-size:10px;color:var(--mt2);}
-.acc-estado{display:inline-block;font-size:9px;padding:1px 5px;border-radius:6px;margin-top:2px;font-weight:600;}
-.acc-est-sinLlamar{background:#e8e8f0;color:#5a5a8a;}
-.acc-est-interesado{background:#d4edda;color:#155724;}
-.acc-est-enProceso{background:#fff3cd;color:#856404;}
-.acc-est-cerrado{background:#d1ecf1;color:#0c5460;}
-.acc-est-noInteresa{background:#f8d7da;color:#721c24;}
 .acc-ficha-wrap{flex:1;overflow-y:auto;display:none;flex-direction:column;}
 .acc-ficha-header{padding:14px 16px 10px;border-bottom:1px solid var(--bd);}
 .acc-ficha-name{font-size:18px;font-weight:700;color:var(--tx);margin-bottom:3px;}
@@ -275,14 +276,8 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
 .acc-cups-table tr:last-child td{border-bottom:none;}
 .acc-cups-ahorro{color:#2e7d32;font-weight:700;white-space:nowrap;font-family:var(--mo);}
 .acc-notas-wrap{padding:0 16px 8px;}
-.acc-notas-wrap textarea{width:100%;box-sizing:border-box;font-size:11px;padding:7px 9px;border:1px solid var(--bd);border-radius:5px;background:var(--s2);color:var(--tx);resize:vertical;min-height:55px;font-family:var(--fn);}
-.acc-status-row{display:flex;gap:6px;padding:8px 16px 14px;border-top:1px solid var(--bd);flex-wrap:wrap;}
-.acc-btn{font-size:11px;padding:5px 11px;border-radius:5px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);cursor:pointer;font-family:var(--fn);}
-.acc-btn:hover{background:var(--s2);}
-.acc-btn.verde{background:#d4edda;color:#155724;border-color:#b8dbc5;}
-.acc-btn.amarillo{background:#fff3cd;color:#856404;border-color:#ffe69c;}
-.acc-btn.azul{background:#d1ecf1;color:#0c5460;border-color:#a8d5dc;}
-.acc-btn.rojo{background:#f8d7da;color:#721c24;border-color:#f0b8bc;}
+.acc-notas-wrap textarea{width:100%;box-sizing:border-box;font-size:11px;padding:7px 9px;border:1px solid var(--bd);border-radius:5px;background:var(--s2);color:var(--tx);resize:vertical;min-height:60px;font-family:var(--fn);}
+.acc-rbtns{display:flex;gap:6px;padding:10px 16px 14px;border-top:1px solid var(--bd);flex-wrap:wrap;}
 </style>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -2004,13 +1999,15 @@ function accRenderList(){
   var el=document.getElementById('acc-list');if(!el)return;
   var tot=ACC.admins.reduce(function(s,a){return s+a.totalCups;},0);
   var hdr=document.getElementById('acc-hdr-count');if(hdr)hdr.textContent=ACC.admins.length+' admins \u00b7 '+tot+' CUPS';
-  var lb={sinLlamar:'Sin llamar',interesado:'Interesado',enProceso:'En proceso',cerrado:'Cerrado',noInteresa:'No interesa'};
   el.innerHTML=ACC.admins.map(function(a){
     var st=accSt[a.id]||{estado:'sinLlamar'};
+    var estadoLabel={sinLlamar:'Sin llamar',visita:'&#10003; Visita',rellamar:'&#8635; Rellamar',noContesta:'&mdash; No contesta',noInteresa:'&#10007; No interesa',duda:'? Duda'};
     return '<div class="acc-admin-item'+(accSel===a.id?' sel':'')+'" id="aci-'+a.id+'" onclick="accOpen2(\''+a.id+'\')">'
-      +'<div><div class="acc-admin-name">'+a.nombre+'</div>'
+      +'<div class="acc-adot '+st.estado+'"></div>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div class="acc-admin-name">'+a.nombre+'</div>'
       +'<div class="acc-admin-meta">'+a.zona+'</div>'
-      +'<span class="acc-estado acc-est-'+st.estado+'">'+(lb[st.estado]||st.estado)+'</span></div>'
+      +'</div>'
       +'<div class="acc-admin-right"><div class="acc-admin-cups">'+a.totalCups+' CUPS</div>'
       +'<div class="acc-admin-margen">'+a.margenTotal.toLocaleString('es-ES')+'&euro;/a&ntilde;o</div></div></div>';
   }).join('');
@@ -2023,29 +2020,47 @@ function accOpen2(id){
   if(det)det.style.display='none';if(emp)emp.style.display='none';
   var fw=document.getElementById('acc-ficha-wrap');
   fw.style.display='flex';fw.style.flexDirection='column';
-  var spHl=a.speech.replace(/\[CALIFICAR\]/g,'<span class="acc-speech-hl">[CALIFICAR: &iquest;es usted quien gestiona los suministros?]</span>');
+  var spHl=a.speech.replace(/\[CALIFICAR\]/g,'<span class="acc-speech-hl">[CALIFICAR: &iquest;es usted quien gestiona los suministros el&eacute;ctricos?]</span>');
   var rows=a.cups.map(function(c){return '<tr><td>'+c.r+'</td><td>'+c.l+'</td><td class="acc-cups-ahorro">'+c.m.toLocaleString('es-ES')+'&euro;</td></tr>';}).join('');
-  fw.innerHTML='<div class="acc-ficha-header"><div class="acc-ficha-name">'+a.nombre+'</div>'
-    +'<div class="acc-ficha-contact">Tel: <a href="tel:'+a.telefono+'" style="color:var(--ac)">'+a.telefono+'</a> &middot; Email: <a href="mailto:'+a.email+'" style="color:var(--ac)">'+a.email+'</a></div></div>'
-    +'<div class="acc-ficha-stats"><div class="acc-stat"><div class="acc-stat-label">Comunidades</div><div class="acc-stat-val">'+a.totalCups+'</div></div>'
+  fw.innerHTML=
+    '<div class="acc-ficha-header"><div class="acc-ficha-name">'+a.nombre+'</div>'
+    +'<div class="acc-ficha-contact">Tel: <a href="tel:'+a.telefono+'" style="color:var(--ac)">'+a.telefono+'</a>'
+    +' &nbsp;&middot;&nbsp; Email: <a href="mailto:'+a.email+'" style="color:var(--ac)">'+a.email+'</a></div></div>'
+    +'<div class="acc-ficha-stats">'
+    +'<div class="acc-stat"><div class="acc-stat-label">Comunidades</div><div class="acc-stat-val">'+a.totalCups+'</div></div>'
     +'<div class="acc-stat"><div class="acc-stat-label">Ahorro/a&ntilde;o</div><div class="acc-stat-val">'+a.margenTotal.toLocaleString('es-ES')+'&euro;</div></div>'
     +'<div class="acc-stat"><div class="acc-stat-label">Media/CUPS</div><div class="acc-stat-val">'+a.margenMedio+'&euro;</div></div></div>'
     +'<div class="acc-speech-box"><div class="acc-speech-label">Speech de apertura</div><div class="acc-speech-text">'+spHl+'</div></div>'
-    +'<div class="acc-cups-section"><div class="acc-cups-title">Comunidades por ahorro</div>'
+    +'<div class="acc-cups-section"><div class="acc-cups-title">Comunidades por ahorro estimado</div>'
     +'<table class="acc-cups-table"><thead><tr><th>Comunidad</th><th>Localidad</th><th>Ahorro/a&ntilde;o</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
     +'<div class="acc-notas-wrap"><div class="acc-cups-title">Notas</div>'
     +'<textarea id="acc-nt-'+id+'" onchange="accNota(\''+id+'\',this.value)" placeholder="Notas de la llamada...">'+(st.notas||'')+'</textarea></div>'
-    +'<div class="acc-status-row">'
-    +'<button class="acc-btn verde" onclick="accSetSt(\''+id+'\',\'interesado\')">&#10003; Interesado</button>'
-    +'<button class="acc-btn amarillo" onclick="accSetSt(\''+id+'\',\'enProceso\')">&#8635; En proceso</button>'
-    +'<button class="acc-btn azul" onclick="accSetSt(\''+id+'\',\'cerrado\')">&#9733; Cerrado</button>'
-    +'<button class="acc-btn rojo" onclick="accSetSt(\''+id+'\',\'noInteresa\')">&#10007; No interesa</button>'
+    +'<div class="acc-rbtns">'
+    +'<button class="rbtn r-ok" onclick="accSetSt(\''+id+'\',\'visita\')">&#10003; Visita concertada</button>'
+    +'<button class="rbtn r-cb" onclick="accSetSt(\''+id+'\',\'rellamar\')">&#8635; Rellamar</button>'
+    +'<button class="rbtn r-nc" onclick="accSetSt(\''+id+'\',\'noContesta\')">&mdash; No contesta</button>'
+    +'<button class="rbtn r-ni" onclick="accSetSt(\''+id+'\',\'noInteresa\')">&#10007; No interesa</button>'
+    +'<button class="rbtn" onclick="accSetSt(\''+id+'\',\'duda\')">? Duda</button>'
     +'</div>';
   document.querySelectorAll('.acc-admin-item').forEach(function(e){e.classList.remove('sel');});
   var it=document.getElementById('aci-'+id);if(it)it.classList.add('sel');
+  // Highlight active button
+  setTimeout(function(){
+    var btns=fw.querySelectorAll('.rbtn');
+    btns.forEach(function(b){b.classList.remove('on');});
+    var map={visita:0,rellamar:1,noContesta:2,noInteresa:3,duda:4};
+    if(map[st.estado]!==undefined)btns[map[st.estado]]&&btns[map[st.estado]].classList.add('on');
+  },10);
   accRenderList();
 }
-function accSetSt(id,e){if(!accSt[id])accSt[id]={};accSt[id].estado=e;accSave();accOpen2(id);}
+function accSetSt(id,estado){
+  if(!accSt[id])accSt[id]={};
+  accSt[id].estado=estado;
+  var nt=document.getElementById('acc-nt-'+id);
+  if(nt)accSt[id].notas=nt.value;
+  accSave();
+  accOpen2(id);
+}
 function accNota(id,v){if(!accSt[id])accSt[id]={};accSt[id].notas=v;accSave();}
 var _sm=window.selMob;
 window.selMob=function(id,el){
