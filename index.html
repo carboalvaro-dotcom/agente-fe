@@ -1453,7 +1453,7 @@ async function pollCallStatus(callId,contactId){
         c.estado='visitaOK';
       }
     }
-        const agentNames=['carla','carlos'];
+        var agentNames=['carla','carlos'];
         if(data.nombreContacto&&!c.contactName&&!agentNames.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
         if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
         save();upStats();renderList();
@@ -1810,7 +1810,7 @@ function applyCallResult(data,callId,contactId){
     c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
   }
   if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
-  const agentNames=['carla','carlos'];
+  var agentNames=['carla','carlos'];
   if(data.nombreContacto&&!c.contactName&&!agentNames.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
   if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
   if(data.emailContacto&&!c.email) c.email=data.emailContacto;
