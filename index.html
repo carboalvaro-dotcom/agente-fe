@@ -760,6 +760,8 @@ const RAW=[{"id": 999, "nombre": "PRUEBAS CARBÓ SL", "nif": "TEST", "telefono":
 {"id": 214, "nombre": "ROSSAN SCP", "nif": "G59367011", "telefono": "933956577", "telefono2": "", "email": "", "contactName": "", "visitDate": "", "cups": "ES0031405939680012PD", "consumo": "", "potencia_kw": 12.5, "tarifa": "2.0 TD", "comercializadora": "IBERDROLA CLIENTES, S.A.U", "direccion": "RB FRANCA 39, LOC-3", "cp": "08917", "sector": "5210", "notas": "", "estado": "nuevo", "llamadas": 0, "ultimaLlamada": "", "_callId": "", "_recordingUrl": "", "pro": false}
 ];
 
+const CNAE={'1011':'Cárnico','1071':'Panadería/Pastelería','1391':'Tejidos punto','1392':'Artículos textiles','1393':'Alfombras','1396':'Tejidos elásticos','1413':'Confección','1423':'Artículos piel','1429':'Marroquinería','1713':'Acabado textiles','2059':'Química','2562':'Trabajos metal','2841':'Tratamiento metales','3109':'Muebles','3316':'Aeronáutica','4120':'Construcción','4322':'Fontanería/Climatización','4331':'Solados/Alicatados','4332':'Carpintería','4391':'Cubiertas','4399':'Construcción esp.','4511':'Venta coches','4520':'Taller vehículos','4619':'Agentes comerciales','4641':'Textil mayorista','4642':'Confección mayorista','4647':'Perfumería mayorista','4649':'Hogar mayorista','4661':'Maquinaria','4674':'Ferretería/Fontanería','4683':'Combustibles','4711':'Supermercado','4712':'Alimentación','4722':'Alimentación esp.','4751':'Textil','4759':'Hogar','4763':'Deporte','4764':'Juguetes','4765':'Juegos','4771':'Moda','4774':'Ortopedia','4775':'Perfumería','4778':'Óptica/Joyería','4941':'Transporte','5210':'Almacenamiento','5320':'Mensajería','5610':'Restaurante','5611':'Bar/Cafetería','5630':'Bar','6202':'Informática','6419':'Banco/Caja','6820':'Inmobiliaria','6910':'Jurídico','7490':'Consultoría','7499':'Servicios div.','7500':'Veterinaria','8210':'Oficina','8520':'Educación primaria','8559':'Formación','8623':'Dentista','8690':'Sanidad','8710':'Residencia','8812':'Serv. sociales','9531':'Electrónica','9602':'Peluquería','9621':'Estética','9810':'Com. propietarios','9820':'Actividades div.','9821':'Bar/Restaurante'};
+function cnaeDesc(s){return CNAE[String(s)]||s||'—';}
 let C=[],curId=null,curF='todos',curR=null,iv=null,sec=0;
 
 function isPRO(c){return c.potencia_kw>15||(c.consumo&&parseFloat(c.consumo)>15000);}
@@ -926,7 +928,7 @@ function sel(id){
     <div class="fg-item span4"><div class="fg-label">Dirección</div><input class="fg-input" value="${c.direccion}" onchange="saveField(${id},'direccion',this.value)"></div>
     <div class="fg-item span2"><div class="fg-label">CUPS</div><input class="fg-input" value="${c.cups||''}" placeholder="ES003140..." style="font-size:10px;" onchange="saveField(${id},'cups',this.value)"></div>
     <div class="fg-item"><div class="fg-label">Fecha visita</div><input class="fg-input" value="${c.visitDate||''}" placeholder="—" onchange="saveField(${id},'visitDate',this.value)"></div>
-    <div class="fg-item"><div class="fg-label">Sector</div><input class="fg-input" value="${c.sector}" onchange="saveField(${id},'sector',this.value)"></div>
+    <div class="fg-item"><div class="fg-label">Sector</div><input class="fg-input" value="${cnaeDesc(c.sector)}" placeholder="—" readonly style="cursor:default;color:var(--mt);font-size:11px;" title="${c.sector}"></div>
     <div class="fg-item span2"><div class="fg-label">NIF</div><input class="fg-input" value="${c.nif}" onchange="saveField(${id},'nif',this.value)"></div>
   `;
 
