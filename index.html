@@ -1388,18 +1388,23 @@ function showDashboard(){
 }
 
 function parseCallDate(str){
-  if(!str) return null;
-  const [datePart]=str.split(' ');
-  if(!datePart) return null;
-  const [d,m,y]=datePart.split('/');
-  if(!d||!m||!y) return null;
-  return new Date(y+'-'+m.padStart(2,'0')+'-'+d.padStart(2,'0'));
+  if(!str||typeof str!=='string') return null;
+  // Formato: "dd/mm/yyyy hh:mm" o "dd/mm/yyyy, hh:mm" o ISO
+  try {
+    const s=str.trim();
+    // dd/mm/yyyy
+    const m1=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if(m1) return new Date(m1[3]+'-'+m1[2].padStart(2,'0')+'-'+m1[1].padStart(2,'0')+'T12:00:00');
+    // ISO o cualquier otro
+    const d=new Date(s);
+    return isNaN(d)?null:d;
+  } catch(e){ return null; }
 }
 
 function renderDashboard(){
   const fromVal=document.getElementById('dash-from').value;
   const toVal=document.getElementById('dash-to').value;
-  const from=fromVal?new Date(fromVal):null;
+  const from=fromVal?new Date(fromVal+'T00:00:00'):null;
   const to=toVal?new Date(toVal+'T23:59:59'):null;
   const inRange=C.filter(c=>{
     if(!(c.llamadas>0)) return false;
@@ -1420,11 +1425,22 @@ function renderDashboard(){
   const pendiente=inRange.filter(c=>c.estado==='pendiente').length;
   const conversion=llamadas>0?Math.round((visitas/llamadas)*100):0;
   const respuesta=llamadas>0?Math.round(((llamadas-noContesta)/llamadas)*100):0;
+  // Métricas extra
+  const proLlamados=inRange.filter(c=>c.pro).length;
+  const proVisitas=inRange.filter(c=>c.pro&&c.estado==='visitaOK').length;
+  const mediaLlamadasVisita=visitas>0?(inRange.filter(c=>c.estado==='visitaOK').reduce((a,c)=>a+(c.llamadas||1),0)/visitas).toFixed(1):'—';
+  // CP con más visitas
+  const cpVis={};
+  inRange.filter(c=>c.estado==='visitaOK').forEach(c=>{const cp=c.cp||'?';cpVis[cp]=(cpVis[cp]||0)+1;});
+  const topCP=Object.entries(cpVis).sort((a,b)=>b[1]-a[1])[0];
+  const topCPstr=topCP?(CP_NAMES[topCP[0]]||topCP[0])+' ('+topCP[1]+')':'—';
+  // Sin llamar
+  const sinLlamar=C.filter(c=>(c.llamadas||0)===0&&c.nif!=='TEST'&&c.nif!=='AMIGO').length;
   const bar=(val,max,color)=>'<div style="background:var(--s2);border-radius:4px;height:8px;overflow:hidden;flex:1"><div style="width:'+(max>0?Math.round((val/max)*100):0)+'%;background:'+color+';height:100%;border-radius:4px;"></div></div>';
   const visitasList=inRange.filter(c=>c.estado==='visitaOK').map(c=>'<tr><td style="padding:5px 8px;font-size:11px;font-weight:500">'+c.nombre+'</td><td style="padding:5px 8px;font-size:11px;color:var(--mt)">'+(c.visitDate||'—')+'</td><td style="padding:5px 8px;font-size:11px;font-family:var(--mo)">'+c.telefono+'</td></tr>').join('');
   const rellamarList=inRange.filter(c=>c.estado==='rellamar').map(c=>'<tr><td style="padding:5px 8px;font-size:11px;font-weight:500">'+c.nombre+'</td><td style="padding:5px 8px;font-size:11px;color:var(--mt)">'+(c.ultimaLlamada||'—')+'</td></tr>').join('');
-  document.getElementById('dash-content').innerHTML='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">'
-    +[{l:'Total contactos',v:total,c:'var(--ac)',bg:'var(--acl)'},{l:'Llamadas realizadas',v:llamadas,c:'var(--ac)',bg:'var(--acl)'},{l:'Visitas concertadas',v:visitas,c:'var(--gr)',bg:'var(--grl)'},{l:'Tasa conversión',v:conversion+'%',c:'var(--gr)',bg:'var(--grl)'}]
+  document.getElementById('dash-content').innerHTML='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;">'
+    +[{l:'Total BD',v:total,c:'var(--ac)',bg:'var(--acl)'},{l:'Llamadas',v:llamadas,c:'var(--ac)',bg:'var(--acl)'},{l:'Visitas ✓',v:visitas,c:'var(--gr)',bg:'var(--grl)'},{l:'Conversión',v:conversion+'%',c:'var(--gr)',bg:'var(--grl)'},{l:'PRO llamados',v:proLlamados,c:'#7c3aed',bg:'#f0e6ff'},{l:'Sin llamar',v:sinLlamar,c:'var(--mt)',bg:'var(--s2)'}]
     .map(k=>'<div style="background:'+k.bg+';border-radius:10px;padding:14px;text-align:center"><div style="font-size:24px;font-weight:700;color:'+k.c+';font-family:var(--mo)">'+k.v+'</div><div style="font-size:10px;color:var(--mt);margin-top:3px">'+k.l+'</div></div>').join('')
     +'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">'
     +'<div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:16px;"><div style="font-size:11px;font-weight:600;color:var(--mt);margin-bottom:12px">Resultados</div>'
@@ -1435,6 +1451,11 @@ function renderDashboard(){
     .map(mm=>'<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--bd)"><div style="display:flex;justify-content:space-between"><div style="font-size:11px;color:var(--mt)">'+mm.l+'</div><div style="font-size:18px;font-weight:700;color:var(--ac)">'+mm.v+'</div></div><div style="font-size:10px;color:var(--mt2)">'+mm.d+'</div></div>').join('')
     +'</div></div>'
     +(visitas>0?'<div style="background:var(--grl);border:1px solid rgba(11,122,71,.15);border-radius:10px;padding:16px;margin-bottom:16px;"><div style="font-size:11px;font-weight:600;color:var(--gr);margin-bottom:10px">🟢 Visitas concertadas ('+visitas+')</div><table style="width:100%;border-collapse:collapse">'+visitasList+'</table></div>':'')
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">'
+    +'<div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center"><div style="font-size:11px;color:var(--mt);margin-bottom:4px">PRO con visita</div><div style="font-size:22px;font-weight:700;color:#7c3aed">'+proVisitas+'</div></div>'
+    +'<div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center"><div style="font-size:11px;color:var(--mt);margin-bottom:4px">Llamadas/Visita</div><div style="font-size:22px;font-weight:700;color:var(--ac)">'+mediaLlamadasVisita+'</div></div>'
+    +'<div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center"><div style="font-size:11px;color:var(--mt);margin-bottom:4px">Top CP visitas</div><div style="font-size:13px;font-weight:700;color:var(--gr);margin-top:4px">'+topCPstr+'</div></div>'
+    +'</div>'
     +(rellamar>0?'<div style="background:var(--aml);border:1px solid rgba(180,83,9,.15);border-radius:10px;padding:16px;"><div style="font-size:11px;font-weight:600;color:var(--am);margin-bottom:10px">🟡 Rellamar ('+rellamar+')</div><table style="width:100%;border-collapse:collapse">'+rellamarList+'</table></div>':'');
 }
 
