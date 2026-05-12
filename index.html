@@ -234,6 +234,55 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
 .ci.est-duda{border-left-color:#7c3aed;}
 .ci.est-llamando{border-left-color:var(--ac);}
 .ci.sel{background:var(--acl);border-left-color:var(--ac)!important;border-left-width:9px;}
+
+/* === ACC ADMINS === */
+.acc-section{border-top:2px solid var(--ac);margin-top:4px;}
+.acc-header{display:flex;align-items:center;justify-content:space-between;padding:7px 12px 5px;background:rgba(49,82,161,0.08);border-bottom:1px solid var(--bd);cursor:pointer;user-select:none;position:sticky;top:0;z-index:1;}
+.acc-header:hover{background:rgba(49,82,161,0.14);}
+.acc-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ac);}
+.acc-count{font-size:10px;font-family:var(--mo);color:var(--ac);}
+.acc-admin-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px 6px 16px;border-bottom:1px solid var(--bd);cursor:pointer;transition:background .12s;}
+.acc-admin-item:hover{background:var(--s2);}
+.acc-admin-item.sel{background:var(--s2);border-left:3px solid var(--ac);padding-left:13px;}
+.acc-admin-name{font-size:12px;font-weight:600;color:var(--tx);}
+.acc-admin-meta{font-size:10px;color:var(--mt2);margin-top:1px;}
+.acc-admin-right{text-align:right;flex-shrink:0;margin-left:8px;}
+.acc-admin-cups{font-size:11px;font-family:var(--mo);color:var(--ac);font-weight:600;}
+.acc-admin-margen{font-size:10px;color:var(--mt2);}
+.acc-estado{display:inline-block;font-size:9px;padding:1px 5px;border-radius:6px;margin-top:2px;font-weight:600;}
+.acc-est-sinLlamar{background:#e8e8f0;color:#5a5a8a;}
+.acc-est-interesado{background:#d4edda;color:#155724;}
+.acc-est-enProceso{background:#fff3cd;color:#856404;}
+.acc-est-cerrado{background:#d1ecf1;color:#0c5460;}
+.acc-est-noInteresa{background:#f8d7da;color:#721c24;}
+.acc-ficha-wrap{flex:1;overflow-y:auto;display:none;flex-direction:column;}
+.acc-ficha-header{padding:14px 16px 10px;border-bottom:1px solid var(--bd);}
+.acc-ficha-name{font-size:18px;font-weight:700;color:var(--tx);margin-bottom:3px;}
+.acc-ficha-contact{font-size:11px;color:var(--mt2);line-height:1.7;}
+.acc-ficha-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 16px;border-bottom:1px solid var(--bd);}
+.acc-stat{background:var(--s2);border-radius:6px;padding:7px 10px;}
+.acc-stat-label{font-size:9px;color:var(--mt2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
+.acc-stat-val{font-size:16px;font-weight:700;color:var(--ac);font-family:var(--mo);}
+.acc-speech-box{margin:10px 16px 0;background:rgba(49,82,161,0.06);border-left:3px solid var(--ac);border-radius:0 6px 6px 0;padding:10px 12px;}
+.acc-speech-label{font-size:9px;font-weight:700;color:var(--ac);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+.acc-speech-text{font-size:12px;color:var(--tx);line-height:1.65;font-style:italic;}
+.acc-speech-hl{font-style:normal;font-weight:700;color:var(--ac);}
+.acc-cups-section{padding:0 16px 10px;}
+.acc-cups-title{font-size:9px;font-weight:700;color:var(--mt2);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px;}
+.acc-cups-table{width:100%;border-collapse:collapse;font-size:11px;}
+.acc-cups-table th{text-align:left;padding:4px 6px;color:var(--mt2);border-bottom:1px solid var(--bd);font-size:9px;text-transform:uppercase;font-weight:600;}
+.acc-cups-table td{padding:5px 6px;border-bottom:1px solid var(--bd);color:var(--tx);}
+.acc-cups-table tr:last-child td{border-bottom:none;}
+.acc-cups-ahorro{color:#2e7d32;font-weight:700;white-space:nowrap;font-family:var(--mo);}
+.acc-notas-wrap{padding:0 16px 8px;}
+.acc-notas-wrap textarea{width:100%;box-sizing:border-box;font-size:11px;padding:7px 9px;border:1px solid var(--bd);border-radius:5px;background:var(--s2);color:var(--tx);resize:vertical;min-height:55px;font-family:var(--fn);}
+.acc-status-row{display:flex;gap:6px;padding:8px 16px 14px;border-top:1px solid var(--bd);flex-wrap:wrap;}
+.acc-btn{font-size:11px;padding:5px 11px;border-radius:5px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);cursor:pointer;font-family:var(--fn);}
+.acc-btn:hover{background:var(--s2);}
+.acc-btn.verde{background:#d4edda;color:#155724;border-color:#b8dbc5;}
+.acc-btn.amarillo{background:#fff3cd;color:#856404;border-color:#ffe69c;}
+.acc-btn.azul{background:#d1ecf1;color:#0c5460;border-color:#a8d5dc;}
+.acc-btn.rojo{background:#f8d7da;color:#721c24;border-color:#f0b8bc;}
 </style>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -340,8 +389,17 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
       </div>
     </div>
     <div class="lp-list" id="lp-list"></div>
+  <div class="acc-section" id="acc-section">
+    <div class="acc-header" onclick="accToggle()">
+      <span class="acc-title">&#127970; Administradores ACC</span>
+      <span class="acc-count" id="acc-hdr-count"></span>
+    </div>
+    <div id="acc-list"></div>
+  </div>
   </div>
   <div class="rp">
+  <div class="acc-ficha-wrap" id="acc-ficha-wrap"></div>
+
     <div class="empty" id="empty"><div class="empty-icon">📋</div><p>Selecciona un contacto</p></div>
     <div class="det" id="det">
 
@@ -1926,6 +1984,76 @@ init();
 
 
 
+</script>
+
+
+<script id="acc-module">
+var ACC={"admins":[
+{"id":"tecnisem","nombre":"Tecnisem","telefono":"936919900","email":"esther.lorente@tecnisem.com","zona":"Rub\u00ed, Cerdanyola, Ripollet","totalCups":145,"margenTotal":34767,"margenMedio":240,"speech":"Buenos d\u00edas, \u00bfpodr\u00eda hablar con Esther Lorente o con quien lleva los suministros el\u00e9ctricos de las comunidades? [CALIFICAR] Le llamo de Factor Energ\u00eda. Tienen 145 comunidades en Rub\u00ed y Cerdanyola. Queremos proponerles una colaboraci\u00f3n: an\u00e1lisis gratuito de toda la cartera y retribuci\u00f3n para Tecnisem por cada contrato activado. \u00bfCu\u00e1ndo podemos vernos?","cups":[{"r":"CCPP PK Virgen de F\u00e1tima","l":"Rub\u00ed","m":690},{"r":"CCPP La Pastora 51-53","l":"Rub\u00ed","m":654},{"r":"CCPP PK Ctra Barcelona 151","l":"Cerdanyola","m":567},{"r":"CCPP Sant Cugat 15-23","l":"Rub\u00ed","m":525},{"r":"CCPP Josep Salto 8-10","l":"Rub\u00ed","m":508},{"r":"+ 140 m\u00e1s","l":"Rub\u00ed\/Cerdanyola","m":240}]},
+{"id":"busbac","nombre":"Busbac Serveis S.L.","telefono":"935886127","email":"hola@busbac.com","zona":"Rub\u00ed (172 CUPS)","totalCups":172,"margenTotal":34421,"margenMedio":200,"speech":"Buenos d\u00edas, llamo de Factor Energ\u00eda. \u00bfPodr\u00eda hablar con la persona responsable de los contratos de suministro el\u00e9ctrico de las comunidades? [CALIFICAR] Busbac tiene 172 comunidades en Rub\u00ed. Quiero proponerles una colaboraci\u00f3n: an\u00e1lisis sin coste y retribuci\u00f3n importante. \u00bfTiene disponibilidad esta semana?","cups":[{"r":"C.P. PK Basses 27-43","l":"Rub\u00ed","m":978},{"r":"C.P. Catalunya 4 Torre Iris","l":"Rub\u00ed","m":475},{"r":"CCPP Mendoza 1 Esc B","l":"Rub\u00ed","m":462},{"r":"C.P. Sant Sebasti\u00e0 19-21","l":"Rub\u00ed","m":462},{"r":"+ 168 m\u00e1s","l":"Rub\u00ed","m":200}]},
+{"id":"immomasnou","nombre":"Immomasnou","telefono":"935405007","email":"comunitats@immomasnou.com","zona":"Masnou, Tei\u00e0, Alella, Montgat","totalCups":110,"margenTotal":23102,"margenMedio":210,"speech":"Buenos d\u00edas, llamo de Factor Energ\u00eda. \u00bfPodr\u00eda hablar con quien gestiona los suministros el\u00e9ctricos de las comunidades? [CALIFICAR] Trabajan en el Maresme con m\u00e1s de 100 comunidades. Quiero proponerles una colaboraci\u00f3n: an\u00e1lisis gratuito y retribuci\u00f3n por cada activaci\u00f3n. \u00bfCu\u00e1ndo hablamos?","cups":[{"r":"CCPP Salvador Espriu 1-7","l":"Masnou","m":718},{"r":"CCPP Marta Mata 1-15","l":"Masnou","m":534},{"r":"CCPP Ramon i Cajal 2","l":"Masnou","m":505},{"r":"CCPP Navarra 101-103","l":"Masnou","m":482},{"r":"+ 106 m\u00e1s","l":"Maresme","m":210}]},
+{"id":"constans","nombre":"Assessoria Constans","telefono":"933329866","email":"info@asesoriaconstans.com","zona":"Barcelona, L'Hospitalet","totalCups":66,"margenTotal":15996,"margenMedio":242,"speech":"Buenos d\u00edas, llamo de Factor Energ\u00eda. \u00bfPodr\u00eda hablar con quien gestiona los suministros el\u00e9ctricos de las comunidades? [CALIFICAR] Trabajan con 66 comunidades en Barcelona y L'Hospitalet. Queremos una colaboraci\u00f3n: an\u00e1lisis gratuito y retribuci\u00f3n por cada activaci\u00f3n. \u00bfTiene unos minutos?","cups":[{"r":"CCPP Parking Morabos 6","l":"Barcelona","m":739},{"r":"CCPP Morabos 2-6","l":"Barcelona","m":702},{"r":"CCPP Craywinckel 21-23","l":"Barcelona","m":596},{"r":"CCPP Foneria 32-34","l":"Barcelona","m":572},{"r":"+ 62 m\u00e1s","l":"Barcelona","m":242}]},
+{"id":"nacar","nombre":"ADF Nacar S.L.","telefono":"977161073","email":"administracion@nacarleamanich.com","zona":"Barcelona, Cubelles, L'Hospitalet","totalCups":9,"margenTotal":6721,"margenMedio":747,"speech":"Buenos d\u00edas, llamo de Factor Energ\u00eda. \u00bfPodr\u00eda hablar con la persona encargada de los suministros el\u00e9ctricos de las comunidades? [CALIFICAR] Quiero proponerles una colaboraci\u00f3n con retribuci\u00f3n para Nacar por cada activaci\u00f3n. \u00bfCu\u00e1ndo hablamos 15 minutos?","cups":[{"r":"CCPP Ganduxer 127","l":"Barcelona","m":2028},{"r":"CCPP Ganduxer 127 (2)","l":"Barcelona","m":988},{"r":"CCPP PS Anxaneta 5-7","l":"Cubelles","m":738},{"r":"CCPP Major 63","l":"L'Hospitalet","m":659},{"r":"CCPP Major 63 Garatge","l":"L'Hospitalet","m":546}]},
+{"id":"iml","nombre":"IML Fincas","telefono":"699098211","email":"iml@imlfincas.com","zona":"Sabadell (32 CUPS)","totalCups":32,"margenTotal":4298,"margenMedio":134,"speech":"Buenos d\u00edas, llamo de Factor Energ\u00eda. \u00bfEs usted quien lleva los contratos de suministro el\u00e9ctrico de sus comunidades? [CALIFICAR] Tienen comunidades en Sabadell. Quiero proponerles una colaboraci\u00f3n con retribuci\u00f3n por cada activaci\u00f3n. \u00bfTiene un momento?","cups":[{"r":"CCPP Prat 340-348","l":"Sabadell","m":393},{"r":"CCPP Via Alexandra 43","l":"Sabadell","m":291},{"r":"+ 30 m\u00e1s","l":"Sabadell","m":134}]},
+{"id":"ads","nombre":"ADS \/ CSG Finques","telefono":"931788227","email":"atencioalclient@csgfinques.com","zona":"Esplugues, Sant Andreu","totalCups":11,"margenTotal":2375,"margenMedio":216,"speech":"Buenos d\u00edas, llamo de Factor Energ\u00eda. \u00bfPodr\u00eda hablar con quien gestiona los suministros el\u00e9ctricos de las comunidades? [CALIFICAR] Gestionan comunidades en Esplugues y el Baix Llobregat. Quiero proponerles una colaboraci\u00f3n con retribuci\u00f3n por cada activaci\u00f3n. \u00bfTiene unos minutos?","cups":[{"r":"CCPP Mestre Joan Corrales","l":"Esplugues","m":369},{"r":"C.P. Sardana 16","l":"Sant Andreu","m":348},{"r":"+ 9 m\u00e1s","l":"Baix Llobregat","m":216}]}
+]};
+var accSt=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}'),accSel=null,accOpen=true;
+function accSave(){localStorage.setItem('fe_acc_v1',JSON.stringify(accSt));}
+function accToggle(){accOpen=!accOpen;document.getElementById('acc-list').style.display=accOpen?'':'none';}
+function accRenderList(){
+  var el=document.getElementById('acc-list');if(!el)return;
+  var tot=ACC.admins.reduce(function(s,a){return s+a.totalCups;},0);
+  var hdr=document.getElementById('acc-hdr-count');if(hdr)hdr.textContent=ACC.admins.length+' admins \u00b7 '+tot+' CUPS';
+  var lb={sinLlamar:'Sin llamar',interesado:'Interesado',enProceso:'En proceso',cerrado:'Cerrado',noInteresa:'No interesa'};
+  el.innerHTML=ACC.admins.map(function(a){
+    var st=accSt[a.id]||{estado:'sinLlamar'};
+    return '<div class="acc-admin-item'+(accSel===a.id?' sel':'')+'" id="aci-'+a.id+'" onclick="accOpen2(\''+a.id+'\')">'
+      +'<div><div class="acc-admin-name">'+a.nombre+'</div>'
+      +'<div class="acc-admin-meta">'+a.zona+'</div>'
+      +'<span class="acc-estado acc-est-'+st.estado+'">'+(lb[st.estado]||st.estado)+'</span></div>'
+      +'<div class="acc-admin-right"><div class="acc-admin-cups">'+a.totalCups+' CUPS</div>'
+      +'<div class="acc-admin-margen">'+a.margenTotal.toLocaleString('es-ES')+'&euro;/a&ntilde;o</div></div></div>';
+  }).join('');
+}
+function accOpen2(id){
+  accSel=id;
+  var a=ACC.admins.find(function(x){return x.id===id;});if(!a)return;
+  var st=accSt[id]||{estado:'sinLlamar',notas:''};
+  var det=document.getElementById('det'),emp=document.getElementById('empty');
+  if(det)det.style.display='none';if(emp)emp.style.display='none';
+  var fw=document.getElementById('acc-ficha-wrap');
+  fw.style.display='flex';fw.style.flexDirection='column';
+  var spHl=a.speech.replace(/\[CALIFICAR\]/g,'<span class="acc-speech-hl">[CALIFICAR: &iquest;es usted quien gestiona los suministros?]</span>');
+  var rows=a.cups.map(function(c){return '<tr><td>'+c.r+'</td><td>'+c.l+'</td><td class="acc-cups-ahorro">'+c.m.toLocaleString('es-ES')+'&euro;</td></tr>';}).join('');
+  fw.innerHTML='<div class="acc-ficha-header"><div class="acc-ficha-name">'+a.nombre+'</div>'
+    +'<div class="acc-ficha-contact">Tel: <a href="tel:'+a.telefono+'" style="color:var(--ac)">'+a.telefono+'</a> &middot; Email: <a href="mailto:'+a.email+'" style="color:var(--ac)">'+a.email+'</a></div></div>'
+    +'<div class="acc-ficha-stats"><div class="acc-stat"><div class="acc-stat-label">Comunidades</div><div class="acc-stat-val">'+a.totalCups+'</div></div>'
+    +'<div class="acc-stat"><div class="acc-stat-label">Ahorro/a&ntilde;o</div><div class="acc-stat-val">'+a.margenTotal.toLocaleString('es-ES')+'&euro;</div></div>'
+    +'<div class="acc-stat"><div class="acc-stat-label">Media/CUPS</div><div class="acc-stat-val">'+a.margenMedio+'&euro;</div></div></div>'
+    +'<div class="acc-speech-box"><div class="acc-speech-label">Speech de apertura</div><div class="acc-speech-text">'+spHl+'</div></div>'
+    +'<div class="acc-cups-section"><div class="acc-cups-title">Comunidades por ahorro</div>'
+    +'<table class="acc-cups-table"><thead><tr><th>Comunidad</th><th>Localidad</th><th>Ahorro/a&ntilde;o</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
+    +'<div class="acc-notas-wrap"><div class="acc-cups-title">Notas</div>'
+    +'<textarea id="acc-nt-'+id+'" onchange="accNota(\''+id+'\',this.value)" placeholder="Notas de la llamada...">'+(st.notas||'')+'</textarea></div>'
+    +'<div class="acc-status-row">'
+    +'<button class="acc-btn verde" onclick="accSetSt(\''+id+'\',\'interesado\')">&#10003; Interesado</button>'
+    +'<button class="acc-btn amarillo" onclick="accSetSt(\''+id+'\',\'enProceso\')">&#8635; En proceso</button>'
+    +'<button class="acc-btn azul" onclick="accSetSt(\''+id+'\',\'cerrado\')">&#9733; Cerrado</button>'
+    +'<button class="acc-btn rojo" onclick="accSetSt(\''+id+'\',\'noInteresa\')">&#10007; No interesa</button>'
+    +'</div>';
+  document.querySelectorAll('.acc-admin-item').forEach(function(e){e.classList.remove('sel');});
+  var it=document.getElementById('aci-'+id);if(it)it.classList.add('sel');
+  accRenderList();
+}
+function accSetSt(id,e){if(!accSt[id])accSt[id]={};accSt[id].estado=e;accSave();accOpen2(id);}
+function accNota(id,v){if(!accSt[id])accSt[id]={};accSt[id].notas=v;accSave();}
+var _sm=window.selMob;
+window.selMob=function(id,el){
+  var fw=document.getElementById('acc-ficha-wrap');if(fw)fw.style.display='none';
+  accSel=null;document.querySelectorAll('.acc-admin-item').forEach(function(e){e.classList.remove('sel');});
+  if(_sm)_sm(id,el);
+};
+(function t(){var l=document.getElementById('acc-list');if(l){accRenderList();}else{setTimeout(t,300);}})();
 </script>
 </body>
 </html>
