@@ -307,6 +307,8 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
     <span style="color:var(--am);font-weight:600;" id="cls-r">↺ 0</span>
     <span style="color:#aaa;font-weight:600;" id="cls-nc">— 0</span>
     <span style="color:var(--rd);font-weight:600;" id="cls-ni">✗ 0</span>
+    <span style="color:#7c3aed;font-weight:600;" id="cls-du">? 0</span>
+    <span style="color:var(--mt);font-weight:600;border-left:1px solid rgba(255,255,255,.2);padding-left:8px;" id="cls-tot">Total: 0</span>
   </div>
   <button class="btn-pause" id="camp-pause-btn" onclick="toggleCampaignPause()">⏸ Pausar</button>
   <button class="btn-stop" onclick="stopCampaign()">✕ Parar</button>
@@ -1440,6 +1442,8 @@ function startCampaign(){
     campaignQueue=queue;campaignIdx=0;campaignRunning=true;campaignPaused=false;
     document.getElementById('camp-bar').classList.add('on');
     ['cls-v','cls-r','cls-nc','cls-ni'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=el.textContent[0]+el.textContent[1]+' 0';});
+    const duEl=document.getElementById('cls-du');if(duEl)duEl.textContent='? 0';
+    const totEl=document.getElementById('cls-tot');if(totEl)totEl.textContent='Total: 0';
     toast('Campaña iniciada — '+queue.length+' contactos','ok');
     runNextCampaignCall();
   }
@@ -1717,10 +1721,14 @@ function updateCampLiveStats(){
   const r=document.getElementById('cls-r');
   const nc=document.getElementById('cls-nc');
   const ni=document.getElementById('cls-ni');
+  const du=document.getElementById('cls-du');
+  const tot=document.getElementById('cls-tot');
   if(v) v.textContent='✓ '+done.filter(c=>c.estado==='visitaOK').length;
   if(r) r.textContent='↺ '+done.filter(c=>c.estado==='rellamar').length;
   if(nc) nc.textContent='— '+done.filter(c=>c.estado==='noContesta').length;
   if(ni) ni.textContent='✗ '+done.filter(c=>c.estado==='noInteresa').length;
+  if(du) du.textContent='? '+done.filter(c=>c.estado==='duda').length;
+  if(tot) tot.textContent='Total: '+done.length;
 }
 
 async function syncToGitHub(data){
