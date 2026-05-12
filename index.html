@@ -2080,7 +2080,8 @@ function accRenderList(){
       +'<div class="acc-ai-r1"><div class="acc-admin-name">'+a.nombre+'</div>'
       +'<div class="acc-admin-cups">'+a.totalCups+' CUPS</div></div>'
       +'<div class="acc-ai-r2"><span class="acc-admin-meta">'+a.zona+'</span>'
-      +'<span class="acc-admin-margen">&nbsp;&middot;&nbsp;'+a.margenTotal.toLocaleString('es-ES')+'&euro;/a&ntilde;o</span></div></div>';
+      +(st.llamadas>0?'&nbsp;<span class="ci-kw">☎️'+st.llamadas+'</span>&nbsp;<span class="ci-kw">'+st.ultimaLlamada+'</span>':'')
+      +'</div></div>';
   }).join('');
 }
 
