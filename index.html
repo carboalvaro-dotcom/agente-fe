@@ -257,29 +257,6 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
 .acc-admin-cups{font-size:11px;font-family:var(--mo);color:var(--ac);font-weight:600;}
 .acc-admin-margen{font-size:10px;color:var(--mt2);}
 .acc-ficha-wrap{flex:1;overflow-y:auto;display:none;flex-direction:column;}
-.acc-ficha-top{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid var(--bd);}
-.acc-ficha-name{font-size:18px;font-weight:700;color:var(--tx);margin-bottom:3px;}
-.acc-ficha-contact{font-size:11px;color:var(--mt2);line-height:1.7;}
-.acc-call-btn{display:flex;align-items:center;gap:6px;background:var(--ac);color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;}
-.acc-call-btn:hover{opacity:.88;}
-.acc-ficha-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 16px;border-bottom:1px solid var(--bd);}
-.acc-stat{background:var(--s2);border-radius:6px;padding:7px 10px;}
-.acc-stat-label{font-size:9px;color:var(--mt2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
-.acc-stat-val{font-size:16px;font-weight:700;color:var(--ac);font-family:var(--mo);}
-.acc-speech-box{margin:10px 16px 0;background:rgba(49,82,161,0.06);border-left:3px solid var(--ac);border-radius:0 6px 6px 0;padding:10px 12px;}
-.acc-speech-label{font-size:9px;font-weight:700;color:var(--ac);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
-.acc-speech-text{font-size:12px;color:var(--tx);line-height:1.65;font-style:italic;}
-.acc-speech-hl{font-style:normal;font-weight:700;color:var(--ac);}
-.acc-cups-section{padding:0 16px 10px;}
-.acc-cups-title{font-size:9px;font-weight:700;color:var(--mt2);text-transform:uppercase;letter-spacing:.06em;margin:12px 0 6px;}
-.acc-cups-table{width:100%;border-collapse:collapse;font-size:11px;}
-.acc-cups-table th{text-align:left;padding:4px 6px;color:var(--mt2);border-bottom:1px solid var(--bd);font-size:9px;text-transform:uppercase;font-weight:600;}
-.acc-cups-table td{padding:5px 6px;border-bottom:1px solid var(--bd);color:var(--tx);}
-.acc-cups-table tr:last-child td{border-bottom:none;}
-.acc-cups-ahorro{color:#2e7d32;font-weight:700;white-space:nowrap;font-family:var(--mo);}
-.acc-notas-wrap{padding:0 16px 8px;}
-.acc-notas-wrap textarea{width:100%;box-sizing:border-box;font-size:11px;padding:7px 9px;border:1px solid var(--bd);border-radius:5px;background:var(--s2);color:var(--tx);resize:vertical;min-height:60px;font-family:var(--fn);}
-.acc-rbtns{display:flex;gap:6px;padding:10px 16px 14px;border-top:1px solid var(--bd);flex-wrap:wrap;}
 </style>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -1994,9 +1971,11 @@ var ACC={"admins":[
 {"id":"iml","nombre":"IML Fincas","telefono":"699098211","email":"iml@imlfincas.com","zona":"Sabadell (32 CUPS)","totalCups":32,"margenTotal":4298,"margenMedio":134,"speech":"Buenos d\u00edas, llamo de Factor Energ\u00eda. \u00bfEs usted quien lleva los contratos de suministro el\u00e9ctrico de sus comunidades? [CALIFICAR] Tienen comunidades en Sabadell. Quiero proponerles una colaboraci\u00f3n con retribuci\u00f3n por cada activaci\u00f3n. \u00bfTiene un momento?","cups":[{"r":"CCPP Prat 340-348","l":"Sabadell","m":393},{"r":"CCPP Via Alexandra 43","l":"Sabadell","m":291},{"r":"+ 30 m\u00e1s","l":"Sabadell","m":134}]},
 {"id":"ads","nombre":"ADS \/ CSG Finques","telefono":"931788227","email":"atencioalclient@csgfinques.com","zona":"Esplugues, Sant Andreu","totalCups":11,"margenTotal":2375,"margenMedio":216,"speech":"Buenos d\u00edas, llamo de Factor Energ\u00eda. \u00bfPodr\u00eda hablar con quien gestiona los suministros el\u00e9ctricos de las comunidades? [CALIFICAR] Gestionan comunidades en Esplugues y el Baix Llobregat. Quiero proponerles una colaboraci\u00f3n con retribuci\u00f3n por cada activaci\u00f3n. \u00bfTiene unos minutos?","cups":[{"r":"CCPP Mestre Joan Corrales","l":"Esplugues","m":369},{"r":"C.P. Sardana 16","l":"Sant Andreu","m":348},{"r":"+ 9 m\u00e1s","l":"Baix Llobregat","m":216}]}
 ]};
+
 var accSt=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}'),accSel=null,accOpen=true;
 function accSave(){localStorage.setItem('fe_acc_v1',JSON.stringify(accSt));}
 function accToggle(){accOpen=!accOpen;document.getElementById('acc-list').style.display=accOpen?'':'none';}
+
 function accRenderList(){
   var el=document.getElementById('acc-list');if(!el)return;
   var tot=ACC.admins.reduce(function(s,a){return s+a.totalCups;},0);
@@ -2011,80 +1990,184 @@ function accRenderList(){
       +'<div class="acc-admin-margen">'+a.margenTotal.toLocaleString('es-ES')+'&euro;/a&ntilde;o</div></div></div>';
   }).join('');
 }
+
+function accParseNotas(notas){
+  // Parse call history from notas text - same format as client notas
+  if(!notas)return '';
+  var entries=notas.split(/\n(?=\ud83d\udcde)/);
+  return entries.map(function(e){
+    var lines=e.trim().split('\n');
+    var header=lines[0]||'';
+    var estado=lines[1]||'';
+    var transcr=lines.filter(function(l){return l.startsWith('\ud83d\udcac');}).join(' ').replace('\ud83d\udcac ','');
+    var audioUrl=(lines.filter(function(l){return l.includes('storage.vapi');})[0]||'').trim();
+    if(!header)return '';
+    var html='<div style="padding:10px 0;border-bottom:1px solid var(--bd)">';
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">';
+    html+='<span style="font-size:12px;font-weight:600;color:var(--tx)">'+header+'</span>';
+    html+='<span style="font-size:11px;color:var(--mt2)">'+estado+'</span></div>';
+    if(transcr){html+='<div style="font-size:11px;color:var(--mt2);font-style:italic;margin-bottom:6px">&ldquo;'+transcr.replace(/"/g,'')+'&rdquo;</div>';}
+    if(audioUrl){html+='<audio controls style="width:100%;height:32px" src="'+audioUrl+'"></audio>';}
+    html+='</div>';
+    return html;
+  }).join('');
+}
+
 function accOpen2(id){
   accSel=id;
   var a=ACC.admins.find(function(x){return x.id===id;});if(!a)return;
-  var st=accSt[id]||{estado:'sinLlamar',notas:''};
+  var st=accSt[id]||{estado:'sinLlamar',notas:'',llamadas:0,ultimaLlamada:''};
   // Ocultar panel normal
   var det=document.getElementById('det'),emp=document.getElementById('empty');
   if(det)det.style.display='none';if(emp)emp.style.display='none';
-  // Mostrar ficha ACC
   var fw=document.getElementById('acc-ficha-wrap');
   fw.style.display='flex';fw.style.flexDirection='column';
-  var spHl=a.speech.replace(/\[CALIFICAR\]/g,'<span class="acc-speech-hl">[CALIFICAR: &iquest;es usted quien gestiona los suministros?]</span>');
-  var rows=a.cups.map(function(c){return '<tr><td>'+c.r+'</td><td>'+c.l+'</td><td class="acc-cups-ahorro">'+c.m.toLocaleString('es-ES')+'&euro;</td></tr>';}).join('');
-  var stMap={sinLlamar:4,visita:0,rellamar:1,noContesta:2,noInteresa:3,duda:4};
+
+  var spHl=a.speech.replace(/\[CALIFICAR\]/g,'<span style="font-style:normal;font-weight:700;color:var(--ac)">[CALIFICAR: &iquest;es usted quien gestiona los suministros el&eacute;ctricos?]</span>');
+  var llamCount=st.llamadas||0;
+  var badgeTxt=llamCount>0?('\ud83d\udcde LLAMADAS: '+llamCount+(st.ultimaLlamada?' \u00b7 \u00daltima: '+st.ultimaLlamada:'')):'Sin llamadas';
+  var callHistory=accParseNotas(st.notas||'');
+
+  var rows=a.cups.map(function(c){
+    return '<tr><td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:11px;color:var(--tx)">'+c.r+'</td>'
+      +'<td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:11px;color:var(--mt2)">'+c.l+'</td>'
+      +'<td style="padding:5px 6px;border-bottom:1px solid var(--bd);font-size:11px;font-weight:700;color:#2e7d32;white-space:nowrap;font-family:var(--mo)">'+c.m.toLocaleString('es-ES')+'&euro;</td></tr>';
+  }).join('');
+
   fw.innerHTML=
-    '<div class="acc-ficha-top"><div>'
-    +'<div class="acc-ficha-name">'+a.nombre+'</div>'
-    +'<div class="acc-ficha-contact">Tel: <a href="tel:'+a.telefono+'" style="color:var(--ac)">'+a.telefono+'</a>'
-    +' &nbsp;&middot;&nbsp; <a href="mailto:'+a.email+'" style="color:var(--ac)">'+a.email+'</a></div>'
+    // === CARD 1: FICHA DEL ADMINISTRADOR ===
+    '<div class="card">'
+    +'<div class="card-head">'
+    +'<div class="card-title">Ficha del administrador</div>'
+    +'<span id="acc-stag-'+id+'" class="stag '+st.estado+'">'
+      +{sinLlamar:'Sin llamar',visita:'\u2713 Visita',rellamar:'\u21ba Rellamar',noContesta:'&mdash; No contesta',noInteresa:'\u00d7 No interesa',duda:'? Duda'}[st.estado||'sinLlamar']
+    +'</span>'
+    +'<button class="btn btn-pr btn-sm" onclick="accLlamar(\''+id+'\')">&#128222; Llamar con IA</button>'
     +'</div>'
-    +'<a href="tel:'+a.telefono+'" class="acc-call-btn">&#128222; Llamar</a></div>'
-    +'<div class="acc-ficha-stats">'
-    +'<div class="acc-stat"><div class="acc-stat-label">Comunidades</div><div class="acc-stat-val">'+a.totalCups+'</div></div>'
-    +'<div class="acc-stat"><div class="acc-stat-label">Ahorro/a&ntilde;o</div><div class="acc-stat-val">'+a.margenTotal.toLocaleString('es-ES')+'&euro;</div></div>'
-    +'<div class="acc-stat"><div class="acc-stat-label">Media/CUPS</div><div class="acc-stat-val">'+a.margenMedio+'&euro;</div></div></div>'
-    +'<div class="acc-speech-box"><div class="acc-speech-label">Speech de apertura</div><div class="acc-speech-text">'+spHl+'</div></div>'
-    +'<div class="acc-cups-section"><div class="acc-cups-title">Comunidades por ahorro estimado</div>'
-    +'<table class="acc-cups-table"><thead><tr><th>Comunidad</th><th>Localidad</th><th>Ahorro/a&ntilde;o</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
-    +'<div class="acc-notas-wrap"><div class="acc-cups-title">Notas</div>'
-    +'<textarea id="acc-nt-'+id+'" onchange="accNota(\''+id+'\',this.value)" placeholder="Notas de la llamada...">'+(st.notas||'')+'</textarea></div>'
-    +'<div class="acc-rbtns">'
+    // Nombre + meta
+    +'<div class="ch-wrap">'
+    +'<div class="ch-name">'+a.nombre+'</div>'
+    +'<div class="ch-meta">'
+    +'<span class="stag '+st.estado+'">'
+      +{sinLlamar:'Sin llamar',visita:'\u2713 Visita',rellamar:'\u21ba Rellamar',noContesta:'&mdash; No contesta',noInteresa:'\u00d7 No interesa',duda:'? Duda'}[st.estado||'sinLlamar']
+    +'</span></div></div>'
+    // Ficha datos
+    +'<div class="ficha-grid">'
+    +'<div class="fg-item span2"><div class="fg-label">Tel&eacute;fono</div>'
+    +'<input class="fg-input" id="acc-tel-'+id+'" value="'+a.telefono+'" readonly></div>'
+    +'<div class="fg-item span2"><div class="fg-label">Email</div>'
+    +'<input class="fg-input" value="'+a.email+'" readonly></div>'
+    +'<div class="fg-item span4"><div class="fg-label">Zona</div>'
+    +'<input class="fg-input" value="'+a.zona+'" readonly></div>'
+    +'</div>'
+    +'<textarea class="nt" id="acc-nota-'+id+'" placeholder="Notas: nombre contacto, observaciones..." onchange="accSaveNota(\''+id+'\',this.value)">'+((st.notas&&!st.notas.includes('\ud83d\udcde'))?st.notas:'')+'</textarea>'
+    +'</div>'
+    // === CARD 2: RESULTADO DE LA LLAMADA ===
+    +'<div class="card">'
+    +'<div class="card-head">'
+    +'<div class="card-title">Resultado de la llamada</div>'
+    +'<span style="font-size:11px;color:var(--mt2)">'+badgeTxt+'</span>'
+    +'</div>'
+    +'<div class="res-btns">'
     +'<button class="rbtn r-ok'+(st.estado==='visita'?' on':'')+'" onclick="accSetSt(\''+id+'\',\'visita\')">&#10003; Visita concertada</button>'
     +'<button class="rbtn r-cb'+(st.estado==='rellamar'?' on':'')+'" onclick="accSetSt(\''+id+'\',\'rellamar\')">&#8635; Rellamar</button>'
     +'<button class="rbtn r-nc'+(st.estado==='noContesta'?' on':'')+'" onclick="accSetSt(\''+id+'\',\'noContesta\')">&mdash; No contesta</button>'
     +'<button class="rbtn r-ni'+(st.estado==='noInteresa'?' on':'')+'" onclick="accSetSt(\''+id+'\',\'noInteresa\')">&#10007; No interesa</button>'
     +'<button class="rbtn'+(st.estado==='duda'?' on':'')+'" onclick="accSetSt(\''+id+'\',\'duda\')">? Duda</button>'
-    +'</div>';
+    +'</div>'
+    +(callHistory?'<div style="padding:0 16px 12px" id="acc-calls-'+id+'">'+callHistory+'</div>':'')
+    +'</div>'
+    // === CARD 3: SPEECH ===
+    +'<div class="card"><div class="card-head"><div class="card-title">Speech de apertura</div></div>'
+    +'<div style="padding:10px 16px 14px;font-size:12px;color:var(--tx);line-height:1.65;font-style:italic">'+spHl+'</div>'
+    +'</div>'
+    // === CARD 4: COMUNIDADES ===
+    +'<div class="card"><div class="card-head"><div class="card-title">Comunidades por ahorro estimado</div>'
+    +'<span style="font-size:11px;color:var(--mt2)">'+a.totalCups+' CUPS &middot; '+a.margenTotal.toLocaleString('es-ES')+'&euro;/a&ntilde;o &middot; media '+a.margenMedio+'&euro;</span>'
+    +'</div>'
+    +'<table style="width:100%;border-collapse:collapse"><thead>'
+    +'<tr><th style="text-align:left;padding:4px 6px;font-size:9px;color:var(--mt2);border-bottom:1px solid var(--bd);text-transform:uppercase">Comunidad</th>'
+    +'<th style="text-align:left;padding:4px 6px;font-size:9px;color:var(--mt2);border-bottom:1px solid var(--bd);text-transform:uppercase">Localidad</th>'
+    +'<th style="text-align:left;padding:4px 6px;font-size:9px;color:var(--mt2);border-bottom:1px solid var(--bd);text-transform:uppercase">Ahorro/a&ntilde;o</th></tr>'
+    +'</thead><tbody>'+rows+'</tbody></table></div>';
+
   document.querySelectorAll('.acc-admin-item').forEach(function(e){e.classList.remove('sel');});
   var it=document.getElementById('aci-'+id);if(it)it.classList.add('sel');
   accRenderList();
 }
+
+function accLlamar(id){
+  // Set the phone input that launchCall() reads, then call it
+  var a=ACC.admins.find(function(x){return x.id===id;});if(!a)return;
+  // launchCall reads from the DOM input with onchange containing 'telefono'
+  // We need to temporarily set the ficha-grid input or use a hidden input
+  var telInput=document.querySelector('#ficha-grid input[onchange*="telefono"]');
+  if(telInput){
+    var origVal=telInput.value;
+    telInput.value=a.telefono;
+    // Also store current acc id so we can save call result back
+    window._accCallId=id;
+    launchCall();
+    // launchCall is async (Vapi), restore original after brief delay
+    setTimeout(function(){if(telInput.value===a.telefono)telInput.value=origVal||'';},500);
+  } else {
+    window.open('tel:'+a.telefono);
+  }
+}
+
 function accSetSt(id,estado){
   if(!accSt[id])accSt[id]={};
   accSt[id].estado=estado;
-  var nt=document.getElementById('acc-nt-'+id);
-  if(nt)accSt[id].notas=nt.value;
   accSave();
   accOpen2(id);
 }
-function accNota(id,v){if(!accSt[id])accSt[id]={};accSt[id].notas=v;accSave();}
+
+function accSaveNota(id,v){
+  if(!accSt[id])accSt[id]={};
+  accSt[id].notas=v;
+  accSave();
+}
+
+// After a Vapi call ends for an ACC admin, save result to accSt
+// Monitor the notas field for changes from Vapi webhook
+var _accCallResultObserver=null;
+function accWatchCallResult(id){
+  if(_accCallResultObserver)_accCallResultObserver.disconnect();
+  var notas=document.getElementById('notas');
+  if(!notas)return;
+  _accCallResultObserver=new MutationObserver(function(){
+    var v=notas.value;
+    if(v&&v.includes('\ud83d\udcde')){
+      if(!accSt[id])accSt[id]={};
+      // Merge: keep acc notes + append call history
+      accSt[id].notas=v;
+      // Count calls
+      accSt[id].llamadas=(accSt[id].llamadas||0)+1;
+      accSt[id].ultimaLlamada=new Date().toLocaleString('es-ES');
+      accSave();
+      accOpen2(id);
+      _accCallResultObserver.disconnect();
+    }
+  });
+  _accCallResultObserver.observe(notas,{attributes:true,childList:true,subtree:true,characterData:true});
+}
+
 function accHide(){
   var fw=document.getElementById('acc-ficha-wrap');
   if(fw)fw.style.display='none';
-  // CLAVE: restaurar det y empty para que selMob funcione
-  var det=document.getElementById('det'),emp=document.getElementById('empty');
-  if(det)det.style.display='';
-  if(emp)emp.style.display='';
-  accSel=null;
-  document.querySelectorAll('.acc-admin-item').forEach(function(e){e.classList.remove('sel');});
-}
-// Parche selMob: restaurar panel normal antes de llamar al original
-var _sm=window.selMob;
-window.selMob=function(id,el){
-  // Ocultar ficha ACC y quitar seleccion
-  var fw=document.getElementById('acc-ficha-wrap');
-  if(fw)fw.style.display='none';
-  accSel=null;
-  document.querySelectorAll('.acc-admin-item').forEach(function(e){e.classList.remove('sel');});
-  // Restaurar visibilidad del panel normal ANTES del original
   var det=document.getElementById('det'),emp=document.getElementById('empty');
   if(det)det.style.removeProperty('display');
   if(emp)emp.style.removeProperty('display');
-  // Llamar al selMob original
+  accSel=null;
+  document.querySelectorAll('.acc-admin-item').forEach(function(e){e.classList.remove('sel');});
+}
+
+var _sm=window.selMob;
+window.selMob=function(id,el){
+  accHide();
   if(_sm)_sm(id,el);
 };
+
 (function t(){var l=document.getElementById('acc-list');if(l){accRenderList();}else{setTimeout(t,300);}})();
 </script>
 </body>
