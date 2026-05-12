@@ -1754,6 +1754,30 @@ async function waitForCallEnd(callId,contactId){
 }
 
 function applyCallResult(data,callId,contactId){
+  // Handle ACC admin results
+  if(typeof contactId==='string'&&contactId.startsWith('ACC:')){
+    var accId=contactId.substring(4);
+    if(!accSt[accId])accSt[accId]={};
+    accSt[accId]._callId=callId;
+    if(data.recordingUrl)accSt[accId]._recordingUrl=data.recordingUrl;
+    if(data.notas){
+      accSt[accId].notas=(accSt[accId].notas&&accSt[accId].notas.length>5?accSt[accId].notas+'\n\n':'')+data.notas;
+    }
+    var resultMap={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
+    if(data.resultado&&resultMap[data.resultado])accSt[accId].estado=resultMap[data.resultado];
+    // Guardar nombre contacto si la IA lo detectó
+    var agentNames=['carla','carlos'];
+    if(data.nombreContacto&&!accSt[accId].contacto&&!agentNames.includes((data.nombreContacto||'').toLowerCase())){
+      accSt[accId].contacto=data.nombreContacto;
+    }
+    accSave();
+    clearInterval(iv);
+    document.getElementById('cban').classList.remove('on');
+    if(accSel===accId)accOpen2(accId);
+    toast('\u2713 '+ACC.admins.find(function(x){return x.id===accId;})?.nombre+' \u2014 analizado','ok');
+    return;
+  }
+  // Normal client
   const c=C.find(x=>x.id===contactId);
   if(!c) return;
   endCall(contactId, data.resultado&&data.resultado!=='pendiente'?data.resultado:'pendiente');
@@ -2145,22 +2169,82 @@ function accOpen2(id){
   accRenderList();
 }
 
-function accLlamar(id){
-  // Set the phone input that launchCall() reads, then call it
+async function accLlamar(id){
   var a=ACC.admins.find(function(x){return x.id===id;});if(!a)return;
-  // launchCall reads from the DOM input with onchange containing 'telefono'
-  // We need to temporarily set the ficha-grid input or use a hidden input
-  var telInput=document.querySelector('#ficha-grid input[onchange*="telefono"]');
-  if(telInput){
-    var origVal=telInput.value;
-    telInput.value=a.telefono;
-    // Also store current acc id so we can save call result back
-    window._accCallId=id;
-    launchCall();
-    // launchCall is async (Vapi), restore original after brief delay
-    setTimeout(function(){if(telInput.value===a.telefono)telInput.value=origVal||'';},500);
-  } else {
-    window.open('tel:'+a.telefono);
+  var st=accSt[id]||{};
+  var phone=a.telefono.startsWith('+')?a.telefono:'+34'+a.telefono.replace(/\s/g,'');
+  // Registrar llamada en accSt
+  if(!accSt[id])accSt[id]={};
+  accSt[id].estado=accSt[id].estado||'sinLlamar';
+  accSt[id].llamadas=(accSt[id].llamadas||0)+1;
+  accSt[id].ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  accSave();
+  // Mostrar banner de llamada (igual que cliente)
+  var cbanName=document.getElementById('cban-name');
+  if(cbanName)cbanName.textContent='\uD83D\uDCDE '+a.nombre;
+  document.getElementById('cban').classList.add('on');
+  sec=0;clearInterval(iv);
+  iv=setInterval(function(){sec++;var m=Math.floor(sec/60),s=sec%60;document.getElementById('ctm').textContent=m+':'+(s<10?'0':'')+s;},1000);
+  // Construir payload igual que callViaProxy pero con speech de administrador
+  var contacto=accSt[id].contacto||a.contacto||'';
+  var nombrePrimero=contacto?contacto.split(' ')[0]:'';
+  var apertura=contacto
+    ?('Buenos d\u00edas, \u00bfhablo con '+nombrePrimero+'? Le llamo de Factor Energ\u00eda.')
+    :('Buenos d\u00edas, llamo de Factor Energ\u00eda. \u00bfPodr\u00eda hablar con quien gestiona los suministros el\u00e9ctricos de las comunidades de propietarios?');
+  var systemPrompt='Eres CARLA, asistente telef\u00f3nica de una asesor\u00eda energ\u00e9tica.\n\n'
+    +'DATOS DEL ADMINISTRADOR:\n'
+    +'- Empresa: '+a.nombre+'\n'
+    +(contacto?'- Contacto: '+contacto+'\n':'')
+    +'- Tel\u00e9fono: '+a.telefono+'\n'
+    +'- Zona: '+a.zona+'\n\n'
+    +'OBJETIVO: Proponer colaboraci\u00f3n como asesor\u00eda energ\u00e9tica para sus comunidades de propietarios.\n\n'
+    +'SPEECH DE APERTURA:\n'+a.speech.replace('[CALIFICAR]','— en este momento CALIFICA: \u00bfes usted quien gestiona los suministros el\u00e9ctricos de las CCPP? —')+'\n\n'
+    +'INSTRUCCIONES:\n'
+    +'- Habla SIEMPRE en castellano espa\u00f1ol\n'
+    +'- Si no est\u00e1 la persona correcta, pide que te la pongan\n'
+    +'- Si muestran inter\u00e9s, proponer reuni\u00f3n de 20 minutos\n'
+    +'- Si piden informaci\u00f3n, explica que el an\u00e1lisis es gratuito y hay retribuci\u00f3n por activaci\u00f3n\n'
+    +'- Detecta y guarda el nombre del contacto si te lo dicen';
+  var payload={
+    phoneNumberId:'0d4fe76e-760c-4cf8-8760-b291bb96aac5',
+    customer:{number:phone,name:a.nombre},
+    assistant:{
+      name:'Agente Factor Energia',
+      firstMessageMode:'assistant-speaks-first',
+      startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},
+      stopSpeakingPlan:{numWords:2,voiceSeconds:0.1,backoffSeconds:1},
+      firstMessage:apertura,
+      model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,
+        messages:[{role:'system',content:systemPrompt}]},
+      voice:{provider:'11labs',voiceId:'uQw4jpKzMLrZuo0RLPS9',model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8},
+      transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
+      endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
+      recordingEnabled:true,
+      silenceTimeoutSeconds:10,
+      endCallPhrases:['adi\u00f3s','adios','hasta luego','hasta pronto','vale gracias','muchas gracias adi\u00f3s','buenas','chao','bye']
+    }
+  };
+  try{
+    var r=await fetch('https://api.vapi.ai/call',{
+      method:'POST',
+      headers:{Authorization:'Bearer '+VAPI_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    if(!r.ok){var t=await r.text();throw new Error('Vapi '+r.status+': '+t.slice(0,160));}
+    var data=await r.json();
+    var callId=data&&data.id?data.id:null;
+    if(callId){
+      accSt[id]._callId=callId;
+      accSave();
+      toast('\u2713 Llamada lanzada a '+a.nombre,'ok');
+      // Fetch notas y resultado igual que cliente
+      fetchCallNotes(callId,'ACC:'+id);
+      pollCallStatus(callId,'ACC:'+id);
+    }
+  }catch(e){
+    toast('Error: '+e.message,'err');
+    clearInterval(iv);
+    document.getElementById('cban').classList.remove('on');
   }
 }
 
