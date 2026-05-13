@@ -355,6 +355,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
       <input class="lp-search" type="text" id="sq" placeholder="🔍  Buscar empresa, calle, sector..." oninput="renderList()">
       <div class="lp-filters">
         <button class="ftab on" onclick="setF('todos',this)">Todos</button>
+        <button class="ftab" onclick="setF('hoy',this)">📅 Hoy</button>
         <button class="ftab" onclick="setF('prioritario',this)">⚡ PRO</button>
         <button class="ftab" onclick="setF('pendiente',this)">Pendiente</button>
         <button class="ftab" onclick="setF('visitaOK',this)">Visitas</button>
@@ -991,7 +992,7 @@ function setF(f,el){
   document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('on'));
   if(el){el.classList.add('on');}
   else{
-    const idx={todos:0,prioritario:1,pendiente:2,visitaOK:3,rellamar:4,noContesta:5}[f]??0;
+    const idx={todos:0,hoy:1,prioritario:2,pendiente:3,visitaOK:4,rellamar:5,noContesta:6,duda:7}[f]??0;
     const tabs=document.querySelectorAll('.ftab');
     if(tabs[idx]) tabs[idx].classList.add('on');
   }
@@ -1001,7 +1002,9 @@ function setF(f,el){
 function renderList(){
   const q=(document.getElementById('sq').value||'').toLowerCase();
   let list=C;
-  if(curF==='prioritario') list=list.filter(c=>isPRO(c));
+  const _hoy=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+  if(curF==='hoy') list=list.filter(c=>c.ultimaLlamada&&c.ultimaLlamada.startsWith(_hoy));
+  else if(curF==='prioritario') list=list.filter(c=>isPRO(c));
   else if(curF==='llamadas') list=list.filter(c=>(c.llamadas||0)>0);
   else if(curF==='duda') list=list.filter(c=>c.estado==='duda');
   else if(curF!=='todos') list=list.filter(c=>c.estado===curF);
