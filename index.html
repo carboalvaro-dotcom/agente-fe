@@ -43,7 +43,7 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .tstat-dot{width:7px;height:7px;border-radius:50%;}
 .dot-gr{background:#4ade80;}.dot-am{background:#fbbf24;}.dot-rd{background:#f87171;}.dot-pu{background:#c4b5fd;}.dot-gray{background:#aaa;}
 .main{display:flex;flex:1;overflow:hidden;}
-.lp{width:280px;flex-shrink:0;border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;background:var(--s0);}
+.lp{width:280px;flex-shrink:0;border-right:1px solid var(--bd);display:flex;flex-direction:column;background:var(--s0);}
 .lp-top{padding:10px 12px;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--s1);}
 .lp-search{width:100%;background:var(--s0);border:1px solid var(--bd);border-radius:6px;padding:6px 10px;font-size:12px;font-family:var(--fn);color:var(--tx);outline:none;}
 .lp-search:focus{border-color:var(--ac);}
@@ -59,7 +59,8 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .ftab{font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid var(--bd);background:none;color:var(--mt);cursor:pointer;font-family:var(--fn);transition:all .15s;white-space:nowrap;}
 .ftab.on{background:var(--acl);border-color:var(--ac);color:var(--ac);font-weight:500;}
 .ftab:hover:not(.on){background:var(--s2);}
-.lp-list{flex:1;overflow-y:auto;}
+.lp-scroll{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.lp-list{}
 .lp-list::-webkit-scrollbar{width:3px;}.lp-list::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px;}
 .cp-header{display:flex;align-items:center;justify-content:space-between;padding:7px 12px 5px;background:var(--s2);border-bottom:1px solid var(--bd);cursor:pointer;user-select:none;position:sticky;top:0;z-index:1;}
 .cp-header:hover{background:var(--bd);}
@@ -381,8 +382,8 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
         <button class="lp-date-hoy" onclick="setFechaHoy()">&#128197; Hoy</button>
         <button class="lp-date-clear" onclick="clearFechas()" title="Limpiar">&#x2715;</button>
       </div>
-    <div class="lp-list" id="lp-list">
-    <div class="acc-section" id="acc-section">
+    <div class="lp-scroll"><div class="lp-list" id="lp-list"></div>
+  <div class="acc-section" id="acc-section">
     <div class="acc-header" onclick="accToggle()">
       <span class="acc-title">&#127970; Administradores ACC</span>
       <span class="acc-count" id="acc-hdr-count"></span>
@@ -408,8 +409,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
     </div>
     <div id="acc-list"></div>
   </div>
-  </div>
-    </div>
+</div>
   <div class="rp">
   <div class="acc-ficha-wrap" id="acc-ficha-wrap"></div>
 
