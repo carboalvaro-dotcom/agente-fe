@@ -244,7 +244,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
 .ci.sel{background:var(--acl);border-left-color:var(--ac)!important;border-left-width:9px;}
 
 /* === ACC ADMINS === */
-.acc-section{border-top:2px solid var(--ac);margin-top:4px;}
+.acc-section{border-top:2px solid var(--ac);}
 .acc-header{display:flex;align-items:center;justify-content:space-between;padding:7px 12px 5px;background:rgba(49,82,161,0.08);border-bottom:1px solid var(--bd);cursor:pointer;user-select:none;position:sticky;top:0;z-index:1;}
 .acc-header:hover{background:rgba(49,82,161,0.14);}
 .acc-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ac);}
@@ -381,7 +381,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
         <button class="lp-date-hoy" onclick="setFechaHoy()">&#128197; Hoy</button>
         <button class="lp-date-clear" onclick="clearFechas()" title="Limpiar">&#x2715;</button>
       </div>
-    <div class="lp-list" id="lp-list"></div>
+    <div class="lp-list" id="lp-list">
   <div class="acc-section" id="acc-section">
     <div class="acc-header" onclick="accToggle()">
       <span class="acc-title">&#127970; Administradores ACC</span>
@@ -408,6 +408,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
     </div>
     <div id="acc-list"></div>
   </div>
+    </div>
   </div>
   <div class="rp">
   <div class="acc-ficha-wrap" id="acc-ficha-wrap"></div>
@@ -1004,21 +1005,6 @@ function upStats(){
   document.getElementById('sllamadas').textContent=totalCalls;
 }
 
-function setDateToday(){
-  var today=new Date().toISOString().split('T')[0];
-  var d=document.getElementById('df-desde');
-  var h2=document.getElementById('df-hasta');
-  if(d)d.value=today;
-  if(h2)h2.value=today;
-  renderList();
-}
-function clearDateFilter(){
-  var d=document.getElementById('df-desde');
-  var h2=document.getElementById('df-hasta');
-  if(d)d.value='';
-  if(h2)h2.value='';
-  renderList();
-}
 function setFechaHoy(){
   var today=new Date().toISOString().split('T')[0];
   document.getElementById('fecha-desde').value=today;
@@ -1064,24 +1050,18 @@ function renderList(){
       return true;
     });
   }
-  // Date range filter
-  const dfDesde=document.getElementById('df-desde')?.value;
-  const dfHasta=document.getElementById('df-hasta')?.value;
-  const dfClear=document.getElementById('df-clear');
-  if(dfDesde||dfHasta){
-    if(dfClear)dfClear.style.display='';
-    list=list.filter(c=>{
-      if(!c.ultimaLlamada)return false;
-      // ultimaLlamada format: DD/MM/YYYY, HH:MM  -> convert to YYYY-MM-DD for comparison
-      var parts=c.ultimaLlamada.split(',')[0].trim().split('/');
-      if(parts.length<3)return false;
-      var d=parts[2]+'-'+parts[1]+'-'+parts[0]; // YYYY-MM-DD
-      if(dfDesde&&d<dfDesde)return false;
-      if(dfHasta&&d>dfHasta)return false;
+  // Filtro de fecha (Desde/Hasta)
+  var dDesde=document.getElementById('fecha-desde')?.value;
+  var dHasta=document.getElementById('fecha-hasta')?.value;
+  if(dDesde||dHasta){
+    list=list.filter(function(c){
+      if(!(c.ultimaLlamada&&c.ultimaLlamada.length>=10)) return false;
+      var parts=c.ultimaLlamada.split(/[\/,: ]/);
+      var cDate=parts[2]+'-'+parts[1]+'-'+parts[0];
+      if(dDesde&&cDate<dDesde) return false;
+      if(dHasta&&cDate>dHasta) return false;
       return true;
     });
-  } else {
-    if(dfClear)dfClear.style.display='none';
   }
   if(q) list=list.filter(c=>
     c.nombre.toLowerCase().includes(q)||
