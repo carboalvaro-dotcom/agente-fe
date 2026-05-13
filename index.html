@@ -370,17 +370,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
         <button class="ftab" onclick="setF('noContesta',this)">No contesta</button>
         <button class="ftab" onclick="setF('duda',this)">? Duda</button>
       </div>
-      <div class="lp-datefilter">
-        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-          <span style="font-size:10px;color:var(--mt2)">Desde</span>
-          <input type="date" id="df-desde" onchange="renderList()" style="font-size:10px;padding:2px 5px;border:1px solid var(--bd);border-radius:4px;background:var(--bg);color:var(--tx);font-family:var(--fn);">
-          <span style="font-size:10px;color:var(--mt2)">Hasta</span>
-          <input type="date" id="df-hasta" onchange="renderList()" style="font-size:10px;padding:2px 5px;border:1px solid var(--bd);border-radius:4px;background:var(--bg);color:var(--tx);font-family:var(--fn);">
-          <button onclick="setDateToday()" style="font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--ac);background:var(--acl);color:var(--ac);cursor:pointer;font-family:var(--fn);">📅 Hoy</button>
-          <button onclick="clearDateFilter()" id="df-clear" style="display:none;font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid var(--bd);background:none;color:var(--mt2);cursor:pointer;font-family:var(--fn);">×</button>
-        </div>
-      </div>
-    </div>
+      
     <div class="lp-date-bar">
         <span class="lp-date-label">Desde</span>
         <input type="date" id="fecha-desde" class="lp-date-input" onchange="renderList()">
