@@ -48,7 +48,7 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .lp-search{width:100%;background:var(--s0);border:1px solid var(--bd);border-radius:6px;padding:6px 10px;font-size:12px;font-family:var(--fn);color:var(--tx);outline:none;}
 .lp-search:focus{border-color:var(--ac);}
 .lp-filters{display:flex;gap:3px;margin-top:7px;flex-wrap:wrap;}
-.lp-date-bar{display:flex;align-items:center;gap:4px;padding:5px 10px 5px;border-top:1px solid var(--bd);flex-wrap:nowrap;overflow:hidden;}
+.lp-date-bar{display:flex;align-items:center;gap:5px;padding:5px 10px 4px;border-top:1px solid var(--bd);}
 .lp-date-label{font-size:10px;color:var(--mt2);white-space:nowrap;flex-shrink:0;}
 .lp-date-input{font-size:10px;padding:2px 3px;border:1px solid var(--bd);border-radius:4px;background:var(--bg);color:var(--tx);font-family:var(--fn);width:88px;flex-shrink:0;}
 .lp-date-hoy{font-size:10px;padding:2px 7px;border-radius:20px;border:1px solid var(--ac);background:var(--acl);color:var(--ac);cursor:pointer;font-family:var(--fn);white-space:nowrap;font-weight:500;flex-shrink:0;}
@@ -372,10 +372,12 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
       </div>
       
     <div class="lp-date-bar">
-        <span class="lp-date-label">Desde</span>
-        <input type="date" id="fecha-desde" class="lp-date-input" onchange="renderList()">
-        <span class="lp-date-label">Hasta</span>
-        <input type="date" id="fecha-hasta" class="lp-date-input" onchange="renderList()">
+        <div style="display:flex;align-items:center;gap:4px;flex:1;">
+          <span class="lp-date-label">Desde</span>
+          <input type="date" id="fecha-desde" class="lp-date-input" onchange="renderList()">
+          <span class="lp-date-label">Hasta</span>
+          <input type="date" id="fecha-hasta" class="lp-date-input" onchange="renderList()">
+        </div>
         <button class="lp-date-hoy" onclick="setFechaHoy()">&#128197; Hoy</button>
         <button class="lp-date-clear" onclick="clearFechas()" title="Limpiar">&#x2715;</button>
       </div>
