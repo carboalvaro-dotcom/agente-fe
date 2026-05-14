@@ -1840,7 +1840,13 @@ function applyCallResult(data,callId,contactId){
     accSt[accId]._callId=callId;
     if(data.recordingUrl)accSt[accId]._recordingUrl=data.recordingUrl;
     if(data.notas){
-      accSt[accId].notas=(accSt[accId].notas&&accSt[accId].notas.length>5?accSt[accId].notas+'\n\n':'')+data.notas;
+      // Replace raw Vapi entry for this callId with backend analysis
+      var existing=accSt[accId].notas||'';
+      var entries=existing?existing.split(/\n(?=\uD83D\uDCDE)/):[]; 
+      // Remove any raw entry that has same callId (recordingUrl contains callId)
+      var filtered=entries.filter(function(e){return !e.includes(callId.substring(0,18));});
+      filtered.push(data.notas);
+      accSt[accId].notas=filtered.join('\n\n');
     }
     var resultMap={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
     if(data.resultado&&resultMap[data.resultado])accSt[accId].estado=resultMap[data.resultado];
@@ -2558,7 +2564,9 @@ async function accFetchDirect(callId,accId,attempt){
     document.getElementById('cban').classList.remove('on');
     window._accActiveCallId=null;window._accActiveId=null;
     if(accSel===accId)accOpen2(accId);else accRenderList();
-    toast('\u2713 Llamada analizada','ok');
+    toast('\u2713 Llamada grabada — analizando...','ok');
+    // Now call backend for full analysis (summary, resultado, contact name)
+    fetchCallNotes(callId,'ACC:'+accId);
   }catch(e){setTimeout(function(){accFetchDirect(callId,accId,attempt+1);},5000);}
 }
 </script>
