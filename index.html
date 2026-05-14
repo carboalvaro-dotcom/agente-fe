@@ -2510,7 +2510,17 @@ window.selMob=function(id,el){
   if(_sm)_sm(id,el);
 };
 
-(function t(){var l=document.getElementById('acc-list');if(l){accRenderList();}else{setTimeout(t,300);}})();
+(function t(){var l=document.getElementById('acc-list');if(l){accRenderList();setTimeout(accRecoverCalls,2000);}else{setTimeout(t,300);}})();
+
+function accRecoverCalls(){
+  Object.keys(accSt).forEach(function(id){
+    var st=accSt[id];
+    var hasNota=st.notas&&st.notas.indexOf('\uD83D\uDCDE')>=0;
+    if(st._callId&&!hasNota){
+      fetchCallNotes(st._callId,'ACC:'+id);
+    }
+  });
+}
 </script>
 </body>
 </html>
