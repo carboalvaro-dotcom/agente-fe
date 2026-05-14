@@ -1519,8 +1519,8 @@ async function pollCallStatus(callId,contactId){
         c.estado='visitaOK';
       }
     }
-        var agentNames=['carla','carlos'];
-        if(data.nombreContacto&&!c.contactName&&!agentNames.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
+        var agentNamesArr=['carla','carlos'];
+        if(data.nombreContacto&&!c.contactName&&!agentNamesArr.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
         if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
         save();upStats();renderList();
         if(curId===contactId) sel(contactId);
@@ -1854,8 +1854,8 @@ function applyCallResult(data,callId,contactId){
     var resultMap={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
     if(data.resultado&&resultMap[data.resultado])accSt[accId].estado=resultMap[data.resultado];
     // Guardar nombre contacto si la IA lo detectó
-    var agentNames=['carla','carlos'];
-    if(data.nombreContacto&&!accSt[accId].contacto&&!agentNames.includes((data.nombreContacto||'').toLowerCase())){
+    var agentNamesArr=['carla','carlos'];
+    if(data.nombreContacto&&!accSt[accId].contacto&&!agentNamesArr.includes((data.nombreContacto||'').toLowerCase())){
       accSt[accId].contacto=data.nombreContacto;
     }
     accSave();
@@ -1876,8 +1876,8 @@ function applyCallResult(data,callId,contactId){
     c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
   }
   if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
-  var agentNames=['carla','carlos'];
-  if(data.nombreContacto&&!c.contactName&&!agentNames.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
+  var agentNamesArr=['carla','carlos'];
+  if(data.nombreContacto&&!c.contactName&&!agentNamesArr.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
   if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
   if(data.emailContacto&&!c.email) c.email=data.emailContacto;
   save();upStats();renderList();
