@@ -2207,6 +2207,17 @@ function accRenderList(){
       if(_dH&&cd>_dH)return false;
     }
     return true;
+  }).sort(function(a,b){
+    var ua=(accSt[a.id]||{}).ultimaLlamada||'';
+    var ub=(accSt[b.id]||{}).ultimaLlamada||'';
+    if(!ua&&!ub)return 0;
+    if(!ua)return 1;
+    if(!ub)return -1;
+    // Parse "13/05/2026, 17:25" -> sortable string
+    var pa=ua.split(/[/,: ]/); var pb=ub.split(/[/,: ]/);
+    var da=pa[2]+pa[1]+pa[0]+(pa[4]||'')+(pa[5]||'');
+    var db=pb[2]+pb[1]+pb[0]+(pb[4]||'')+(pb[5]||'');
+    return db>da?1:db<da?-1:0;
   });
   var tot=adminsFiltered.reduce(function(s,a){return s+a.totalCups;},0);
   var hdr=document.getElementById('acc-hdr-count');if(hdr)hdr.textContent=adminsFiltered.length+' admins \u00b7 '+tot+' CUPS'+(provFilter?' ('+provFilter+')':'');
