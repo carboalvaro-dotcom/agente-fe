@@ -1427,9 +1427,7 @@ async function stopCall(){
     clearInterval(iv);
     document.getElementById('cban').classList.remove('on');
     window._accActiveCallId=null;
-    if(accId){
-      setTimeout(()=>fetchCallNotes(callId,'ACC:'+accId),3000);
-    }
+    if(accId)setTimeout(function(){accFetchDirect(callId,accId);},3000);
     return;
   }
   // Normal client call
@@ -2441,9 +2439,7 @@ async function accLlamar(id){
       window._accActiveCallId=callId;
       window._accActiveId=id;
       toast('\u2713 Llamada lanzada a '+a.nombre,'ok');
-      // Fetch notas y resultado igual que cliente
-      fetchCallNotes(callId,'ACC:'+id);
-      pollCallStatus(callId,'ACC:'+id);
+      setTimeout(function(){accFetchDirect(callId,id);},5000);
     }
   }catch(e){
     toast('Error: '+e.message,'err');
@@ -2516,10 +2512,40 @@ function accRecoverCalls(){
   Object.keys(accSt).forEach(function(id){
     var st=accSt[id];
     var hasNota=st.notas&&st.notas.indexOf('\uD83D\uDCDE')>=0;
-    if(st._callId&&!hasNota){
-      fetchCallNotes(st._callId,'ACC:'+id);
-    }
+    if(st._callId&&!hasNota){accFetchDirect(st._callId,id);}
   });
+}
+
+async function accFetchDirect(callId,accId,attempt){
+  attempt=attempt||0;
+  if(attempt>10)return;
+  try{
+    var r=await fetch('https://api.vapi.ai/call/'+callId,{headers:{Authorization:'Bearer '+VAPI_KEY}});
+    if(!r.ok)throw new Error(r.status);
+    var d=await r.json();
+    if(d.status!=='ended'){setTimeout(function(){accFetchDirect(callId,accId,attempt+1);},4000);return;}
+    var dur=d.endedAt&&d.startedAt?Math.round((new Date(d.endedAt)-new Date(d.startedAt))/1000):0;
+    var now=d.endedAt?new Date(d.endedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+    var eMap={'customer-did-not-answer':'No contest\u00f3','silence-timed-out':'No contest\u00f3 (silencio)','customer-ended-call':'Cort\u00f3 el cliente','assistant-said-end-call-phrase':'Conversaci\u00f3n completada','voicemail':'Buz\u00f3n de voz'};
+    var estado=eMap[d.endedReason]||'Finalizada';
+    var nota='\uD83D\uDCDE '+now+(dur?' \u00b7 '+dur+'s':'')+' \n\u26AB '+estado;
+    if(d.transcript)nota+='\n\uD83D\uDCAC "'+d.transcript.substring(0,400)+'"';
+    if(d.recordingUrl)nota+='\n'+d.recordingUrl;
+    if(!accSt[accId])accSt[accId]={};
+    var ex=accSt[accId].notas||'';
+    accSt[accId].notas=ex?ex+'\n\n'+nota:nota;
+    if(d.recordingUrl)accSt[accId]._recordingUrl=d.recordingUrl;
+    accSt[accId].ultimaLlamada=now;
+    if(d.endedReason==='customer-did-not-answer'||d.endedReason==='silence-timed-out'){
+      if(!accSt[accId].estado||accSt[accId].estado==='sinLlamar')accSt[accId].estado='noContesta';
+    }
+    accSave();
+    clearInterval(iv);
+    document.getElementById('cban').classList.remove('on');
+    window._accActiveCallId=null;window._accActiveId=null;
+    if(accSel===accId)accOpen2(accId);else accRenderList();
+    toast('\u2713 Llamada analizada','ok');
+  }catch(e){setTimeout(function(){accFetchDirect(callId,accId,attempt+1);},5000);}
 }
 </script>
 </body>
