@@ -1478,14 +1478,19 @@ async function pollCallStatus(callId,contactId){
         const reason=
           endedReason==='customer-did-not-answer'||endedReason==='no-answer'?'noContesta':
           endedReason?.includes('voicemail')?'noContesta':'pendiente';
+        // Handle ACC calls differently
+        if(typeof contactId==='string'&&contactId.startsWith('ACC:')){
+          clearInterval(iv);
+          document.getElementById('cban').classList.remove('on');
+          window._accActiveCallId=null;window._accActiveId=null;
+          await new Promise(r=>setTimeout(r,2000));
+          fetchCallNotes(callId,contactId);
+          return;
+        }
         endCall(contactId, reason);
         // Now fetch notes
         await new Promise(r=>setTimeout(r,2000));
         fetchCallNotes(callId,contactId);
-        // Clear acc active call if this was an ACC call
-        if(typeof contactId==='string'&&contactId.startsWith('ACC:')){
-          window._accActiveCallId=null;window._accActiveId=null;
-        }
         return;
       }
       // If backend returned notas it means call ended and was analyzed
