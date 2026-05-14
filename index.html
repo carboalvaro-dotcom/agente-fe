@@ -2350,7 +2350,7 @@ function accOpen2(id){
   var aEl=document.getElementById('acc-audio-'+id);
   if(aEl){
     var ru=st._recordingUrl||'';
-    if(!ru&&st.notas){var si=st.notas.indexOf('https://storage.vapi.ai/');if(si>=0){var ei=st.notas.indexOf('\n',si);ru=ei>=0?st.notas.slice(si,ei).trim():st.notas.slice(si).trim();}}
+    if(!ru&&st.notas){var si=st.notas.indexOf('https://storage.vapi.ai/');if(si>=0){var ei=st.notas.indexOf('\n',si);var rawUrl=ei>=0?st.notas.slice(si,ei):st.notas.slice(si);ru=rawUrl.trim().split(/\s/)[0];}}
     if(ru){aEl.src=ru;aEl.style.display='block';}
     else{aEl.style.display='none';aEl.src='';}
   }
