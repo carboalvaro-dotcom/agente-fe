@@ -1877,7 +1877,10 @@ function applyCallResult(data,callId,contactId){
 }
 
 function showCampaignSummary(){
-  const done=campaignQueue.slice(0,campaignIdx).map(id=>C.find(x=>x.id===id)).filter(Boolean);
+  var _accMode2=campaignQueue.length>0&&typeof campaignQueue[0]==='string'&&campaignQueue[0].startsWith('ACC:');
+  var done;
+  if(_accMode2){var _st2=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}');done=campaignQueue.slice(0,campaignIdx).map(function(id){return _st2[id.substring(4)]||{estado:'sinLlamar'};});}
+  else{done=campaignQueue.slice(0,campaignIdx).map(id=>C.find(x=>x.id===id)).filter(Boolean);}
   const v=done.filter(c=>c.estado==='visitaOK').length;
   const r=done.filter(c=>c.estado==='rellamar').length;
   const ni=done.filter(c=>c.estado==='noInteresa').length;
@@ -2049,18 +2052,29 @@ function showCampHistory(){
 
 
 function updateCampLiveStats(){
-  const done=campaignQueue.slice(0,campaignIdx).map(id=>C.find(x=>x.id===id)).filter(Boolean);
+  var accMode=campaignQueue.length>0&&typeof campaignQueue[0]==='string'&&campaignQueue[0].startsWith('ACC:');
+  var done;
+  if(accMode){
+    var stData=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}');
+    done=campaignQueue.slice(0,campaignIdx).map(function(id){
+      var accId=id.substring(4);
+      return stData[accId]||{estado:'sinLlamar'};
+    });
+  } else {
+    done=campaignQueue.slice(0,campaignIdx).map(function(id){return C.find(function(x){return x.id===id;});}).filter(Boolean);
+  }
+  var visitaKey=accMode?'visita':'visitaOK';
   const v=document.getElementById('cls-v');
   const r=document.getElementById('cls-r');
   const nc=document.getElementById('cls-nc');
   const ni=document.getElementById('cls-ni');
   const du=document.getElementById('cls-du');
   const tot=document.getElementById('cls-tot');
-  if(v) v.textContent='✓ '+done.filter(c=>c.estado==='visitaOK').length;
-  if(r) r.textContent='↺ '+done.filter(c=>c.estado==='rellamar').length;
-  if(nc) nc.textContent='— '+done.filter(c=>c.estado==='noContesta').length;
-  if(ni) ni.textContent='✗ '+done.filter(c=>c.estado==='noInteresa').length;
-  if(du) du.textContent='? '+done.filter(c=>c.estado==='duda').length;
+  if(v) v.textContent='\u2713 '+done.filter(function(c){return c.estado===visitaKey;}).length;
+  if(r) r.textContent='\u21ba '+done.filter(function(c){return c.estado==='rellamar';}).length;
+  if(nc) nc.textContent='\u2014 '+done.filter(function(c){return c.estado==='noContesta';}).length;
+  if(ni) ni.textContent='\u2717 '+done.filter(function(c){return c.estado==='noInteresa';}).length;
+  if(du) du.textContent='? '+done.filter(function(c){return c.estado==='duda';}).length;
   if(tot) tot.textContent='Total: '+done.length;
 }
 
