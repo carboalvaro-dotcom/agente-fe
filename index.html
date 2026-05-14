@@ -2319,6 +2319,7 @@ function accOpen2(id){
     +'<button class="rbtn'+(st.estado==='duda'?' on':'')+'" onclick="accSetSt(\''+id+'\',\'duda\')">? Duda</button>'
     +'</div>'
     +(callHistory?'<div style="padding:0 16px 12px" id="acc-calls-'+id+'">'+callHistory+'</div>':'')
+    +'<audio id="acc-audio-'+id+'" controls style="width:calc(100% - 32px);margin:0 16px 12px;height:36px;border-radius:6px;display:none;"></audio>'
     +'</div>'
     // === CARD 3: SPEECH ===
     +'<div class="card"><div class="card-head"><div class="card-title">Speech de apertura</div></div>'
@@ -2334,6 +2335,14 @@ function accOpen2(id){
     +'<th style="text-align:left;padding:4px 6px;font-size:9px;color:var(--mt2);border-bottom:1px solid var(--bd);text-transform:uppercase">Ahorro/a&ntilde;o</th></tr>'
     +'</thead><tbody>'+rows+'</tbody></table></div>';
 
+  // Set audio src
+  var aEl=document.getElementById('acc-audio-'+id);
+  if(aEl){
+    var ru=st._recordingUrl||'';
+    if(!ru&&st.notas){var si=st.notas.indexOf('https://storage.vapi.ai/');if(si>=0){var ei=st.notas.indexOf('\n',si);ru=ei>=0?st.notas.slice(si,ei).trim():st.notas.slice(si).trim();}}
+    if(ru){aEl.src=ru;aEl.style.display='block';}
+    else{aEl.style.display='none';aEl.src='';}
+  }
   document.querySelectorAll('.acc-admin-item').forEach(function(e){e.classList.remove('sel');});
   var it=document.getElementById('aci-'+id);if(it)it.classList.add('sel');
   accRenderList();
