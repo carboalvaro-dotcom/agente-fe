@@ -292,7 +292,8 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
   <div class="tb-row2">
     <select id="camp-cp" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 6px;border-radius:5px;font-family:var(--fn);cursor:pointer;outline:none;">
       <option value="" style="color:#000">Todos los CP</option>
-      <option value="ACC">&#127970; Administradores</option>
+      <option value="ACC">&#127970; Administradores (todos)</option>
+      <option value="ACC-aragon">&#127963; Arag&#243;n</option>
       <option value="08390" style="color:#000">08390 Montgat</option>
       <option value="08391" style="color:#000">08391 Tiana</option>
       <option value="08329" style="color:#000">08329 Teià</option>
@@ -1666,9 +1667,11 @@ function getCampaignOrder(){
   const filter=document.getElementById('camp-filter')?.value||'nuevos';
   const cpFilter=document.getElementById('camp-cp')?.value||'';
   // ACC mode: return admin IDs
-  if(cpFilter==='ACC'){
+  if(cpFilter==='ACC'||cpFilter==='ACC-aragon'){
     var accStData=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}');
     var admins=ACC&&ACC.admins?ACC.admins:[];
+    // Filter by tipo if ACC-aragon
+    if(cpFilter==='ACC-aragon') admins=admins.filter(function(a){return a.tipo==='aragon';});
     var filterMap={nuevos:'sinLlamar',rellamar:'rellamar',duda:'duda',noContesta:'noContesta',todos:null,pendiente:null};
     var estadoFilter=filterMap[filter];
     var filtered=admins.filter(function(a){
