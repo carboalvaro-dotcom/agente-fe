@@ -43,15 +43,21 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .tstat-dot{width:7px;height:7px;border-radius:50%;}
 .dot-gr{background:#4ade80;}.dot-am{background:#fbbf24;}.dot-rd{background:#f87171;}.dot-pu{background:#c4b5fd;}.dot-gray{background:#aaa;}
 .main{display:flex;flex:1;overflow:hidden;}
-.lp{width:280px;flex-shrink:0;border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;background:var(--s0);}
+.lp{width:280px;flex-shrink:0;border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;background:var(--s0);}
 .lp-top{padding:10px 12px;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--s1);}
 .lp-search{width:100%;background:var(--s0);border:1px solid var(--bd);border-radius:6px;padding:6px 10px;font-size:12px;font-family:var(--fn);color:var(--tx);outline:none;}
 .lp-search:focus{border-color:var(--ac);}
 .lp-filters{display:flex;gap:3px;margin-top:7px;flex-wrap:wrap;}
+.lp-date-bar{display:flex;align-items:center;gap:3px;padding:4px 8px;border-top:1px solid var(--bd);}
+.lp-date-label{font-size:9px;color:var(--mt2);white-space:nowrap;flex-shrink:0;}
+.lp-date-input{font-size:9px;padding:2px 2px;border:1px solid var(--bd);border-radius:3px;background:var(--bg);color:var(--tx);flex:1;min-width:0;}
+.lp-date-hoy{font-size:9px;padding:2px 6px;border-radius:20px;border:1px solid var(--ac);background:var(--acl);color:var(--ac);cursor:pointer;font-weight:600;white-space:nowrap;flex-shrink:0;}
+.lp-date-hoy:hover{background:var(--ac);color:#fff;}
+.lp-date-clear{font-size:10px;padding:1px 5px;border-radius:20px;border:1px solid var(--bd);background:none;color:var(--mt2);cursor:pointer;flex-shrink:0;}
 .ftab{font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid var(--bd);background:none;color:var(--mt);cursor:pointer;font-family:var(--fn);transition:all .15s;white-space:nowrap;}
 .ftab.on{background:var(--acl);border-color:var(--ac);color:var(--ac);font-weight:500;}
 .ftab:hover:not(.on){background:var(--s2);}
-.lp-list{flex:1;overflow-y:auto;}
+.lp-list{display:block;}
 .lp-list::-webkit-scrollbar{width:3px;}.lp-list::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px;}
 .cp-header{display:flex;align-items:center;justify-content:space-between;padding:7px 12px 5px;background:var(--s2);border-bottom:1px solid var(--bd);cursor:pointer;user-select:none;position:sticky;top:0;z-index:1;}
 .cp-header:hover{background:var(--bd);}
@@ -363,6 +369,14 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
         <button class="ftab" onclick="setF('duda',this)">? Duda</button>
       </div>
     </div>
+      <div class="lp-date-bar">
+        <span class="lp-date-label">Desde</span>
+        <input type="date" id="fecha-desde" class="lp-date-input" onchange="renderList();accRenderList()">
+        <span class="lp-date-label">Hasta</span>
+        <input type="date" id="fecha-hasta" class="lp-date-input" onchange="renderList();accRenderList()">
+        <button class="lp-date-hoy" onclick="setFechaHoy()">&#128197; Hoy</button>
+        <button class="lp-date-clear" onclick="clearFechas()">&#215;</button>
+      </div>
     <div class="lp-list" id="lp-list"></div>
   <div class="acc-section" id="acc-section">
     <div class="acc-header" onclick="accToggle()">
@@ -986,6 +1000,17 @@ function upStats(){
   document.getElementById('sllamadas').textContent=totalCalls;
 }
 
+function setFechaHoy(){
+  var t=new Date().toISOString().split('T')[0];
+  document.getElementById('fecha-desde').value=t;
+  document.getElementById('fecha-hasta').value=t;
+  renderList();accRenderList();
+}
+function clearFechas(){
+  document.getElementById('fecha-desde').value='';
+  document.getElementById('fecha-hasta').value='';
+  renderList();accRenderList();
+}
 function setF(f,el){
   curF=f;
   document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('on'));
@@ -1005,6 +1030,16 @@ function renderList(){
   else if(curF==='llamadas') list=list.filter(c=>(c.llamadas||0)>0);
   else if(curF==='duda') list=list.filter(c=>c.estado==='duda');
   else if(curF!=='todos') list=list.filter(c=>c.estado===curF);
+  var _d=document.getElementById('fecha-desde')?.value;
+  var _h=document.getElementById('fecha-hasta')?.value;
+  if(_d||_h){list=list.filter(function(c){
+    if(!c.ultimaLlamada||c.ultimaLlamada.length<10)return false;
+    var p=c.ultimaLlamada.split(/[/,: ]/);
+    var cd=p[2]+'-'+p[1]+'-'+p[0];
+    if(_d&&cd<_d)return false;
+    if(_h&&cd>_h)return false;
+    return true;
+  });}
   if(q) list=list.filter(c=>
     c.nombre.toLowerCase().includes(q)||
     (c.telefono||'').includes(q)||
@@ -2159,7 +2194,20 @@ function accToggle(){accOpen=!accOpen;document.getElementById('acc-list').style.
 function accRenderList(){
   var el=document.getElementById('acc-list');if(!el)return;
   var provFilter=(document.getElementById('acc-prov-filter')||{}).value||'';
-  var adminsFiltered=ACC.admins.filter(function(a){return !provFilter||a.provincia===provFilter;});
+  var _dD=document.getElementById('fecha-desde')?.value||'';
+  var _dH=document.getElementById('fecha-hasta')?.value||'';
+  var adminsFiltered=ACC.admins.filter(function(a){
+    if(provFilter&&a.provincia!==provFilter)return false;
+    if(_dD||_dH){
+      var ul=(accSt[a.id]||{}).ultimaLlamada||'';
+      if(!ul)return false;
+      var p=ul.split(/[/,: ]/);
+      var cd=p[2]+'-'+p[1]+'-'+p[0];
+      if(_dD&&cd<_dD)return false;
+      if(_dH&&cd>_dH)return false;
+    }
+    return true;
+  });
   var tot=adminsFiltered.reduce(function(s,a){return s+a.totalCups;},0);
   var hdr=document.getElementById('acc-hdr-count');if(hdr)hdr.textContent=adminsFiltered.length+' admins \u00b7 '+tot+' CUPS'+(provFilter?' ('+provFilter+')':'');
   el.innerHTML=adminsFiltered.map(function(a){
