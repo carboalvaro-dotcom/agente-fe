@@ -262,7 +262,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
 .acc-ai-r2{display:flex;align-items:center;gap:6px;}
 .acc-admin-meta{font-size:10px;color:var(--ac);}
 .acc-admin-margen{font-size:10px;color:var(--mt2);}
-.acc-ficha-wrap{flex:1;overflow-y:auto;display:none;flex-direction:column;}
+.acc-ficha-wrap{flex:1;overflow-y:auto;display:none;flex-direction:column;min-width:300px;}
 </style>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -2317,7 +2317,7 @@ function accOpen2(id){
     +'<textarea class="nt" id="acc-nota-'+id+'" placeholder="Notas: nombre contacto, observaciones..." onchange="accSaveNota(\''+id+'\',this.value)">'+((st.notas&&!st.notas.includes('\ud83d\udcde'))?st.notas:'')+'</textarea>'
     +'</div>'
     // === CARD 2: RESULTADO DE LA LLAMADA ===
-    +'<div class="card">'
+    +'<div class="card" style="resize:both;overflow:auto;min-height:120px;">'
     +'<div class="card-head">'
     +'<div class="card-title">Resultado de la llamada</div>'
     +'<span style="font-size:11px;color:var(--mt2)">'+badgeTxt+'</span>'
