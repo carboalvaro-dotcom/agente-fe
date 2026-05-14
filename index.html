@@ -2379,7 +2379,13 @@ async function accLlamar(id){
     +'- Si hay inter\u00e9s: propon visita de 20 minutos esta semana\n'
     +'- Si no interesa: ofrece an\u00e1lisis sin compromiso. Si insiste: respeta y despide\n'
     +'- Intenta siempre conseguir el nombre del contacto responsable\n'
-    +'- NUNCA menciones precios concretos por tel\u00e9fono';
+    +'- NUNCA menciones precios concretos por tel\u00e9fono\n'
+    +'\nCOMPORTAMIENTO CON CENTRALITAS:\n'
+    +'- Si al descolgar suena una locu\u00f3n autom\u00e1tica (men\u00fa de opciones, bienvenida): ESCUCHA EN SILENCIO, no hables\n'
+    +'- Si la locu\u00f3n dice \"por favor espere\" o similar: espera en silencio hasta 20 segundos\n'
+    +'- Si tras 20 segundos nadie atiende: cuelga cortes\u00e9mente sin decir nada\n'
+    +'- Solo empieza tu discurso cuando detectes una persona real al tel\u00e9fono\n'
+    +'- NUNCA respondas a locuciones autom\u00e1ticas';
   var payload={
     phoneNumberId:'0d4fe76e-760c-4cf8-8760-b291bb96aac5',
     customer:{number:phone,name:a.nombre},
