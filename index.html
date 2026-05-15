@@ -1226,7 +1226,7 @@ function buildUI(c){
     return '<div class="phase"><div class="ph-head"><div class="ph-num" style="background:var(--aml);color:var(--am)">🎯</div><div class="ph-title" style="color:var(--am)">Script especial — FRANCISCO</div></div><div class="ph-body op" style="color:var(--am)">"Hola Francisco, pórtate bien que te estoy vigilando. Tengo un dron japonés encima tuyo."\n\nEsperar respuesta y seguir con humor.</div></div>';
   }
   const phases=[
-    {n:'1',t:'Apertura',tag:'al descolgar',op:true,txt:'"Hola, soy Carla, del departamento técnico de suministros eléctricos. Te llamo porque estamos revisando varios suministros de la zona y hemos visto que hay desajustes en las potencias que generan sobrecostes. ¿Es usted quien lleva este tema?"'},
+    {n:'1',t:'Apertura',tag:'al descolgar',op:true,txt:'"Buenos días, le llamo porque detectamos que [empresa] podría tener una potencia contratada que genera sobrecoste en su factura de luz. ¿Es usted quien gestiona ese tema?"'},
     {n:'2',t:'Es el responsable',tag:'→ nombre + visita',op:false,txt:'"¿Con quién tengo el gusto de hablar?" [nombre] → "Perfecto [nombre]. Es una revisión rápida, el técnico está por la zona esta semana. Lo vemos en 10 minutos y te digo si hay algo que mejorar. ¿Qué mañana le va mejor, entre las 10 y las 14h?"'},
     {n:'3',t:'No es el responsable',tag:'→ conseguir nombre',op:false,txt:'"¿Y cómo se llama la persona responsable? ¿Le puedo llamar directamente o prefieres que le deje recado?"'},
     {n:'⏰',t:'Horario visitas',tag:'solo 10h-14h',op:false,txt:'SOLO mañanas entre las 10:00h y las 14:00h. Si proponen tarde → "La revisión la hacemos por las mañanas, entre las 10 y las 14h. ¿Qué mañana le va mejor?" Ofrecer: "¿Mañana o pasado, a las 10, a las 11 o a las 12?"'},
@@ -1260,7 +1260,7 @@ PASO 1 — Al descolgar di SOLO el nombre de la EMPRESA (no el de la persona):
 - Si preguntan "¿con quién quiere hablar?" o "¿por quién pregunta?": di SIEMPRE "Con la persona encargada del suministro eléctrico." NUNCA repitas el nombre de la empresa.
 
 PASO 2A — Si confirman que SÍ es esa empresa:
-"Le llamo del departamento técnico. Estamos revisando suministros eléctricos de la zona porque detectamos potencias mal ajustadas que generan sobrecostes en la factura de la luz. ¿Es usted quien lleva este tema?"
+"Le llamo porque detectamos que ${c.nombre} podría tener una potencia contratada que está generando un sobrecoste en su factura de luz. ¿Es usted quien gestiona ese tema?"
 
 PASO 2B — Si dicen que NO es esa empresa o no la conocen:
 "Entiendo. Le llamo porque en el suministro de ${c.direccion} hemos detectado una incidencia en las potencias contratadas que puede estar generando sobrecostes. ¿Tiene usted relación con ese local o suministro?"
