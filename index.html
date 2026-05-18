@@ -964,6 +964,9 @@ const RAW=[{"id": 999, "nombre": "PRUEBAS CARBÓ SL", "nif": "TEST", "telefono":
 
 const CNAE={'1011':'Cárnico','1071':'Panadería/Pastelería','1391':'Tejidos punto','1392':'Artículos textiles','1393':'Alfombras','1396':'Tejidos elásticos','1413':'Confección','1423':'Artículos piel','1429':'Marroquinería','1713':'Acabado textiles','2059':'Química','2562':'Trabajos metal','2841':'Tratamiento metales','3109':'Muebles','3316':'Aeronáutica','4120':'Construcción','4322':'Fontanería/Climatización','4331':'Solados/Alicatados','4332':'Carpintería','4391':'Cubiertas','4399':'Construcción esp.','4511':'Venta coches','4520':'Taller vehículos','4619':'Agentes comerciales','4641':'Textil mayorista','4642':'Confección mayorista','4647':'Perfumería mayorista','4649':'Hogar mayorista','4661':'Maquinaria','4674':'Ferretería/Fontanería','4683':'Combustibles','4711':'Supermercado','4712':'Alimentación','4722':'Alimentación esp.','4751':'Textil','4759':'Hogar','4763':'Deporte','4764':'Juguetes','4765':'Juegos','4771':'Moda','4774':'Ortopedia','4775':'Perfumería','4778':'Óptica/Joyería','4941':'Transporte','5210':'Almacenamiento','5320':'Mensajería','5610':'Restaurante','5611':'Bar/Cafetería','5630':'Bar','6202':'Informática','6419':'Banco/Caja','6820':'Inmobiliaria','6910':'Jurídico','7490':'Consultoría','7499':'Servicios div.','7500':'Veterinaria','8210':'Oficina','8520':'Educación primaria','8559':'Formación','8623':'Dentista','8690':'Sanidad','8710':'Residencia','8812':'Serv. sociales','9531':'Electrónica','9602':'Peluquería','9621':'Estética','9810':'Com. propietarios','9820':'Actividades div.','9821':'Bar/Restaurante'};
 function cnaeDesc(s){return CNAE[String(s)]||s||'—';}
+function cleanNombre(n){
+  return (n||'').replace(/[,.]?\s*(S\.L\.L\.?|S\.L\.?|S\.A\.?|S\.A\.U\.?|S\.L\.U\.?|S\.C\.P\.?|S\.C\.?|S\.A\.L\.?|S\.C\.L\.?|C\.B\.?|S\.L\.P\.?|SLL|SLU|SAU|SAL|SCL|SCP|SLP|SL|SA|CB)\s*$/i,'').trim();
+}
 let C=[],curId=null,curF='todos',curR=null,iv=null,sec=0;
 
 function isPRO(c){return c.potencia_kw>15||(c.consumo&&parseFloat(c.consumo)>15000);}
@@ -1260,7 +1263,7 @@ PASO 1 — Al descolgar di SOLO el nombre de la EMPRESA (no el de la persona):
 - Si preguntan "¿con quién quiere hablar?" o "¿por quién pregunta?": di SIEMPRE "Con la persona encargada del suministro eléctrico." NUNCA repitas el nombre de la empresa.
 
 PASO 2A — Si confirman que SÍ es esa empresa:
-"Le llamo porque detectamos que ${c.nombre} podría tener una potencia contratada que está generando un sobrecoste en su factura de luz. ¿Es usted quien gestiona ese tema?"
+"Le llamo porque detectamos que ${cleanNombre(c.nombre)} podría tener una potencia contratada que está generando un sobrecoste en su factura de luz. ¿Es usted quien gestiona ese tema?"
 
 PASO 2B — Si dicen que NO es esa empresa o no la conocen:
 "Entiendo. Le llamo porque en el suministro de ${c.direccion} hemos detectado una incidencia en las potencias contratadas que puede estar generando sobrecostes. ¿Tiene usted relación con ese local o suministro?"
@@ -1401,7 +1404,7 @@ async function callViaProxy(phone,c){
       name:'Agente Factor Energia',
       firstMessageMode:'assistant-speaks-first',
       startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},stopSpeakingPlan:{numWords:2,voiceSeconds:0.1,backoffSeconds:1},
-      firstMessage:c.nif==="AMIGO"?"Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.":`Buenos días, ¿hablo con ${c.nombre}?`,
+      firstMessage:c.nif==="AMIGO"?"Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.":`Buenos días, ¿hablo con ${cleanNombre(c.nombre)}?`,
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
       voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
