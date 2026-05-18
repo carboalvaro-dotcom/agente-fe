@@ -359,7 +359,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
 <div class="main">
   <div class="lp">
     <div class="lp-top">
-      <input class="lp-search" type="text" id="sq" placeholder="🔍  Buscar empresa, calle, sector..." oninput="renderList()">
+      <input class="lp-search" type="text" id="sq" placeholder="🔍  Buscar empresa, calle, sector..." oninput="renderList();accRenderList();">
       <div class="lp-filters">
         <button class="ftab on" onclick="setF('todos',this)">Todos</button>
         <button class="ftab" onclick="setF('prioritario',this)">⚡ PRO</button>
@@ -1026,6 +1026,7 @@ function clearFechas(){
 }
 function setF(f,el){
   curF=f;
+  accRenderList();
   document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('on'));
   if(el){el.classList.add('on');}
   else{
@@ -2449,6 +2450,22 @@ function accRenderList(){
       var cd=p[2]+'-'+p[1]+'-'+p[0];
       if(_dD&&cd<_dD)return false;
       if(_dH&&cd>_dH)return false;
+    }
+    // Filtro estado (curF)
+    var _st=(accSt[a.id]||{}).estado||'sinLlamar';
+    if(curF==='pendiente'&&_st!=='pendiente')return false;
+    if(curF==='rellamar'&&_st!=='rellamar')return false;
+    if(curF==='duda'&&_st!=='duda')return false;
+    if(curF==='noContesta'&&_st!=='noContesta')return false;
+    if(curF==='noInteresa'&&_st!=='noInteresa')return false;
+    if(curF==='visitaOK'&&_st!=='visitaOK')return false;
+    if(curF==='llamadas'&&!(accSt[a.id]||{}).llamadas)return false;
+    if(curF==='prioritario'&&!(a.totalCups>=50))return false;
+    // Filtro buscador
+    var _q=(document.getElementById('sq')?.value||'').toLowerCase().trim();
+    if(_q){
+      var _txt=(a.nombre+' '+(a.zona||'')+' '+(a.provincia||'')).toLowerCase();
+      if(!_txt.includes(_q))return false;
     }
     return true;
   }).sort(function(a,b){
