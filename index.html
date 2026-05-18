@@ -1004,12 +1004,20 @@ function save(){
 function upStats(){
   document.getElementById('st').textContent=C.length;
   document.getElementById('spr').textContent=C.filter(c=>isPRO(c)).length;
-  document.getElementById('sv').textContent=C.filter(c=>c.estado==='visitaOK').length;
-  document.getElementById('sr').textContent=C.filter(c=>c.estado==='rellamar').length;
-  document.getElementById('sni').textContent=C.filter(c=>c.estado==='noInteresa').length;
-  document.getElementById('snc').textContent=C.filter(c=>c.estado==='noContesta').length;
-  const dudaEl=document.getElementById('sduda');if(dudaEl)dudaEl.textContent=C.filter(c=>c.estado==='duda').length;
-  const totalCalls=C.reduce((sum,c)=>sum+(c.llamadas||0),0);
+  // Sumar también admins ACC
+  var _accSt2=typeof accSt!=='undefined'?accSt:{};
+  var _accVisitas=Object.values(_accSt2).filter(s=>s.estado==='visita').length;
+  var _accRellamar=Object.values(_accSt2).filter(s=>s.estado==='rellamar').length;
+  var _accNI=Object.values(_accSt2).filter(s=>s.estado==='noInteresa').length;
+  var _accNC=Object.values(_accSt2).filter(s=>s.estado==='noContesta').length;
+  var _accDuda=Object.values(_accSt2).filter(s=>s.estado==='duda').length;
+  var _accCalls=Object.values(_accSt2).reduce(function(s,x){return s+(x.llamadas||0);},0);
+  document.getElementById('sv').textContent=C.filter(c=>c.estado==='visitaOK').length+_accVisitas;
+  document.getElementById('sr').textContent=C.filter(c=>c.estado==='rellamar').length+_accRellamar;
+  document.getElementById('sni').textContent=C.filter(c=>c.estado==='noInteresa').length+_accNI;
+  document.getElementById('snc').textContent=C.filter(c=>c.estado==='noContesta').length+_accNC;
+  const dudaEl=document.getElementById('sduda');if(dudaEl)dudaEl.textContent=C.filter(c=>c.estado==='duda').length+_accDuda;
+  const totalCalls=C.reduce((sum,c)=>sum+(c.llamadas||0),0)+_accCalls;
   document.getElementById('sllamadas').textContent=totalCalls;
 }
 
@@ -2451,15 +2459,17 @@ function accRenderList(){
       if(_dD&&cd<_dD)return false;
       if(_dH&&cd>_dH)return false;
     }
-    // Filtro estado (curF)
+    // Filtro estado (curF) — admins usan 'visita' en vez de 'visitaOK', 'sinLlamar' en vez de 'nuevo'
     var _st=(accSt[a.id]||{}).estado||'sinLlamar';
-    if(curF==='pendiente'&&_st!=='pendiente')return false;
-    if(curF==='rellamar'&&_st!=='rellamar')return false;
-    if(curF==='duda'&&_st!=='duda')return false;
-    if(curF==='noContesta'&&_st!=='noContesta')return false;
-    if(curF==='noInteresa'&&_st!=='noInteresa')return false;
-    if(curF==='visitaOK'&&_st!=='visitaOK')return false;
-    if(curF==='llamadas'&&!(accSt[a.id]||{}).llamadas)return false;
+    var _curFAcc=curF;
+    if(_curFAcc==='visitaOK') _curFAcc='visita';
+    if(_curFAcc==='pendiente'&&_st!=='pendiente')return false;
+    if(_curFAcc==='rellamar'&&_st!=='rellamar')return false;
+    if(_curFAcc==='duda'&&_st!=='duda')return false;
+    if(_curFAcc==='noContesta'&&_st!=='noContesta')return false;
+    if(_curFAcc==='noInteresa'&&_st!=='noInteresa')return false;
+    if(_curFAcc==='visita'&&_st!=='visita')return false;
+    if(curF==='llamadas'&&!((accSt[a.id]||{}).llamadas>0))return false;
     if(curF==='prioritario'&&!(a.totalCups>=50))return false;
     // Filtro buscador
     var _q=(document.getElementById('sq')?.value||'').toLowerCase().trim();
