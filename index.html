@@ -1005,7 +1005,7 @@ function upStats(){
   document.getElementById('st').textContent=C.length;
   document.getElementById('spr').textContent=C.filter(c=>isPRO(c)).length;
   // Sumar también admins ACC
-  var _accSt2=typeof accSt!=='undefined'?accSt:{};
+  var _accSt2=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}');
   var _accVisitas=Object.values(_accSt2).filter(s=>s.estado==='visita').length;
   var _accRellamar=Object.values(_accSt2).filter(s=>s.estado==='rellamar').length;
   var _accNI=Object.values(_accSt2).filter(s=>s.estado==='noInteresa').length;
