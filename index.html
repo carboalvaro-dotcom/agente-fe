@@ -2437,6 +2437,7 @@ var ACC={"admins":[
 ]};
 
 var accSt=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}'),accSel=null,accOpen=true;
+try{updateStats();}catch(e){}
 function accSave(){localStorage.setItem('fe_acc_v1',JSON.stringify(accSt));}
 function accToggle(){accOpen=!accOpen;document.getElementById('acc-list').style.display=accOpen?'':'none';}
 
