@@ -2915,7 +2915,7 @@ function talRenderList(){
     var llamadas=st.llamadas||0;
     var ul=st.ultimaLlamada||'';
     var tipoIcon={Mecánico:'🔩',Chapa:' 🎨','Pintura':'🎨',Neumáticos:'⚫',ITV:'📋',Lavado:'🚿'}[t.tipo.split('/')[0]]||'🔧';
-    return '<div class="acc-admin-item ci'+(talSel===t.id?' sel':'')+'" onclick="selTal('"+t.id+"')">'
+    return '<div class="acc-admin-item ci'+(talSel===t.id?' sel':'')+' onclick="selTal(\''+t.id+'\')">';
       +'<div style="display:flex;justify-content:space-between;align-items:center;">'
       +'<span style="font-size:11px;font-weight:600;color:var(--tx)">'+tipoIcon+' '+t.nombre+'</span>'
       +'<span class="stag '+estadoClass+'" style="font-size:9px">'+estadoLabel+'</span>'
@@ -2979,7 +2979,7 @@ function talOpen2(id){
     +'<div class="card-head">'
     +'<div class="card-title">Ficha del taller</div>'
     +'<span id="tal-stag-'+id+'" class="stag '+estadoClass+'">'+estadoLabel+'</span>'
-    +(t.telefono?'<button class="btn btn-pr btn-sm" onclick="talLlamar('"+id+"')">📞 Llamar con IA</button>':'')
+    +(t.telefono?'<button class="btn btn-pr btn-sm" onclick="talLlamar(\''+id+'\')">' + '&#128222; Llamar con IA</button>':'');
     +'</div>'
     +'<div class="ch-wrap">'
     +'<div class="ch-name">'+t.nombre+'</div>'
