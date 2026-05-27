@@ -3230,7 +3230,7 @@ async function talFetchResult(callId,talId,attempt){
     var dur=d.endedAt&&d.startedAt?Math.round((new Date(d.endedAt)-new Date(d.startedAt))/1000):0;
     var now=d.endedAt?new Date(d.endedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):new Date().toLocaleString('es-ES');
     var eMap={'customer-did-not-answer':'No contest\u00f3','silence-timed-out':'No contest\u00f3 (silencio)','customer-ended-call':'Cort\u00f3','assistant-ended-call':'Finalizada'};
-    var nota='&#128222; '+now+(dur?' \u00b7 '+dur+'s':'')+'\n\u26AB '+(eMap[d.endedReason]||'Finalizada');
+    var nota='📞 '+now+(dur?' \u00b7 '+dur+'s':'')+'\n\u26AB '+(eMap[d.endedReason]||'Finalizada');
     if(d.transcript)nota+='\n&#128172; "'+d.transcript.substring(0,400)+'"';
     if(d.recordingUrl)nota+='\n'+d.recordingUrl;
     if(!talSt[talId])talSt[talId]={};
