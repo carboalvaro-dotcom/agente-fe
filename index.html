@@ -2198,6 +2198,7 @@ function showCampHistory(){
 
 function updateCampLiveStats(){
   var accMode=campaignQueue.length>0&&typeof campaignQueue[0]==='string'&&campaignQueue[0].startsWith('ACC:');
+  var talMode=campaignQueue.length>0&&typeof campaignQueue[0]==='string'&&campaignQueue[0].startsWith('TAL:');
   var done;
   if(accMode){
     var stData=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}');
@@ -2205,10 +2206,16 @@ function updateCampLiveStats(){
       var accId=id.substring(4);
       return stData[accId]||{estado:'sinLlamar'};
     });
+  } else if(talMode){
+    var talStData=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
+    done=campaignQueue.slice(0,campaignIdx).map(function(id){
+      var talId=id.substring(4);
+      return talStData[talId]||{estado:'sinLlamar'};
+    });
   } else {
     done=campaignQueue.slice(0,campaignIdx).map(function(id){return C.find(function(x){return x.id===id;});}).filter(Boolean);
   }
-  var visitaKey=accMode?'visita':'visitaOK';
+  var visitaKey=(accMode||talMode)?'visita':'visitaOK';
   const v=document.getElementById('cls-v');
   const r=document.getElementById('cls-r');
   const nc=document.getElementById('cls-nc');
