@@ -3026,9 +3026,8 @@ function talRenderList(){
       +'<span class="stag '+ec+'" style="font-size:9px">'+(stLbl[ec]||ec)+'</span>'
       +'</div>'
       +'<div style="font-size:10px;color:var(--mt);margin-top:2px;">'
-      +(t.telefono?'\uD83D\uDCDE '+t.telefono+' \u00b7 ':'')+'\uD83D\uDCCD '+t.municipio+' ('+t.cp+')'
-      +(ll>0?' \u00b7 \uD83D\uDCDE'+ll+(ul?' \u00b7 '+ul.split(',')[0]:''):'')
-      +'</div></div>';
+      +(t.telefono?'\uD83D\uDCDE '+t.telefono+'  ':'')+'\uD83D\uDCCD '+t.municipio
+      +(ul?'</div><div style="font-size:9px;color:var(--ac);margin-top:2px;font-family:var(--mo)">\uD83D\uDCDE '+(ll>0?ll+'x  ':'')+ul.split(',')[0]+'</div></div>':'</div></div>');
   }).join('');
   // Event listeners para los items
   el.querySelectorAll('.tal-item').forEach(function(item){
@@ -3040,11 +3039,12 @@ function selTal(id){
   var t=TAL.talleres.find(function(x){return x.id===id;});if(!t)return;
   talSel=id;window._talId=id;
   var fw=document.getElementById('acc-ficha-wrap');if(fw)fw.style.display='none';
-  document.getElementById('empty').style.display='none';
-  var det=document.getElementById('det');det.classList.add('vis');
+  var _empty=document.getElementById('empty');if(_empty)_empty.style.display='none';
+  var det=document.getElementById('det');
+  if(!det)return;
+  det.classList.add('vis');
   if(typeof openMobileDet==='function')openMobileDet();
   talOpen2(id);
-  document.querySelectorAll('.acc-admin-item').forEach(function(e){e.classList.remove('sel');});
   talRenderList();
 }
 
