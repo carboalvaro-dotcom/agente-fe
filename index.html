@@ -3044,6 +3044,7 @@ function selTal(id){
   var det=document.getElementById('det');
   if(!det)return;
   det.classList.add('vis');
+  det.style.display='flex';
   if(typeof openMobileDet==='function')openMobileDet();
   talOpen2(id);
   // En mobile: mostrar el panel derecho
@@ -3059,6 +3060,8 @@ function selTal(id){
 function talOpen2(id){
   var t=TAL.talleres.find(function(x){return x.id===id;});if(!t)return;
   window._talId=id;
+  // Asegurar que el panel det está visible
+  var _det=document.getElementById('det');if(_det){_det.classList.add('vis');_det.style.display='flex';}
   var st=talSt[id]||{};
   var ec=st.estado||'sinLlamar';
   var SL2={sinLlamar:'Sin llamar',visita:'✓ Visita',rellamar:'↺ Rellamar',noContesta:'— No contesta',noInteresa:'× No interesa',pendiente:'● Pendiente',duda:'? Duda'};
