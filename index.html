@@ -1087,10 +1087,13 @@ var _compact=localStorage.getItem('fe_compact')==='1';
 function toggleCompact(){
   _compact=!_compact;
   localStorage.setItem('fe_compact',_compact?'1':'0');
+  applyCompact();
+}
+function applyCompact(){
   var lp=document.querySelector('.lp');
   var btn=document.getElementById('btn-compact');
   if(lp){if(_compact)lp.classList.add('compact');else lp.classList.remove('compact');}
-  if(btn)btn.style.background=_compact?'var(--acl)':'var(--s2)';
+  if(btn){btn.style.background=_compact?'var(--acl)':'var(--s2)';btn.title=_compact?'Vista normal':'Vista compacta';}
 }
 function setF(f,el){
   curF=f;
