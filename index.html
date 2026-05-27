@@ -3029,10 +3029,11 @@ function talRenderList(){
       +(t.telefono?'\uD83D\uDCDE '+t.telefono+'  ':'')+'\uD83D\uDCCD '+t.municipio
       +(ul?'</div><div style="font-size:9px;color:var(--ac);margin-top:2px;font-family:var(--mo)">\uD83D\uDCDE '+(ll>0?ll+'x  ':'')+ul.split(',')[0]+'</div></div>':'</div></div>');
   }).join('');
-  // Event listeners para los items
-  el.querySelectorAll('.tal-item').forEach(function(item){
-    item.addEventListener('click',function(){selTal(this.dataset.talid);});
-  });
+  // Event delegation en el contenedor (más robusto)
+  el.onclick=function(ev){
+    var item=ev.target.closest('.tal-item');
+    if(item&&item.dataset.talid)selTal(item.dataset.talid);
+  };
 }
 
 function selTal(id){
