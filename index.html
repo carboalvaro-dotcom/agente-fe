@@ -1083,7 +1083,7 @@ function clearFechas(){
   renderList();accRenderList();try{talRenderList();}catch(e){}
 }
 var _compact=localStorage.getItem('fe_compact')==='1';
-(function(){if(_compact){document.getElementById('lp')?.classList.add('compact');var b=document.getElementById('btn-compact');if(b)b.style.background='var(--acl)';}})();
+// init compact aplicado en renderList()
 function toggleCompact(){
   _compact=!_compact;
   localStorage.setItem('fe_compact',_compact?'1':'0');
@@ -1106,6 +1106,9 @@ function setF(f,el){
 }
 
 function renderList(){
+  // Aplicar modo compacto
+  var _lp=document.getElementById('lp');if(_lp){if(_compact)_lp.classList.add('compact');else _lp.classList.remove('compact');}
+  var _btnC=document.getElementById('btn-compact');if(_btnC)_btnC.style.background=_compact?'var(--acl)':'var(--s2)';
   const q=(document.getElementById('sq').value||'').toLowerCase();
   let list=C;
   if(curF==='prioritario') list=list.filter(c=>isPRO(c));
