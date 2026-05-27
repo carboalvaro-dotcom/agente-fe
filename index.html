@@ -2862,236 +2862,168 @@ function talToggle(){talOpen=!talOpen;document.getElementById('tal-list').style.
 
 function talRenderList(){
   var el=document.getElementById('tal-list');if(!el)return;
-  var muniFilter=(document.getElementById('tal-muni-filter')||{}).value||'';
-  var tipoFilter=(document.getElementById('tal-tipo-filter')||{}).value||'';
-  var _dD=document.getElementById('fecha-desde')?.value||'';
-  var _dH=document.getElementById('fecha-hasta')?.value||'';
+  var muniF=(document.getElementById('tal-muni-filter')||{}).value||'';
+  var tipoF=(document.getElementById('tal-tipo-filter')||{}).value||'';
+  var dD=document.getElementById('fecha-desde')?.value||'';
+  var dH=document.getElementById('fecha-hasta')?.value||'';
   var filtered=TAL.talleres.filter(function(t){
-    if(muniFilter&&t.municipio!==muniFilter)return false;
-    if(tipoFilter&&!t.tipo.includes(tipoFilter.replace('Neumáticos','Neumát')))return false;
-    if(_dD||_dH){
-      var ul=(talSt[t.id]||{}).ultimaLlamada||'';
-      if(!ul)return false;
-      var p=ul.split(/[/,: ]/);
-      var cd=p[2]+'-'+p[1]+'-'+p[0];
-      if(_dD&&cd<_dD)return false;
-      if(_dH&&cd>_dH)return false;
+    if(muniF&&t.municipio!==muniF)return false;
+    if(tipoF&&!t.tipo.includes(tipoF))return false;
+    if(dD||dH){
+      var ul=(talSt[t.id]||{}).ultimaLlamada||'';if(!ul)return false;
+      var p=ul.split(/[/,: ]/),cd=p[2]+'-'+p[1]+'-'+p[0];
+      if(dD&&cd<dD)return false;if(dH&&cd>dH)return false;
     }
-    // Filtro estado curF
-    var _st=(talSt[t.id]||{}).estado||'sinLlamar';
-    var _cf=curF;
-    if(_cf==='visitaOK')_cf='visita';
-    if(_cf==='pendiente'&&_st!=='pendiente')return false;
-    if(_cf==='rellamar'&&_st!=='rellamar')return false;
-    if(_cf==='duda'&&_st!=='duda')return false;
-    if(_cf==='noContesta'&&_st!=='noContesta')return false;
-    if(_cf==='noInteresa'&&_st!=='noInteresa')return false;
-    if(_cf==='visita'&&_st!=='visita')return false;
+    var st2=(talSt[t.id]||{}).estado||'sinLlamar';
+    var cf=curF;if(cf==='visitaOK')cf='visita';
+    if(cf==='pendiente'&&st2!=='pendiente')return false;
+    if(cf==='rellamar'&&st2!=='rellamar')return false;
+    if(cf==='duda'&&st2!=='duda')return false;
+    if(cf==='noContesta'&&st2!=='noContesta')return false;
+    if(cf==='noInteresa'&&st2!=='noInteresa')return false;
+    if(cf==='visita'&&st2!=='visita')return false;
     if(curF==='llamadas'&&!((talSt[t.id]||{}).llamadas>0))return false;
-    // Buscador
-    var _q=(document.getElementById('sq')?.value||'').toLowerCase().trim();
-    if(_q){
-      var _txt=(t.nombre+' '+t.municipio+' '+t.cp+' '+t.tipo).toLowerCase();
-      if(!_txt.includes(_q))return false;
-    }
+    var q=(document.getElementById('sq')?.value||'').toLowerCase().trim();
+    if(q&&!(t.nombre+' '+t.municipio+' '+t.cp+' '+t.tipo).toLowerCase().includes(q))return false;
     return true;
   }).sort(function(a,b){
-    var ua=(talSt[a.id]||{}).ultimaLlamada||'';
-    var ub=(talSt[b.id]||{}).ultimaLlamada||'';
+    var ua=(talSt[a.id]||{}).ultimaLlamada||'',ub=(talSt[b.id]||{}).ultimaLlamada||'';
     if(!ua&&!ub)return 0;if(!ua)return 1;if(!ub)return -1;
     var pa=ua.split(/[/,: ]/),pb=ub.split(/[/,: ]/);
     var da=pa[2]+pa[1]+pa[0]+(pa[4]||'')+(pa[5]||'');
     var db=pb[2]+pb[1]+pb[0]+(pb[4]||'')+(pb[5]||'');
     return db>da?1:db<da?-1:0;
   });
-
   var hdr=document.getElementById('tal-hdr-count');
   if(hdr)hdr.textContent=filtered.length+' talleres';
-
+  var stLbl={sinLlamar:'Sin llamar',visita:'\u2713 Visita',rellamar:'\u21ba Rellamar',noContesta:'\u2014 No contesta',noInteresa:'\u00d7 No interesa',pendiente:'\u25cf Pendiente',duda:'? Duda'};
+  var tipoIcon={'Mec\u00e1nico':'\uD83D\uDD29','Chapa/Pintura':'\uD83C\uDFA8','Neum\u00e1ticos':'\u26AB','ITV':'\uD83D\uDCCB','Lavado':'\uD83D\uDEBF'};
   el.innerHTML=filtered.map(function(t){
-    var st=talSt[t.id]||{};
-    var estadoClass=st.estado||'sinLlamar';
-    var estadoLabel={sinLlamar:'Sin llamar',visita:'✓ Visita',rellamar:'↺ Rellamar',noContesta:'— No contesta',noInteresa:'✗ No interesa',pendiente:'● Pendiente',duda:'? Duda'}[estadoClass]||'Sin llamar';
-    var llamadas=st.llamadas||0;
-    var ul=st.ultimaLlamada||'';
-    var tipoIcon={Mecánico:'🔩',Chapa:' 🎨','Pintura':'🎨',Neumáticos:'⚫',ITV:'📋',Lavado:'🚿'}[t.tipo.split('/')[0]]||'🔧';
-    return '<div class="acc-admin-item ci'+(talSel===t.id?' sel':'')+' onclick="selTal(\''+t.id+'\')">';
+    var st=talSt[t.id]||{},ec=st.estado||'sinLlamar';
+    var ic=tipoIcon[t.tipo]||'\uD83D\uDD27';
+    var ll=st.llamadas||0,ul=st.ultimaLlamada||'';
+    return '<div class="acc-admin-item ci'+(talSel===t.id?' sel':'')+' tal-item" data-talid="'+t.id+'">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;">'
-      +'<span style="font-size:11px;font-weight:600;color:var(--tx)">'+tipoIcon+' '+t.nombre+'</span>'
-      +'<span class="stag '+estadoClass+'" style="font-size:9px">'+estadoLabel+'</span>'
+      +'<span style="font-size:11px;font-weight:600;color:var(--tx)">'+ic+' '+t.nombre+'</span>'
+      +'<span class="stag '+ec+'" style="font-size:9px">'+(stLbl[ec]||ec)+'</span>'
       +'</div>'
       +'<div style="font-size:10px;color:var(--mt);margin-top:2px;">'
-      +(t.telefono?'📞 '+t.telefono+' · ':'')+'📍 '+t.municipio+' ('+t.cp+')'
-      +(llamadas>0?' · 📞'+llamadas+(ul?' · '+ul.split(',')[0]:''):'')
-      +'</div>'
-      +'</div>';
+      +(t.telefono?'\uD83D\uDCDE '+t.telefono+' \u00b7 ':'')+'\uD83D\uDCCD '+t.municipio+' ('+t.cp+')'
+      +(ll>0?' \u00b7 \uD83D\uDCDE'+ll+(ul?' \u00b7 '+ul.split(',')[0]:''):'')
+      +'</div></div>';
   }).join('');
-
-  // Actualizar contadores superiores
+  // Event listeners para los items
+  el.querySelectorAll('.tal-item').forEach(function(item){
+    item.addEventListener('click',function(){selTal(this.dataset.talid);});
+  });
   try{updateStats();}catch(e){}
 }
 
 function selTal(id){
-  var t=TAL.talleres.find(function(x){return x.id===id;});
-  if(!t)return;
-  talSel=id;
-  // Ocultar ficha normal y ficha acc
+  var t=TAL.talleres.find(function(x){return x.id===id;});if(!t)return;
+  talSel=id;window._talId=id;
   var fw=document.getElementById('acc-ficha-wrap');if(fw)fw.style.display='none';
   var det=document.getElementById('det'),emp=document.getElementById('empty');
-  if(det)det.style.display='none';
-  if(emp)emp.style.display='none';
-  // Marcar seleccionado
+  if(det)det.style.display='none';if(emp)emp.style.display='none';
   document.querySelectorAll('.acc-admin-item').forEach(function(e){e.classList.remove('sel');});
-  // Mostrar ficha tal
-  talOpen2(id);
-  talRenderList();
+  talOpen2(id);talRenderList();
 }
 
 function talOpen2(id){
-  var t=TAL.talleres.find(function(x){return x.id===id;});
-  if(!t)return;
+  var t=TAL.talleres.find(function(x){return x.id===id;});if(!t)return;
+  window._talId=id;
   var st=talSt[id]||{};
-  var fw=document.getElementById('acc-ficha-wrap');
-  if(!fw)return;
+  var fw=document.getElementById('acc-ficha-wrap');if(!fw)return;
   fw.style.display='flex';
-
-  var estadoClass=st.estado||'sinLlamar';
-  var estadoLabel={sinLlamar:'Sin llamar',visita:'✓ Visita',rellamar:'↺ Rellamar',noContesta:'— No contesta',noInteresa:'✗ No interesa',pendiente:'● Pendiente',duda:'? Duda'}[estadoClass]||estadoClass;
-
-  // Audio player si hay grabación
-  var audioHtml='';
-  if(st._recordingUrl){
-    audioHtml='<div class="card"><div class="card-head"><div class="card-title">🎙️ Grabación</div></div>'
-      +'<audio controls style="width:100%;margin-top:8px" src="'+st._recordingUrl+'"></audio></div>';
-  }
-
-  // Historial de notas
-  var notasHtml='';
-  if(st.notas){
-    notasHtml='<div class="card"><div class="card-head"><div class="card-title">📋 Historial</div></div>'
-      +'<pre style="font-size:10px;white-space:pre-wrap;color:var(--tx);margin:8px 0 0">'+st.notas+'</pre></div>';
-  }
-
-  var speechText='Le llamo porque detectamos que '+t.nombre.replace(/S\.L\.?|S\.A\.?/gi,'').trim()+' podría tener la potencia eléctrica contratada con sobrecoste en la factura de luz. Son solo diez minutos de revisión, ¿le encaja esta semana por la mañana?';
-
+  var ec=st.estado||'sinLlamar';
+  var stLbl={sinLlamar:'Sin llamar',visita:'\u2713 Visita',rellamar:'\u21ba Rellamar',noContesta:'\u2014 No contesta',noInteresa:'\u00d7 No interesa',pendiente:'\u25cf Pendiente',duda:'? Duda'};
+  var sp='Le llamo porque detectamos que '+t.nombre.replace(/S\.L\.L?\.?|S\.A\.U?\.?|S\.L\.U?\.?|S\.A?\.?|C\.B\.?/gi,'').trim()+' podr\u00eda tener la potencia el\u00e9ctrica contratada con sobrecoste en la factura de luz. Son solo diez minutos de revisi\u00f3n, \u00bfle encaja esta semana por la ma\u00f1ana?';
+  var audioH='';
+  if(st._recordingUrl)audioH='<div class="card"><div class="card-head"><div class="card-title">&#127899; Grabaci\u00f3n</div></div><audio controls style="width:100%;margin-top:8px" src="'+st._recordingUrl+'"></audio></div>';
+  var notasH='';
+  if(st.notas)notasH='<div class="card"><div class="card-head"><div class="card-title">&#128203; Historial</div></div><pre style="font-size:10px;white-space:pre-wrap;color:var(--tx);margin:8px 0 0">'+st.notas+'</pre></div>';
   fw.innerHTML=
     '<div class="card">'
     +'<div class="card-head">'
     +'<div class="card-title">Ficha del taller</div>'
-    +'<span id="tal-stag-'+id+'" class="stag '+estadoClass+'">'+estadoLabel+'</span>'
-    +(t.telefono?'<button class="btn btn-pr btn-sm" onclick="talLlamar(\''+id+'\')">' + '&#128222; Llamar con IA</button>':'');
+    +'<span class="stag '+ec+'">'+(stLbl[ec]||ec)+'</span>'
+    +(t.telefono?'<button class="btn btn-pr btn-sm" onclick="talLlamar(window._talId)">&#128222; Llamar con IA</button>':'')
     +'</div>'
-    +'<div class="ch-wrap">'
-    +'<div class="ch-name">'+t.nombre+'</div>'
-    +'<div class="ch-meta">🔧 '+t.tipo+' · 📍 '+t.municipio+' ('+t.cp+')</div>'
-    +'</div>'
+    +'<div class="ch-wrap"><div class="ch-name">'+t.nombre+'</div>'
+    +'<div class="ch-meta">&#128295; '+t.tipo+' &middot; &#128205; '+t.municipio+' ('+t.cp+')</div></div>'
     +'<div class="ficha-grid">'
-    +'<div class="fg-item span2"><div class="fg-label">Teléfono</div>'
-    +'<input class="fg-input" id="tal-tel-'+id+'" value="'+(t.telefono||'')+'" onchange="talUpdateField('"+id+"','telefono',this.value)" placeholder="Sin teléfono"></div>'
-    +'<div class="fg-item span2"><div class="fg-label">Dirección</div>'
+    +'<div class="fg-item span2"><div class="fg-label">Tel\u00e9fono</div>'
+    +'<input class="fg-input" id="tal-tel-cur" value="'+(t.telefono||'')+'" onchange="talUpdateField(window._talId,\'telefono\',this.value)" placeholder="Sin tel\u00e9fono"></div>'
+    +'<div class="fg-item span2"><div class="fg-label">Direcci\u00f3n</div>'
     +'<input class="fg-input" value="'+t.direccion+'" readonly></div>'
     +'<div class="fg-item"><div class="fg-label">Municipio</div>'
     +'<input class="fg-input" value="'+t.municipio+'" readonly></div>'
     +'<div class="fg-item"><div class="fg-label">Tipo</div>'
     +'<input class="fg-input" value="'+t.tipo+'" readonly></div>'
-    +'<div class="fg-item"><div class="fg-label">Última llamada</div>'
-    +'<input class="fg-input" value="'+(st.ultimaLlamada||'—')+'" readonly></div>'
+    +'<div class="fg-item"><div class="fg-label">\u00daltima llamada</div>'
+    +'<input class="fg-input" value="'+(st.ultimaLlamada||'\u2014')+'" readonly></div>'
     +'<div class="fg-item"><div class="fg-label">Llamadas</div>'
     +'<input class="fg-input" value="'+(st.llamadas||0)+'" readonly></div>'
     +'</div>'
-    // Estado manual
     +'<div style="padding:10px 12px 4px;border-top:1px solid var(--bd)">'
     +'<div style="font-size:10px;color:var(--mt);margin-bottom:6px;font-weight:600">RESULTADO DE LA LLAMADA</div>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
-    +'<button class="btn btn-sm '+(estadoClass==='visita'?'btn-pr':'')+'" onclick="talSetEstado('"+id+"','visita')">✓ Visita concertada</button>'
-    +'<button class="btn btn-sm '+(estadoClass==='rellamar'?'btn-am':'')+'" onclick="talSetEstado('"+id+"','rellamar')">↺ Rellamar</button>'
-    +'<button class="btn btn-sm '+(estadoClass==='noContesta'?'':'') +'" onclick="talSetEstado('"+id+"','noContesta')">— No contesta</button>'
-    +'<button class="btn btn-sm '+(estadoClass==='noInteresa'?'btn-rd':'')+'" onclick="talSetEstado('"+id+"','noInteresa')">✗ No interesa</button>'
-    +'<button class="btn btn-sm '+(estadoClass==='duda'?'':'') +'" style="color:#7c3aed" onclick="talSetEstado('"+id+"','duda')">? Duda</button>'
+    +'<button class="btn btn-sm'+(ec==='visita'?' btn-pr':'')+'" onclick="talSetEstado(window._talId,\'visita\')">\u2713 Visita concertada</button>'
+    +'<button class="btn btn-sm'+(ec==='rellamar'?' btn-am':'')+'" onclick="talSetEstado(window._talId,\'rellamar\')">\u21ba Rellamar</button>'
+    +'<button class="btn btn-sm" onclick="talSetEstado(window._talId,\'noContesta\')">\u2014 No contesta</button>'
+    +'<button class="btn btn-sm'+(ec==='noInteresa'?' btn-rd':'')+'" onclick="talSetEstado(window._talId,\'noInteresa\')">\u00d7 No interesa</button>'
+    +'<button class="btn btn-sm" style="color:#7c3aed" onclick="talSetEstado(window._talId,\'duda\')">? Duda</button>'
     +'</div></div>'
-    // Notas
     +'<div style="padding:8px 12px">'
     +'<div class="fg-label" style="margin-bottom:4px">Notas</div>'
-    +'<textarea id="tal-notas-'+id+'" class="fg-input" rows="3" style="width:100%;resize:vertical" onchange="talSaveNotas('"+id+"',this.value)">'+(st.notas||'')+'</textarea>'
+    +'<textarea class="fg-input" rows="3" style="width:100%;resize:vertical" onchange="talSaveNotas(window._talId,this.value)">'+(st.notas||'')+'</textarea>'
+    +'</div></div>'
+    +'<div class="card"><div class="card-head"><div class="card-title">&#128172; Speech de apertura</div></div>'
+    +'<div style="font-size:11px;color:var(--tx);padding:8px 0;line-height:1.6;font-style:italic">&ldquo;'+sp+'&rdquo;</div>'
     +'</div>'
-    +'</div>'
-    // Speech
-    +'<div class="card"><div class="card-head"><div class="card-title">💬 Speech de apertura</div></div>'
-    +'<div style="font-size:11px;color:var(--tx);padding:8px 0;line-height:1.6;font-style:italic">"'+speechText+'"</div>'
-    +'</div>'
-    +audioHtml
-    +notasHtml;
+    +audioH+notasH;
 }
 
-function talSetEstado(id, estado){
+function talSetEstado(id,estado){
   if(!talSt[id])talSt[id]={};
-  talSt[id].estado=estado;
-  talSave();
-  talOpen2(id);
-  talRenderList();
+  talSt[id].estado=estado;talSave();talOpen2(id);talRenderList();
   toast('Estado actualizado','ok');
 }
-
-function talSaveNotas(id, val){
-  if(!talSt[id])talSt[id]={};
-  talSt[id].notas=val;
-  talSave();
-}
-
-function talUpdateField(id, field, val){
-  var t=TAL.talleres.find(function(x){return x.id===id;});
-  if(t)t[field]=val;
-}
+function talSaveNotas(id,val){if(!talSt[id])talSt[id]={};talSt[id].notas=val;talSave();}
+function talUpdateField(id,field,val){var t=TAL.talleres.find(function(x){return x.id===id;});if(t)t[field]=val;}
 
 async function talLlamar(id){
   var t=TAL.talleres.find(function(x){return x.id===id;});
-  if(!t||!t.telefono){toast('Sin teléfono','err');return;}
-  if(typeof startCall==='function'){
-    // Usar el mismo sistema que los contactos CP
-    var fakeC={
-      id:'TAL_'+id, nombre:t.nombre, nif:'', telefono:t.telefono,
-      telefono2:'', potencia_kw:25, tarifa:'3.0 TD', comercializadora:'',
-      cp:t.cp, sector:'4520', direccion:t.direccion, notas:'TALLER - '+t.tipo
-    };
-    // Guardar estado llamada
-    if(!talSt[id])talSt[id]={};
-    talSt[id].llamadas=(talSt[id].llamadas||0)+1;
-    talSt[id].ultimaLlamada=new Date().toLocaleString('es-ES');
-    talSave();
-    talOpen2(id);
-    talRenderList();
-    // Iniciar llamada
-    try{
-      var r=await fetch('https://api.vapi.ai/call/phone',{
-        method:'POST',
-        headers:{'Authorization':'Bearer '+VAPI_KEY,'Content-Type':'application/json'},
-        body:JSON.stringify({
-          phoneNumberId:'0d4fe76e-760c-4cf8-8760-b291bb96aac5',
-          customer:{number:'+34'+t.telefono.replace(/\D/g,'')},
-          assistantId:'c1c87d1a-3492-47a3-b99b-95e27d17e638',
-          assistantOverrides:{
-            firstMessage:'Buenos días, ¿hablo con '+t.nombre.replace(/S\.L\.?|S\.A\.?/gi,'').trim()+'?',
-            model:{
-              provider:'openai',model:'gpt-4o',
-              messages:[{role:'system',content:'Eres CARLA, asistente telefónica de Factor Energía. Llamas a '+t.nombre+', un taller de tipo '+t.tipo+' en '+t.municipio+'. Tu objetivo es concertar una revisión de 10 minutos del contrato de luz. Speech: "'+t.nombre.replace(/S\.L\.?|S\.A\.?/gi,'').trim()+' podría tener la potencia eléctrica con sobrecoste. Son solo diez minutos. ¿Le encaja esta semana por la mañana?" REGLAS: habla en usted, máximo 2 frases, no insistas más de 2 veces. Si piden teléfono: "Le dejo el seiscientos diecinueve cero doce seiscientos ochenta". Si piden correo: intenta cerrar visita primero; a la segunda acepta y pide email.'}]
-            }
-          }
-        })
-      });
-      var rd=await r.json();
-      if(rd.id){
-        talSt[id]._callId=rd.id;
-        talSave();
-        toast('📞 Llamando a '+t.nombre,'ok');
-        setTimeout(function(){talFetchResult(rd.id,id);},12000);
-      } else { toast('Error al llamar','err'); }
-    }catch(e){toast('Error: '+e.message,'err');}
-  }
+  if(!t||!t.telefono){toast('Sin tel\u00e9fono','err');return;}
+  if(!talSt[id])talSt[id]={};
+  talSt[id].llamadas=(talSt[id].llamadas||0)+1;
+  talSt[id].ultimaLlamada=new Date().toLocaleString('es-ES');
+  talSave();talOpen2(id);talRenderList();
+  try{
+    var r=await fetch('https://api.vapi.ai/call/phone',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+VAPI_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        phoneNumberId:'0d4fe76e-760c-4cf8-8760-b291bb96aac5',
+        customer:{number:'+34'+t.telefono.replace(/\D/g,'')},
+        assistantId:'c1c87d1a-3492-47a3-b99b-95e27d17e638',
+        assistantOverrides:{
+          firstMessage:'Buenos d\u00edas, \u00bfhablo con '+t.nombre.replace(/S\.L\.L?\.?|S\.A\.U?\.?|S\.L\.U?\.?|S\.A?\.?|C\.B\.?/gi,'').trim()+'?',
+          model:{provider:'openai',model:'gpt-4o',messages:[{role:'system',content:'Eres CARLA de Factor Energ\u00eda. Llamas a '+t.nombre+', taller de tipo '+t.tipo+' en '+t.municipio+'. Objetivo: visita 10 minutos. Apertura: '+t.nombre.replace(/S\.L\.L?\.?|S\.A?\.?/gi,'').trim()+' podr\u00eda tener potencia el\u00e9ctrica con sobrecoste. Son solo 10 minutos. REGLAS: habla de usted, no insistir m\u00e1s de 2 veces, tel contacto: seiscientos diecinueve cero doce seiscientos ochenta.'}]}
+        }
+      })
+    });
+    var rd=await r.json();
+    if(rd.id){
+      talSt[id]._callId=rd.id;talSave();
+      toast('&#128222; Llamando a '+t.nombre,'ok');
+      setTimeout(function(){talFetchResult(rd.id,id);},12000);
+    }else{toast('Error al llamar','err');}
+  }catch(e){toast('Error: '+e.message,'err');}
 }
 
-async function talFetchResult(callId, talId, attempt){
-  attempt=attempt||0;
-  if(attempt>10)return;
+async function talFetchResult(callId,talId,attempt){
+  attempt=attempt||0;if(attempt>10)return;
   try{
     var r=await fetch('https://api.vapi.ai/call/'+callId,{headers:{Authorization:'Bearer '+VAPI_KEY}});
     if(!r.ok)throw new Error(r.status);
@@ -3099,10 +3031,9 @@ async function talFetchResult(callId, talId, attempt){
     if(d.status!=='ended'){setTimeout(function(){talFetchResult(callId,talId,attempt+1);},5000);return;}
     var dur=d.endedAt&&d.startedAt?Math.round((new Date(d.endedAt)-new Date(d.startedAt))/1000):0;
     var now=d.endedAt?new Date(d.endedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):new Date().toLocaleString('es-ES');
-    var eMap={'customer-did-not-answer':'No contestó','silence-timed-out':'No contestó (silencio)','customer-ended-call':'Cortó','assistant-ended-call':'Finalizada'};
-    var estado=eMap[d.endedReason]||'Finalizada';
-    var nota='📞 '+now+(dur?' · '+dur+'s':'')+' \n⚫ '+estado;
-    if(d.transcript)nota+='\n💬 "'+d.transcript.substring(0,400)+'"';
+    var eMap={'customer-did-not-answer':'No contest\u00f3','silence-timed-out':'No contest\u00f3 (silencio)','customer-ended-call':'Cort\u00f3','assistant-ended-call':'Finalizada'};
+    var nota='&#128222; '+now+(dur?' \u00b7 '+dur+'s':'')+'\n\u26AB '+(eMap[d.endedReason]||'Finalizada');
+    if(d.transcript)nota+='\n&#128172; "'+d.transcript.substring(0,400)+'"';
     if(d.recordingUrl)nota+='\n'+d.recordingUrl;
     if(!talSt[talId])talSt[talId]={};
     var ex=talSt[talId].notas||'';
@@ -3114,42 +3045,35 @@ async function talFetchResult(callId, talId, attempt){
     }
     talSave();
     if(talSel===talId)talOpen2(talId);else talRenderList();
-    toast('✓ Llamada taller grabada','ok');
+    toast('\u2713 Llamada taller grabada','ok');
     fetchCallNotes(callId,'TAL:'+talId);
   }catch(e){setTimeout(function(){talFetchResult(callId,talId,attempt+1);},5000);}
 }
 
-// Ocultar ficha taller cuando se abre ficha normal
 var _smTal=window.selMob;
 window.selMob=function(id,el){
-  if(talSel){
-    var fw=document.getElementById('acc-ficha-wrap');if(fw)fw.style.display='none';
-    talSel=null;
-  }
+  if(talSel){var fw=document.getElementById('acc-ficha-wrap');if(fw)fw.style.display='none';talSel=null;}
   if(_smTal)_smTal(id,el);
 };
 
-// Inicializar
-(function t(){var l=document.getElementById('tal-list');if(l){talRenderList();}else{setTimeout(t,300);}})();
-
-// Sumar talleres a los contadores superiores
-var _origUpdateStats2=window.updateStats;
+var _us2=window.updateStats;
 window.updateStats=function(){
-  if(_origUpdateStats2)_origUpdateStats2();
+  if(_us2)_us2();
   try{
-    var _talSt2=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
-    var sv=document.getElementById('sv'),sr=document.getElementById('sr'),
-        snc=document.getElementById('snc'),sni=document.getElementById('sni'),
-        sduda=document.getElementById('sduda'),sllamadas=document.getElementById('sllamadas');
-    var vals=Object.values(_talSt2);
-    if(sv)sv.textContent=parseInt(sv.textContent||0)+(vals.filter(function(s){return s.estado==='visita';}).length);
-    if(sr)sr.textContent=parseInt(sr.textContent||0)+(vals.filter(function(s){return s.estado==='rellamar';}).length);
-    if(snc)snc.textContent=parseInt(snc.textContent||0)+(vals.filter(function(s){return s.estado==='noContesta';}).length);
-    if(sni)sni.textContent=parseInt(sni.textContent||0)+(vals.filter(function(s){return s.estado==='noInteresa';}).length);
-    if(sduda)sduda.textContent=parseInt(sduda.textContent||0)+(vals.filter(function(s){return s.estado==='duda';}).length);
-    if(sllamadas)sllamadas.textContent=parseInt(sllamadas.textContent||0)+(vals.reduce(function(s,x){return s+(x.llamadas||0);},0));
+    var ts=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
+    var sv=document.getElementById('sv'),sr=document.getElementById('sr'),snc=document.getElementById('snc'),sni=document.getElementById('sni'),sduda=document.getElementById('sduda'),sl=document.getElementById('sllamadas');
+    var vv=Object.values(ts);
+    if(sv)sv.textContent=parseInt(sv.textContent||0)+vv.filter(function(s){return s.estado==='visita';}).length;
+    if(sr)sr.textContent=parseInt(sr.textContent||0)+vv.filter(function(s){return s.estado==='rellamar';}).length;
+    if(snc)snc.textContent=parseInt(snc.textContent||0)+vv.filter(function(s){return s.estado==='noContesta';}).length;
+    if(sni)sni.textContent=parseInt(sni.textContent||0)+vv.filter(function(s){return s.estado==='noInteresa';}).length;
+    if(sduda)sduda.textContent=parseInt(sduda.textContent||0)+vv.filter(function(s){return s.estado==='duda';}).length;
+    if(sl)sl.textContent=parseInt(sl.textContent||0)+vv.reduce(function(s,x){return s+(x.llamadas||0);},0);
   }catch(e){}
 };
+
+(function t(){var l=document.getElementById('tal-list');if(l){talRenderList();}else{setTimeout(t,300);}})();
+
 </script>
 </body>
 </html>
