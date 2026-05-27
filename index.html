@@ -294,6 +294,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
       <option value="" style="color:#000">Todos los CP</option>
       <option value="ACC">&#127970; Administradores (todos)</option>
       <option value="ACC-aragon">&#127963; Arag&#243;n</option>
+      <option value="TAL">&#128295; Talleres (todos)</option>
       <option value="08390" style="color:#000">08390 Montgat</option>
       <option value="08391" style="color:#000">08391 Tiana</option>
       <option value="08329" style="color:#000">08329 Teià</option>
@@ -1729,6 +1730,21 @@ function getCampaignOrder(){
     });
     return filtered.map(function(a){return 'ACC:'+a.id;});
   }
+  if(cpFilter==='TAL'){
+    var talStData=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
+    var talleres=typeof TAL!=='undefined'&&TAL.talleres?TAL.talleres:[];
+    var talFiltered=talleres.filter(function(t){
+      if(!t.telefono)return false;
+      var st=(talStData[t.id]||{estado:'sinLlamar'}).estado;
+      if(filter==='nuevos') return st==='sinLlamar';
+      if(filter==='todos'||filter==='pendiente') return st!=='visita'&&st!=='noInteresa';
+      if(filter==='rellamar') return st==='rellamar';
+      if(filter==='duda') return st==='duda';
+      if(filter==='noContesta') return st==='noContesta';
+      return false;
+    });
+    return talFiltered.map(function(t){return 'TAL:'+t.id;});
+  }
   let base=C.filter(c=>c.nif!=='AMIGO'&&c.nif!=='TEST'&&(!cpFilter||c.cp===cpFilter)&&c.telefono&&c.telefono.length>=9);
   if(filter==='nuevos') base=base.filter(c=>c.estado==='pendiente'&&(c.llamadas||0)===0);
   else if(filter==='todos') base=base.filter(c=>c.estado==='pendiente');
@@ -1818,6 +1834,29 @@ async function runNextCampaignCall(){
     // Launch the call via the acc call button
     accLlamar(accId);
     // Wait 60s then move to next (admin calls are manual-review)
+    await new Promise(r=>{campaignTimer=setTimeout(r,60000);});
+    campaignIdx++;updateCampLiveStats();
+    if(campaignRunning&&!campaignPaused){
+      document.getElementById('camp-sub').textContent='Esperando 45s...';
+      await new Promise(r=>{campaignTimer=setTimeout(r,45000);});
+    }
+    runNextCampaignCall();
+    return;
+  }
+  // === TAL taller call ===
+  if(typeof id==='string'&&id.startsWith('TAL:')){
+    const talId=id.substring(4);
+    const talleres=typeof TAL!=='undefined'&&TAL.talleres?TAL.talleres:[];
+    const t=talleres.find(function(x){return x.id===talId;});
+    if(!t||!t.telefono){campaignIdx++;runNextCampaignCall();return;}
+    const done=campaignIdx,total=campaignQueue.length,pct=Math.round((done/total)*100);
+    document.getElementById('camp-title').textContent='Llamando: '+t.nombre.slice(0,35);
+    const remaining3=_campMaxMs?Math.round((_campMaxMs-(Date.now()-_campStartTime))/60000):null;
+    document.getElementById('camp-sub').textContent=(done+1)+' de '+total+(remaining3!==null?' · ⏱'+remaining3+'min restantes':'');
+    document.getElementById('camp-fill').style.width=pct+'%';
+    document.getElementById('camp-pct').textContent=pct+'%';
+    selTal(talId);window.scrollTo(0,0);
+    talLlamar(talId);
     await new Promise(r=>{campaignTimer=setTimeout(r,60000);});
     campaignIdx++;updateCampLiveStats();
     if(campaignRunning&&!campaignPaused){
