@@ -543,7 +543,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
 </div>
 <script>
 window.onerror=function(msg,src,line,col,err){
-  document.querySelector('.lp').innerHTML='<div style="padding:12px;color:red;font-size:11px">JS Error: '+msg+' (line '+line+')</div>';
+  document.getElementById('lp-list').innerHTML='<div style="padding:12px;color:red;font-size:11px">JS Error: '+msg+' (line '+line+')</div>';
   return false;
 };
 const SK='fe_crm_v2';
@@ -1083,21 +1083,21 @@ function clearFechas(){
   renderList();accRenderList();try{talRenderList();}catch(e){}
 }
 var _compact=localStorage.getItem('fe_compact')==='1';
-// init compact aplicado en renderList()
+// compact init via setTimeout after render
+function applyCompact(){
+  var lp=document.querySelector('.lp');
+  var btn=document.getElementById('btn-compact');
+  if(lp){if(_compact)lp.classList.add('compact');else lp.classList.remove('compact');}
+  if(btn){btn.style.background=_compact?'var(--acl)':'var(--s2)';}
+}
 function toggleCompact(){
   _compact=!_compact;
   localStorage.setItem('fe_compact',_compact?'1':'0');
   applyCompact();
 }
-function applyCompact(){
-  var lp=document.querySelector('.lp');
-  var btn=document.getElementById('btn-compact');
-  if(lp){if(_compact)lp.classList.add('compact');else lp.classList.remove('compact');}
-  if(btn){btn.style.background=_compact?'var(--acl)':'var(--s2)';btn.title=_compact?'Vista normal':'Vista compacta';}
-}
 function setF(f,el){
   curF=f;
-  accRenderList();try{talRenderList();}catch(e){}
+  accRenderList();try{talRenderList();}catch(e){}try{talRenderList();}catch(e){}
   document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('on'));
   if(el){el.classList.add('on');}
   else{
@@ -1109,9 +1109,6 @@ function setF(f,el){
 }
 
 function renderList(){
-  // Aplicar modo compacto
-  // compact aplicado en toggleCompact
-
   const q=(document.getElementById('sq').value||'').toLowerCase();
   let list=C;
   if(curF==='prioritario') list=list.filter(c=>isPRO(c));
@@ -1188,7 +1185,7 @@ function renderList(){
     });
     html+='</div></div>';
   });
-  document.querySelector('.lp').innerHTML=html;
+  document.getElementById('lp-list').innerHTML=html;
 }
 
 function toggleCP(cp){
@@ -2584,6 +2581,7 @@ var ACC={"admins":[
 
 var accSt=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}'),accSel=null,accOpen=true;
 try{updateStats();}catch(e){}
+try{setTimeout(applyCompact,100);}catch(e){}
 function accSave(){localStorage.setItem('fe_acc_v1',JSON.stringify(accSt));}
 function accToggle(){accOpen=!accOpen;document.getElementById('acc-list').style.display=accOpen?'':'none';}
 
@@ -3133,6 +3131,7 @@ function talSetEstado(id,estado){
   toast('Estado actualizado','ok');
 }
 function talSaveNotas(id,val){if(!talSt[id])talSt[id]={};talSt[id].notas=val;talSave();}
+function talSaveContacto(id,val){if(!talSt[id])talSt[id]={};talSt[id].contacto=val;talSave();}
 function talSaveContacto(id,val){if(!talSt[id])talSt[id]={};talSt[id].contacto=val;talSave();}
 function talUpdateField(id,field,val){var t=TAL.talleres.find(function(x){return x.id===id;});if(t)t[field]=val;}
 
