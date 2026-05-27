@@ -2949,7 +2949,7 @@ function talRenderList(){
     var st=talSt[t.id]||{},ec=st.estado||'sinLlamar';
     var ic=tipoIcon[t.tipo]||'\uD83D\uDD27';
     var ll=st.llamadas||0,ul=st.ultimaLlamada||'';
-    return '<div class="acc-admin-item ci'+(talSel===t.id?' sel':'')+' tal-item" data-talid="'+t.id+'">'
+    return '<div class="acc-admin-item ci est-'+ec+(talSel===t.id?' sel':'')+' tal-item" data-talid="'+t.id+'">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;">'
       +'<span style="font-size:11px;font-weight:600;color:var(--tx)">'+ic+' '+t.nombre+'</span>'
       +'<span class="stag '+ec+'" style="font-size:9px">'+(stLbl[ec]||ec)+'</span>'
