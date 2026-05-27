@@ -2962,65 +2962,87 @@ function selTal(id){
   var t=TAL.talleres.find(function(x){return x.id===id;});if(!t)return;
   talSel=id;window._talId=id;
   var fw=document.getElementById('acc-ficha-wrap');if(fw)fw.style.display='none';
-  var det=document.getElementById('det'),emp=document.getElementById('empty');
-  if(det)det.style.display='none';if(emp)emp.style.display='none';
+  document.getElementById('empty').style.display='none';
+  var det=document.getElementById('det');det.classList.add('vis');
+  if(typeof openMobileDet==='function')openMobileDet();
+  talOpen2(id);
   document.querySelectorAll('.acc-admin-item').forEach(function(e){e.classList.remove('sel');});
-  talOpen2(id);talRenderList();
+  talRenderList();
 }
 
 function talOpen2(id){
   var t=TAL.talleres.find(function(x){return x.id===id;});if(!t)return;
   window._talId=id;
   var st=talSt[id]||{};
-  var fw=document.getElementById('acc-ficha-wrap');if(!fw)return;
-  fw.style.display='flex';
   var ec=st.estado||'sinLlamar';
-  var stLbl={sinLlamar:'Sin llamar',visita:'\u2713 Visita',rellamar:'\u21ba Rellamar',noContesta:'\u2014 No contesta',noInteresa:'\u00d7 No interesa',pendiente:'\u25cf Pendiente',duda:'? Duda'};
-  var sp='Le llamo porque detectamos que '+t.nombre.replace(/S\.L\.L?\.?|S\.A\.U?\.?|S\.L\.U?\.?|S\.A?\.?|C\.B\.?/gi,'').trim()+' podr\u00eda tener la potencia el\u00e9ctrica contratada con sobrecoste en la factura de luz. Son solo diez minutos de revisi\u00f3n, \u00bfle encaja esta semana por la ma\u00f1ana?';
-  var audioH='';
-  if(st._recordingUrl)audioH='<div class="card"><div class="card-head"><div class="card-title">&#127899; Grabaci\u00f3n</div></div><audio controls style="width:100%;margin-top:8px" src="'+st._recordingUrl+'"></audio></div>';
-  var notasH='';
-  if(st.notas)notasH='<div class="card"><div class="card-head"><div class="card-title">&#128203; Historial</div></div><pre style="font-size:10px;white-space:pre-wrap;color:var(--tx);margin:8px 0 0">'+st.notas+'</pre></div>';
-  fw.innerHTML=
-    '<div class="card">'
-    +'<div class="card-head">'
-    +'<div class="card-title">Ficha del taller</div>'
-    +'<span class="stag '+ec+'">'+(stLbl[ec]||ec)+'</span>'
-    +(t.telefono?'<button class="btn btn-pr btn-sm" onclick="talLlamar(window._talId)">&#128222; Llamar con IA</button>':'')
-    +'</div>'
-    +'<div class="ch-wrap"><div class="ch-name">'+t.nombre+'</div>'
-    +'<div class="ch-meta">&#128295; '+t.tipo+' &middot; &#128205; '+t.municipio+' ('+t.cp+')</div></div>'
-    +'<div class="ficha-grid">'
-    +'<div class="fg-item span2"><div class="fg-label">Tel\u00e9fono</div>'
-    +'<input class="fg-input" id="tal-tel-cur" value="'+(t.telefono||'')+'" onchange="talUpdateField(window._talId,\'telefono\',this.value)" placeholder="Sin tel\u00e9fono"></div>'
-    +'<div class="fg-item span2"><div class="fg-label">Direcci\u00f3n</div>'
-    +'<input class="fg-input" value="'+t.direccion+'" readonly></div>'
+  var SL2={sinLlamar:'Sin llamar',visita:'✓ Visita',rellamar:'↺ Rellamar',noContesta:'— No contesta',noInteresa:'× No interesa',pendiente:'● Pendiente',duda:'? Duda'};
+  var nb=t.nombre.replace(/S\.L\.L?\.?|S\.A\.U?\.?|S\.L\.U?\.?|S\.A?\.?|C\.B\.?/gi,'').trim();
+  document.getElementById('d-name').textContent=t.nombre;
+  var stEl=document.getElementById('d-stag');
+  stEl.className='stag '+ec;stEl.textContent=SL2[ec]||ec;
+  document.getElementById('d-meta').innerHTML=
+    '<span class="stag '+ec+' ch-badge">'+(SL2[ec]||ec)+'</span>'
+    +'<span class="ch-badge" style="background:#f0f4ff;color:#2563eb;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:500">&#128295; Taller</span>'
+    +'<span class="ch-badge" style="background:var(--s2);color:var(--mt);padding:2px 9px;border-radius:20px;font-size:10px">&#128205; '+t.municipio+'</span>';
+  var bcall=document.getElementById('bcall');
+  if(bcall){bcall.onclick=function(){talLlamar(window._talId);};bcall.style.display=t.telefono?'':' none';}
+  document.getElementById('ficha-grid').innerHTML=
+    '<div class="fg-item span2"><div class="fg-label">Tel&eacute;fono</div>'
+    +'<input class="fg-input" value="'+(t.telefono||'')+'" onchange="talUpdateField(window._talId,\'telefono\',this.value)" placeholder="Sin tel&eacute;fono"></div>'
+    +'<div class="fg-item span2"><div class="fg-label">Direcci&oacute;n</div>'
+    +'<input class="fg-input" value="'+(t.direccion||'')+'" readonly></div>'
     +'<div class="fg-item"><div class="fg-label">Municipio</div>'
     +'<input class="fg-input" value="'+t.municipio+'" readonly></div>'
-    +'<div class="fg-item"><div class="fg-label">Tipo</div>'
+    +'<div class="fg-item"><div class="fg-label">CP</div>'
+    +'<input class="fg-input" value="'+t.cp+'" readonly></div>'
+    +'<div class="fg-item"><div class="fg-label">Tipo taller</div>'
     +'<input class="fg-input" value="'+t.tipo+'" readonly></div>'
-    +'<div class="fg-item"><div class="fg-label">\u00daltima llamada</div>'
-    +'<input class="fg-input" value="'+(st.ultimaLlamada||'\u2014')+'" readonly></div>'
     +'<div class="fg-item"><div class="fg-label">Llamadas</div>'
     +'<input class="fg-input" value="'+(st.llamadas||0)+'" readonly></div>'
-    +'</div>'
-    +'<div style="padding:10px 12px 4px;border-top:1px solid var(--bd)">'
-    +'<div style="font-size:10px;color:var(--mt);margin-bottom:6px;font-weight:600">RESULTADO DE LA LLAMADA</div>'
-    +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
-    +'<button class="btn btn-sm'+(ec==='visita'?' btn-pr':'')+'" onclick="talSetEstado(window._talId,\'visita\')">\u2713 Visita concertada</button>'
-    +'<button class="btn btn-sm'+(ec==='rellamar'?' btn-am':'')+'" onclick="talSetEstado(window._talId,\'rellamar\')">\u21ba Rellamar</button>'
-    +'<button class="btn btn-sm" onclick="talSetEstado(window._talId,\'noContesta\')">\u2014 No contesta</button>'
-    +'<button class="btn btn-sm'+(ec==='noInteresa'?' btn-rd':'')+'" onclick="talSetEstado(window._talId,\'noInteresa\')">\u00d7 No interesa</button>'
-    +'<button class="btn btn-sm" style="color:#7c3aed" onclick="talSetEstado(window._talId,\'duda\')">? Duda</button>'
-    +'</div></div>'
-    +'<div style="padding:8px 12px">'
-    +'<div class="fg-label" style="margin-bottom:4px">Notas</div>'
-    +'<textarea class="fg-input" rows="3" style="width:100%;resize:vertical" onchange="talSaveNotas(window._talId,this.value)">'+(st.notas||'')+'</textarea>'
-    +'</div></div>'
-    +'<div class="card"><div class="card-head"><div class="card-title">&#128172; Speech de apertura</div></div>'
-    +'<div style="font-size:11px;color:var(--tx);padding:8px 0;line-height:1.6;font-style:italic">&ldquo;'+sp+'&rdquo;</div>'
-    +'</div>'
-    +audioH+notasH;
+    +'<div class="fg-item span2"><div class="fg-label">&Uacute;ltima llamada</div>'
+    +'<input class="fg-input" value="'+(st.ultimaLlamada||'—')+'" readonly></div>'
+    +'<div class="fg-item span4"><div class="fg-label">Speech de apertura</div>'
+    +'<input class="fg-input" value="Le llamo porque detectamos que '+nb+' podr&iacute;a tener la potencia el&eacute;ctrica con sobrecoste. Son solo diez minutos. &iquest;Le encaja esta semana?" readonly style="font-style:italic;font-size:10px;"></div>';
+  document.getElementById('notas').value=st.notas||'';
+  // Reasignar botones de resultado al taller actual
+  var btns=document.querySelectorAll('.res-btns .rbtn');
+  var estados=['visitaOK','rellamar','noContesta','noInteresa','duda'];
+  btns.forEach(function(btn,idx){
+    if(idx<estados.length){
+      btn.onclick=(function(est){
+        return function(){
+          var talEst=est==='visitaOK'?'visita':est;
+          talSetEstado(window._talId,talEst);
+          btns.forEach(function(b){b.style.opacity='1';});
+        };
+      })(estados[idx]);
+    }
+  });
+  var clearBtn=document.querySelector('.save-bar .btn-gh');
+  if(clearBtn)clearBtn.onclick=function(){talSetEstado(window._talId,'sinLlamar');};
+  var saveBtn=document.querySelector('.save-bar .btn-pr');
+  if(saveBtn)saveBtn.onclick=function(){
+    if(!talSt[window._talId])talSt[window._talId]={};
+    talSt[window._talId].notas=document.getElementById('notas').value;
+    talSave();toast('Guardado','ok');
+  };
+  // Audio player y resumen llamada
+  var lcp=document.getElementById('last-call-panel');
+  if(lcp){
+    if(st.llamadas>0&&(st._recordingUrl||st.notas)){
+      lcp.style.display='block';
+      document.getElementById('last-call-time').textContent=st.ultimaLlamada||'';
+      var recUrl=st._recordingUrl||'';
+      if(!recUrl&&st.notas){var si=st.notas.indexOf('https://storage.vapi.ai/');if(si>-1){var ei=st.notas.indexOf('\n',si);recUrl=ei>-1?st.notas.slice(si,ei).trim():st.notas.slice(si).trim();}}
+      var summary=st.notas||'';
+      if(summary){var si2=summary.indexOf('https://storage.vapi.ai/');if(si2>-1){var ei2=summary.indexOf('\n',si2);summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();}}
+      document.getElementById('last-call-summary').textContent=summary.slice(0,400)+(summary.length>400?'...':'')
+      var audio=document.getElementById('last-call-audio');
+      if(recUrl){audio.src=recUrl;audio.style.display='block';}else{audio.style.display='none';audio.src='';}
+    }else{lcp.style.display='none';}
+  }
+  var lb=document.getElementById('llamadas-badge');
+  if(lb)lb.textContent=st.llamadas>0?'&#128222; LLAMADAS: '+st.llamadas+(st.ultimaLlamada?' · Última: '+st.ultimaLlamada:''):''
 }
 
 function talSetEstado(id,estado){
