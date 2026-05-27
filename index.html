@@ -3122,7 +3122,7 @@ async function talLlamar(id){
     +'- Si muestran inter\u00e9s, proponer visita de 10 minutos m\u00e1ximo\n'
     +'- Si piden tel\u00e9fono: seiscientos diecinueve cero doce seiscientos ochenta\n'
     +'- No insistir m\u00e1s de 2 veces si no hay inter\u00e9s\n'
-    +'- Si no est\u00e1 el responsable, preguntar cu\u00e1ndo se le puede localizar';
+    +'- Si no est\u00e1 el responsable, preguntar cu\u00e1ndo se le puede localizar\n- Si salta buz\u00f3n de voz, cuelga inmediatamente sin dejar mensaje';
   var payload={
     phoneNumberId:'0d4fe76e-760c-4cf8-8760-b291bb96aac5',
     customer:{number:phone,name:t.nombre},
@@ -3139,7 +3139,7 @@ async function talLlamar(id){
       endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
       recordingEnabled:true,
       silenceTimeoutSeconds:10,
-      endCallPhrases:['adi\u00f3s','adios','hasta luego','hasta pronto','vale gracias','muchas gracias adi\u00f3s','buenas','chao','bye']
+      endCallPhrases:['adi\u00f3s','adios','hasta luego','hasta pronto','vale gracias','muchas gracias adi\u00f3s','buenas','chao','bye','deje su mensaje','después del pitido','no está disponible','buzón de voz']
     }
   };
   try{
