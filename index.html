@@ -1054,19 +1054,27 @@ function upStats(){
   document.getElementById('snc').textContent=C.filter(c=>c.estado==='noContesta').length+_accNC;
   const dudaEl=document.getElementById('sduda');if(dudaEl)dudaEl.textContent=C.filter(c=>c.estado==='duda').length+_accDuda;
   const totalCalls=C.reduce((sum,c)=>sum+(c.llamadas||0),0)+_accCalls;
-  document.getElementById('sllamadas').textContent=totalCalls;
+  // Sumar talleres TAL
+  var _talSt3=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
+  var _talV=Object.values(_talSt3);
+  document.getElementById('sv').textContent=parseInt(document.getElementById('sv').textContent||0)+_talV.filter(function(s){return s.estado==='visita';}).length;
+  document.getElementById('sr').textContent=parseInt(document.getElementById('sr').textContent||0)+_talV.filter(function(s){return s.estado==='rellamar';}).length;
+  var _sni3=document.getElementById('sni');if(_sni3)_sni3.textContent=parseInt(_sni3.textContent||0)+_talV.filter(function(s){return s.estado==='noInteresa';}).length;
+  var _snc3=document.getElementById('snc');if(_snc3)_snc3.textContent=parseInt(_snc3.textContent||0)+_talV.filter(function(s){return s.estado==='noContesta';}).length;
+  var _sduda3=document.getElementById('sduda');if(_sduda3)_sduda3.textContent=parseInt(_sduda3.textContent||0)+_talV.filter(function(s){return s.estado==='duda';}).length;
+  document.getElementById('sllamadas').textContent=parseInt(document.getElementById('sllamadas').textContent||0)+_talV.reduce(function(s,x){return s+(x.llamadas||0);},0);
 }
 
 function setFechaHoy(){
   var t=new Date().toISOString().split('T')[0];
   document.getElementById('fecha-desde').value=t;
   document.getElementById('fecha-hasta').value=t;
-  renderList();accRenderList();
+  renderList();accRenderList();try{talRenderList();}catch(e){}
 }
 function clearFechas(){
   document.getElementById('fecha-desde').value='';
   document.getElementById('fecha-hasta').value='';
-  renderList();accRenderList();
+  renderList();accRenderList();try{talRenderList();}catch(e){}
 }
 function setF(f,el){
   curF=f;
@@ -2955,7 +2963,6 @@ function talRenderList(){
   el.querySelectorAll('.tal-item').forEach(function(item){
     item.addEventListener('click',function(){selTal(this.dataset.talid);});
   });
-  try{updateStats();}catch(e){}
 }
 
 function selTal(id){
@@ -3047,7 +3054,7 @@ function talOpen2(id){
 
 function talSetEstado(id,estado){
   if(!talSt[id])talSt[id]={};
-  talSt[id].estado=estado;talSave();talOpen2(id);talRenderList();
+  talSt[id].estado=estado;talSave();talOpen2(id);talRenderList();upStats();
   toast('Estado actualizado','ok');
 }
 function talSaveNotas(id,val){if(!talSt[id])talSt[id]={};talSt[id].notas=val;talSave();}
@@ -3159,21 +3166,7 @@ window.selMob=function(id,el){
   if(_smTal)_smTal(id,el);
 };
 
-var _us2=window.updateStats;
-window.updateStats=function(){
-  if(_us2)_us2();
-  try{
-    var ts=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
-    var sv=document.getElementById('sv'),sr=document.getElementById('sr'),snc=document.getElementById('snc'),sni=document.getElementById('sni'),sduda=document.getElementById('sduda'),sl=document.getElementById('sllamadas');
-    var vv=Object.values(ts);
-    if(sv)sv.textContent=parseInt(sv.textContent||0)+vv.filter(function(s){return s.estado==='visita';}).length;
-    if(sr)sr.textContent=parseInt(sr.textContent||0)+vv.filter(function(s){return s.estado==='rellamar';}).length;
-    if(snc)snc.textContent=parseInt(snc.textContent||0)+vv.filter(function(s){return s.estado==='noContesta';}).length;
-    if(sni)sni.textContent=parseInt(sni.textContent||0)+vv.filter(function(s){return s.estado==='noInteresa';}).length;
-    if(sduda)sduda.textContent=parseInt(sduda.textContent||0)+vv.filter(function(s){return s.estado==='duda';}).length;
-    if(sl)sl.textContent=parseInt(sl.textContent||0)+vv.reduce(function(s,x){return s+(x.llamadas||0);},0);
-  }catch(e){}
-};
+
 
 (function t(){var l=document.getElementById('tal-list');if(l){talRenderList();}else{setTimeout(t,300);}})();
 
