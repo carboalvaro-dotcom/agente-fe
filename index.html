@@ -1515,6 +1515,16 @@ async function stopCall(){
 function endCall(contactId, reason){
   clearInterval(iv);
   document.getElementById('cban').classList.remove('on');
+  // Si es taller, cerrar y actualizar estado
+  if(typeof contactId==='string'&&contactId.startsWith('TAL:')){
+    var talId3=contactId.substring(4);
+    if(!talSt[talId3])talSt[talId3]={};
+    if(reason&&reason!=='pendiente'&&talResultMap2[reason])talSt[talId3].estado=talResultMap2[reason];
+    talSave();talRenderList();upStats();
+    if(talSel===talId3)talOpen2(talId3);
+    return;
+  }
+  var talResultMap2={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
   const c=C.find(x=>x.id===contactId);
   if(!c) return;
   if(c.estado==='llamando'){
@@ -1939,6 +1949,29 @@ async function waitForCallEnd(callId,contactId){
 }
 
 function applyCallResult(data,callId,contactId){
+  // Handle TAL taller results
+  if(typeof contactId==='string'&&contactId.startsWith('TAL:')){
+    var talId2=contactId.substring(4);
+    if(!talSt[talId2])talSt[talId2]={};
+    talSt[talId2]._callId=callId;
+    if(data.recordingUrl)talSt[talId2]._recordingUrl=data.recordingUrl;
+    if(data.notas){
+      var talEx=talSt[talId2].notas||'';
+      var talEntries=talEx?talEx.split(/\n(?=\uD83D\uDCDE)/):[]; 
+      var talFiltered=talEntries.filter(function(e){return !e.includes(callId.substring(0,18));});
+      talFiltered.push(data.notas);
+      talSt[talId2].notas=talFiltered.join('\n\n');
+    }
+    var talResultMap={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
+    if(data.resultado&&talResultMap[data.resultado])talSt[talId2].estado=talResultMap[data.resultado];
+    talSave();
+    clearInterval(iv);
+    document.getElementById('cban').classList.remove('on');
+    if(talSel===talId2)talOpen2(talId2);else talRenderList();
+    upStats();
+    toast('\u2713 '+TAL.talleres.find(function(x){return x.id===talId2;})?.nombre+' \u2014 analizado','ok');
+    return;
+  }
   // Handle ACC admin results
   if(typeof contactId==='string'&&contactId.startsWith('ACC:')){
     var accId=contactId.substring(4);
