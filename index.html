@@ -3055,32 +3055,74 @@ function talUpdateField(id,field,val){var t=TAL.talleres.find(function(x){return
 
 async function talLlamar(id){
   var t=TAL.talleres.find(function(x){return x.id===id;});
-  if(!t||!t.telefono){toast('Sin tel\u00e9fono','err');return;}
+  if(!t||!t.telefono){toast('Sin teléfono','err');return;}
+  var phone='+34'+t.telefono.replace(/\D/g,'');
+  var nb=t.nombre.replace(/S\.L\.L?\.?|S\.A\.U?\.?|S\.L\.U?\.?|S\.A?\.?|C\.B\.?/gi,'').trim();
   if(!talSt[id])talSt[id]={};
   talSt[id].llamadas=(talSt[id].llamadas||0)+1;
-  talSt[id].ultimaLlamada=new Date().toLocaleString('es-ES');
+  talSt[id].ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
   talSave();talOpen2(id);talRenderList();
+  // Banner de llamada
+  var cbanName=document.getElementById('cban-name');
+  if(cbanName)cbanName.textContent='\uD83D\uDCDE '+t.nombre;
+  document.getElementById('cban').classList.add('on');
+  sec=0;clearInterval(iv);
+  iv=setInterval(function(){sec++;var m=Math.floor(sec/60),s=sec%60;document.getElementById('ctm').textContent=m+':'+(s<10?'0':'')+s;},1000);
+  var systemPrompt='Eres CARLA, asistente telef\u00f3nica de una asesor\u00eda energ\u00e9tica.\n\n'
+    +'DATOS DEL TALLER:\n'
+    +'- Empresa: '+t.nombre+'\n'
+    +'- Tipo: '+t.tipo+'\n'
+    +'- Municipio: '+t.municipio+' ('+t.cp+')\n'
+    +'- Tel\u00e9fono: '+t.telefono+'\n\n'
+    +'OBJETIVO: Concertar una visita de 10 minutos m\u00e1ximo para revisar su factura el\u00e9ctrica.\n\n'
+    +'SPEECH DE APERTURA:\n'
+    +nb+' podr\u00eda tener la potencia el\u00e9ctrica contratada con sobrecoste en la factura de luz. Son solo diez minutos de revisi\u00f3n. \u00bfLe encaja esta semana por la ma\u00f1ana?\n\n'
+    +'INSTRUCCIONES:\n'
+    +'- Habla SIEMPRE en castellano espa\u00f1ol, trato de usted\n'
+    +'- Si muestran inter\u00e9s, proponer visita de 10 minutos m\u00e1ximo\n'
+    +'- Si piden tel\u00e9fono: seiscientos diecinueve cero doce seiscientos ochenta\n'
+    +'- No insistir m\u00e1s de 2 veces si no hay inter\u00e9s\n'
+    +'- Si no est\u00e1 el responsable, preguntar cu\u00e1ndo se le puede localizar';
+  var payload={
+    phoneNumberId:'0d4fe76e-760c-4cf8-8760-b291bb96aac5',
+    customer:{number:phone,name:t.nombre},
+    assistant:{
+      name:'CARLA - Factor Energia',
+      firstMessageMode:'assistant-speaks-first',
+      startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},
+      stopSpeakingPlan:{numWords:2,voiceSeconds:0.1,backoffSeconds:1},
+      firstMessage:'Buenos d\u00edas, \u00bfhablo con '+nb+'?',
+      model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,
+        messages:[{role:'system',content:systemPrompt}]},
+      voice:{provider:'11labs',voiceId:'uQw4jpKzMLrZuo0RLPS9',model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8},
+      transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
+      endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
+      recordingEnabled:true,
+      silenceTimeoutSeconds:10,
+      endCallPhrases:['adi\u00f3s','adios','hasta luego','hasta pronto','vale gracias','muchas gracias adi\u00f3s','buenas','chao','bye']
+    }
+  };
   try{
-    var r=await fetch('https://api.vapi.ai/call/phone',{
+    var r=await fetch('https://api.vapi.ai/call',{
       method:'POST',
-      headers:{'Authorization':'Bearer '+VAPI_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({
-        phoneNumberId:'0d4fe76e-760c-4cf8-8760-b291bb96aac5',
-        customer:{number:'+34'+t.telefono.replace(/\D/g,'')},
-        assistantId:'c1c87d1a-3492-47a3-b99b-95e27d17e638',
-        assistantOverrides:{
-          firstMessage:'Buenos d\u00edas, \u00bfhablo con '+t.nombre.replace(/S\.L\.L?\.?|S\.A\.U?\.?|S\.L\.U?\.?|S\.A?\.?|C\.B\.?/gi,'').trim()+'?',
-          model:{provider:'openai',model:'gpt-4o',messages:[{role:'system',content:'Eres CARLA de Factor Energ\u00eda. Llamas a '+t.nombre+', taller de tipo '+t.tipo+' en '+t.municipio+'. Objetivo: visita 10 minutos. Apertura: '+t.nombre.replace(/S\.L\.L?\.?|S\.A?\.?/gi,'').trim()+' podr\u00eda tener potencia el\u00e9ctrica con sobrecoste. Son solo 10 minutos. REGLAS: habla de usted, no insistir m\u00e1s de 2 veces, tel contacto: seiscientos diecinueve cero doce seiscientos ochenta.'}]}
-        }
-      })
+      headers:{Authorization:'Bearer '+VAPI_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
     });
     var rd=await r.json();
     if(rd.id){
       talSt[id]._callId=rd.id;talSave();
-      toast('&#128222; Llamando a '+t.nombre,'ok');
+      toast('\uD83D\uDCDE Llamando a '+t.nombre,'ok');
       setTimeout(function(){talFetchResult(rd.id,id);},12000);
-    }else{toast('Error al llamar','err');}
-  }catch(e){toast('Error: '+e.message,'err');}
+    }else{
+      document.getElementById('cban').classList.remove('on');
+      clearInterval(iv);
+      toast('Error al llamar: '+(rd.message||JSON.stringify(rd)),'err');
+    }
+  }catch(e){
+    document.getElementById('cban').classList.remove('on');
+    clearInterval(iv);
+    toast('Error: '+e.message,'err');
+  }
 }
 
 async function talFetchResult(callId,talId,attempt){
