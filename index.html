@@ -1078,7 +1078,7 @@ function clearFechas(){
 }
 function setF(f,el){
   curF=f;
-  accRenderList();
+  accRenderList();try{talRenderList();}catch(e){}
   document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('on'));
   if(el){el.classList.add('on');}
   else{
@@ -1964,6 +1964,8 @@ function applyCallResult(data,callId,contactId){
     }
     var talResultMap={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
     if(data.resultado&&talResultMap[data.resultado])talSt[talId2].estado=talResultMap[data.resultado];
+    var _agN=['carla','carlos'];
+    if(data.nombreContacto&&!talSt[talId2].contacto&&!_agN.includes((data.nombreContacto||'').toLowerCase()))talSt[talId2].contacto=data.nombreContacto;
     talSave();
     clearInterval(iv);
     document.getElementById('cban').classList.remove('on');
@@ -3034,7 +3036,9 @@ function talOpen2(id){
   var bcall=document.getElementById('bcall');
   if(bcall){bcall.onclick=function(){talLlamar(window._talId);};bcall.style.display=t.telefono?'':' none';}
   document.getElementById('ficha-grid').innerHTML=
-    '<div class="fg-item span2"><div class="fg-label">Tel&eacute;fono</div>'
+    '<div class="fg-item span4"><div class="fg-label">Nombre contacto</div>'
+    +'<input class="fg-input" id="tal-contacto-cur" value="'+(st.contacto||'')+'" placeholder="Nombre de quien coge el tel\u00e9fono" onchange="talSaveContacto(window._talId,this.value)"></div>'
+    +'<div class="fg-item span2"><div class="fg-label">Tel&eacute;fono</div>'
     +'<input class="fg-input" value="'+(t.telefono||'')+'" onchange="talUpdateField(window._talId,\'telefono\',this.value)" placeholder="Sin tel&eacute;fono"></div>'
     +'<div class="fg-item span2"><div class="fg-label">Direcci&oacute;n</div>'
     +'<input class="fg-input" value="'+(t.direccion||'')+'" readonly></div>'
@@ -3098,6 +3102,7 @@ function talSetEstado(id,estado){
   toast('Estado actualizado','ok');
 }
 function talSaveNotas(id,val){if(!talSt[id])talSt[id]={};talSt[id].notas=val;talSave();}
+function talSaveContacto(id,val){if(!talSt[id])talSt[id]={};talSt[id].contacto=val;talSave();}
 function talUpdateField(id,field,val){var t=TAL.talleres.find(function(x){return x.id===id;});if(t)t[field]=val;}
 
 async function talLlamar(id){
@@ -3115,7 +3120,7 @@ async function talLlamar(id){
   document.getElementById('cban').classList.add('on');
   sec=0;clearInterval(iv);
   iv=setInterval(function(){sec++;var m=Math.floor(sec/60),s=sec%60;document.getElementById('ctm').textContent=m+':'+(s<10?'0':'')+s;},1000);
-  var systemPrompt='Eres CARLA, asistente telef\u00f3nica de una asesor\u00eda energ\u00e9tica.\n\n'
+  var systemPrompt='Eres CARLA, asistente telef\u00f3nica de empresa de revisi\u00f3n energ\u00e9tica.\n\n'
     +'DATOS DEL TALLER:\n'
     +'- Empresa: '+t.nombre+'\n'
     +'- Tipo: '+t.tipo+'\n'
