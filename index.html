@@ -3045,6 +3045,13 @@ function selTal(id){
   det.classList.add('vis');
   if(typeof openMobileDet==='function')openMobileDet();
   talOpen2(id);
+  // En mobile: mostrar el panel derecho
+  var rp=document.querySelector('.rp');
+  var lp2=document.querySelector('.lp');
+  if(rp&&window.innerWidth<=768){
+    if(lp2)lp2.style.display='none';
+    rp.style.display='flex';
+  }
   talRenderList();
 }
 
