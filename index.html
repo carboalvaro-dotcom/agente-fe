@@ -1164,7 +1164,7 @@ function renderList(){
         <div class="ci-r1"><div class="ci-name">${c.nombre}</div>
           <div class="ci-badges">${pro?'<span class="badge b-pro">PRO</span>':''}${c.prioritario&&!pro?'<span class="badge b-prio">⚡</span>':''}<span class="sdot ${c.estado}"></span></div>
         </div>
-        <div class="ci-r2"><span class="ci-tel">${c.telefono}</span>${c.llamadas>0?'<span class="ci-kw" style="background:var(--acl);color:var(--ac)">📞'+c.llamadas+'</span>':''}${c.llamadas>0&&c.ultimaLlamada?'<span style="font-size:10px;color:var(--mt);margin-left:4px;">'+c.ultimaLlamada+'</span>':''}</div>
+        <div class="ci-r2"><span class="ci-tel">${c.telefono}</span>${c.llamadas>0?'<span class="ci-kw" style="background:var(--acl);color:var(--ac)">'+(c.llamadas)+'x</span>':''}</div>${c.llamadas>0&&c.ultimaLlamada?'<div style="font-size:9px;color:var(--ac);margin-top:1px;font-family:var(--mo)">📞 '+c.llamadas+'x  '+c.ultimaLlamada.split(',')[0]+'</div>':''}
       </div>${isMob?`
       <div class="ci-accordion${isOpen?' open':''}" id="acc_${c.id}">
         <div class="ci-accordion-inner">
@@ -2643,8 +2643,9 @@ function accRenderList(){
       +'<div class="acc-ai-r1"><div class="acc-admin-name">'+a.nombre+(a.tipo==='empresa'?' <span style=\"font-size:8px;background:#e8f4fd;color:#1a6a9a;padding:1px 4px;border-radius:3px;font-weight:600;vertical-align:middle\">EMP</span>':(a.tipo==='aragon'?' <span style=\"font-size:8px;background:#fef3c7;color:#92400e;padding:1px 4px;border-radius:3px;font-weight:600;vertical-align:middle\">ARA</span>':' <span style=\"font-size:8px;background:#e8f7ef;color:#1a7a47;padding:1px 4px;border-radius:3px;font-weight:600;vertical-align:middle\">CCPP</span>'))+'</div>'
       +'<div class="acc-admin-cups">'+a.totalCups+' cttos</div></div>'
       +'<div class="acc-ai-r2"><span class="acc-admin-meta">'+a.zona+'</span>'
-      +(st.llamadas>0?'&nbsp;<span class="ci-kw">☎️'+st.llamadas+'</span>&nbsp;<span class="ci-kw">'+st.ultimaLlamada+'</span>':'')
-      +'</div></div>';
+      +(st.llamadas>0?'&nbsp;<span class="ci-kw">☎️'+st.llamadas+'</span>':'')
+      +(st.ultimaLlamada?'<div style="font-size:9px;color:var(--ac);margin-top:1px;font-family:var(--mo)">' + '📞 ' + (st.llamadas>0?st.llamadas+'x  ':'')+st.ultimaLlamada.split(',')[0]+'</div>':'')
+      +'</div>';
   }).join('');
 }
 
@@ -2980,7 +2981,9 @@ function talRenderList(){
     if(tipoF&&!t.tipo.includes(tipoF))return false;
     if(dD||dH){
       var ul=(talSt[t.id]||{}).ultimaLlamada||'';if(!ul)return false;
-      var p=ul.split(/[/,: ]/),cd=p[2]+'-'+p[1]+'-'+p[0];
+      var _pcd=typeof parseCallDate==='function'?parseCallDate(ul):null;
+      if(!_pcd)return false;
+      var cd=_pcd.toISOString().split('T')[0];
       if(dD&&cd<dD)return false;if(dH&&cd>dH)return false;
     }
     var st2=(talSt[t.id]||{}).estado||'sinLlamar';
