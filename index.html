@@ -1486,7 +1486,7 @@ async function callViaProxy(phone,c){
       endCallPhrases:['adiós','adios','hasta luego','hasta pronto','vale gracias','muchas gracias adiós','hasta el jueves','hasta mañana','que tenga un buen día','hasta entonces','hasta el lunes','hasta el martes','hasta el miércoles','hasta el viernes','buen día','buenas','chao','chau','bye']
     }
   };
-  const r=await fetch('https://api.vapi.ai/call',{
+  const r=await fetch('https://api.vapi.ai/call/phone',{
     method:'POST',
     headers:{Authorization:'Bearer '+VAPI_KEY,'Content-Type':'application/json'},
     body:JSON.stringify(payload)
@@ -2833,7 +2833,7 @@ async function accLlamar(id){
   };
   try{
     console.log('[ACC] Llamando a Vapi, phone:', phone, 'admin:', a.nombre);
-    var r=await fetch('https://api.vapi.ai/call',{
+    var r=await fetch('https://api.vapi.ai/call/phone',{
       method:'POST',
       headers:{Authorization:'Bearer '+VAPI_KEY,'Content-Type':'application/json'},
       body:JSON.stringify(payload)
@@ -3201,7 +3201,7 @@ async function talLlamar(id){
     }
   };
   try{
-    var r=await fetch('https://api.vapi.ai/call',{
+    var r=await fetch('https://api.vapi.ai/call/phone',{
       method:'POST',
       headers:{Authorization:'Bearer '+VAPI_KEY,'Content-Type':'application/json'},
       body:JSON.stringify(payload)
