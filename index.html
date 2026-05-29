@@ -300,6 +300,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
       <option value="ACC">&#127970; Administradores (todos)</option>
       <option value="ACC-aragon">&#127963; Arag&#243;n</option>
       <option value="TAL">&#128295; Talleres (todos)</option>
+      <option value="SUP">&#127890; Supermercados (todos)</option>
       <option value="08390" style="color:#000">08390 Montgat</option>
       <option value="08391" style="color:#000">08391 Tiana</option>
       <option value="08329" style="color:#000">08329 Teià</option>
@@ -1926,6 +1927,20 @@ async function runNextCampaignCall(){
     }
     runNextCampaignCall();
     return;
+  }
+  else if(cpFilter==='SUP'){
+    var supStData=JSON.parse(localStorage.getItem('fe_sup_v1')||'{}');
+    var supers=typeof SUP!=='undefined'&&SUP.supers?SUP.supers:[];
+    var filterMapSup={nuevos:'sinLlamar',rellamar:'rellamar',duda:'duda',noContesta:'noContesta',todos:null,pendiente:null};
+    var estadoFilterSup=filterMapSup[filter];
+    var supFiltered=supers.filter(function(s){
+      if(!s.telefono)return false;
+      var st=(supStData[s.id]||{estado:'sinLlamar'}).estado;
+      if(filter==='nuevos') return st==='sinLlamar';
+      if(filter==='todos'||filter==='pendiente') return st!=='visita'&&st!=='noInteresa';
+      return st===estadoFilterSup;
+    });
+    return supFiltered.map(function(s){return 'SUP:'+s.id;});
   }
   // === SUP supermercado call ===
   if(typeof id==='string'&&id.startsWith('SUP:')){
