@@ -1830,6 +1830,21 @@ function getCampaignOrder(){
     });
     return talFiltered.map(function(t){return 'TAL:'+t.id;});
   }
+  if(cpFilter==='SUP'){
+    var supStData=JSON.parse(localStorage.getItem('fe_sup_v1')||'{}');
+    var supers=typeof SUP!=='undefined'&&SUP.supers?SUP.supers:[];
+    var supFiltered=supers.filter(function(s){
+      if(!s.telefono)return false;
+      var st=(supStData[s.id]||{estado:'sinLlamar'}).estado;
+      if(filter==='nuevos') return st==='sinLlamar';
+      if(filter==='todos'||filter==='pendiente') return st!=='visita'&&st!=='noInteresa';
+      if(filter==='rellamar') return st==='rellamar';
+      if(filter==='duda') return st==='duda';
+      if(filter==='noContesta') return st==='noContesta';
+      return false;
+    });
+    return supFiltered.map(function(s){return 'SUP:'+s.id;});
+  }
   let base=C.filter(c=>c.nif!=='AMIGO'&&c.nif!=='TEST'&&(!cpFilter||c.cp===cpFilter)&&c.telefono&&c.telefono.length>=9);
   if(filter==='nuevos') base=base.filter(c=>c.estado==='pendiente'&&(c.llamadas||0)===0);
   else if(filter==='todos') base=base.filter(c=>c.estado==='pendiente');
