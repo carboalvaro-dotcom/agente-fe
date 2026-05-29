@@ -3517,7 +3517,7 @@ function supOpen2(id){
   // Reasignar botones de resultado al taller actual
   var btns=document.querySelectorAll('.res-btns .rbtn');
   var estados=['visitaOK','rellamar','noContesta','noInteresa','duda'];
-  btns.forEach(function(btn,idx){
+  try{btns.forEach(function(btn,idx){
     if(idx<estados.length){
       btn.onclick=(function(est){
         return function(){
@@ -3527,15 +3527,16 @@ function supOpen2(id){
         };
       })(estados[idx]);
     }
-  });
-  var clearBtn=document.querySelector('.save-bar .btn-gh');
-  if(clearBtn)clearBtn.onclick=function(){supSetEstado(window._supId,'sinLlamar');};
-  var saveBtn=document.querySelector('.save-bar .btn-pr');
-  if(saveBtn)saveBtn.onclick=function(){
-    if(!supSt[window._supId])supSt[window._supId]={};
-    supSt[window._supId].notas=document.getElementById('notas').value;
-    supSave();toast('Guardado','ok');
-  };
+  });}catch(e){}
+  try{var clearBtn=document.querySelector('.save-bar .btn-gh');if(clearBtn)clearBtn.onclick=function(){supSetEstado(window._supId,'sinLlamar');};}catch(e){}
+  try{
+    var saveBtn=document.querySelector('.save-bar .btn-pr');
+    if(saveBtn)saveBtn.onclick=function(){
+      if(!supSt[window._supId])supSt[window._supId]={};
+      supSt[window._supId].notas=document.getElementById('notas').value;
+      supSave();toast('Guardado','ok');
+    };
+  }catch(e){}
   // Audio player y resumen llamada
   var lcp=document.getElementById('last-call-panel');
   if(lcp){
@@ -3572,7 +3573,7 @@ async function supLlamar(id){
   if(!supSt[id])supSt[id]={};
   supSt[id].llamadas=(supSt[id].llamadas||0)+1;
   supSt[id].ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-  supSave();supOpen2(id);supRenderList();
+  supSave();try{supOpen2(id);}catch(e){}try{supRenderList();}catch(e){}
   // Banner de llamada
   var cbanName=document.getElementById('cban-name');
   if(cbanName)cbanName.textContent='\uD83D\uDCDE '+t.nombre;
