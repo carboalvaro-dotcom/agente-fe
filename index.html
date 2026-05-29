@@ -3660,16 +3660,19 @@ async function supFetchResult(callId,talId,attempt){
       if(!supSt[talId].estado||supSt[talId].estado==='sinLlamar')supSt[talId].estado='noContesta';
     }
     supSave();
+    window._supActiveCallId=null;window._supActiveId=null;
+    clearInterval(iv);document.getElementById('cban').classList.remove('on');
     if(supSel===talId)supOpen2(talId);else supRenderList();
+    upStats();
     toast('\u2713 Llamada supermercado grabada','ok');
-    fetchCallNotes(callId,'SUP:'+supId);
+    fetchCallNotes(callId,'SUP:'+talId);
   }catch(e){setTimeout(function(){supFetchResult(callId,talId,attempt+1);},5000);}
 }
 
 var _smSup=window.selMob;
 window.selMob=function(id,el){
   if(supSel){var fw=document.getElementById('acc-ficha-wrap');if(fw)fw.style.display='none';supSel=null;}
-  if(_smSup)_smTal(id,el);
+  if(_smSup)_smSup(id,el);
 };
 
 
