@@ -3432,7 +3432,7 @@ function supRenderList(){
       +(_talV>0?' <span style="color:var(--gr);font-size:9px">• '+_talV+' ✓</span>':'');
   }
   var stLbl={sinLlamar:'Sin llamar',visita:'\u2713 Visita',rellamar:'\u21ba Rellamar',noContesta:'\u2014 No contesta',noInteresa:'\u00d7 No interesa',pendiente:'\u25cf Pendiente',duda:'? Duda'};
-  var tipoIcon={'Mec\u00e1nico':'\uD83D\uDD29','Chapa/Pintura':'\uD83C\uDFA8','Neum\u00e1ticos':'\u26AB','ITV':'\uD83D\uDCCB','Lavado':'\uD83D\uDEBF'};
+  var cadenaIcon={'Makro':'\uD83C\uDFEC','Alcampo':'\uD83C\uDFEC','Sorli':'\uD83D\uDED2','Condis':'\uD83D\uDED2','Caprabo':'\uD83D\uDED2','Lidl':'\uD83D\uDED2','ALDI':'\uD83D\uDED2','Carrefour':'\uD83D\uDED2','DIA':'\uD83D\uDED2','bonArea':'\uD83D\uDED2','SPAR':'\uD83D\uDED2','Ametller':'\uD83C\uDF31','SUMA':'\uD83D\uDED2','Lifemart':'\uD83D\uDED2','Coviran':'\uD83D\uDED2','PrimaPrix':'\uD83D\uDED2','Coaliment':'\uD83D\uDED2'};
   el.innerHTML=filtered.map(function(t){
     var st=supSt[t.id]||{},ec=st.estado||'sinLlamar';
     var ic=cadenaIcon[t.cadena]||'\uD83D\uDD27';
