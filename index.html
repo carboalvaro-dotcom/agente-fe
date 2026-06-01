@@ -2077,7 +2077,7 @@ function applyCallResult(data,callId,contactId){
     clearInterval(iv);
     document.getElementById('cban').classList.remove('on');
     if(talSel===talId2)talOpen2(talId2);else talRenderList();
-    upStats();
+    upStats();updateCampLiveStats();
     toast('\u2713 '+TAL.talleres.find(function(x){return x.id===talId2;})?.nombre+' \u2014 analizado','ok');
     return;
   }
@@ -2351,12 +2351,21 @@ function updateCampLiveStats(){
   const ni=document.getElementById('cls-ni');
   const du=document.getElementById('cls-du');
   const tot=document.getElementById('cls-tot');
-  if(v) v.textContent='\u2713 '+done.filter(function(c){return c.estado===visitaKey;}).length;
-  if(r) r.textContent='\u21ba '+done.filter(function(c){return c.estado==='rellamar';}).length;
-  if(nc) nc.textContent='\u2014 '+done.filter(function(c){return c.estado==='noContesta';}).length;
-  if(ni) ni.textContent='\u2717 '+done.filter(function(c){return c.estado==='noInteresa';}).length;
-  if(du) du.textContent='? '+done.filter(function(c){return c.estado==='duda';}).length;
-  if(tot) tot.textContent='Total: '+done.length;
+  // Leer estado actualizado directamente del localStorage
+  var _storeKey=accMode?'fe_acc_v1':talMode?'fe_tal_v1':supMode?'fe_sup_v1':null;
+  var _storeData=_storeKey?JSON.parse(localStorage.getItem(_storeKey)||'{}'):null;
+  var _ids=campaignQueue.slice(0,campaignIdx).map(function(id){
+    return (accMode||talMode||supMode)?id.substring(4):id;
+  });
+  var _all=_storeData?_ids.map(function(id){return _storeData[id]||{estado:'sinLlamar'};}):
+    _ids.map(function(id){return C.find(function(x){return x.id===id;})||{estado:'sinLlamar'};});
+  var _vk=visitaKey;
+  if(v) v.textContent='\u2713 '+_all.filter(function(c){return c.estado===_vk;}).length;
+  if(r) r.textContent='\u21ba '+_all.filter(function(c){return c.estado==='rellamar';}).length;
+  if(nc) nc.textContent='\u2014 '+_all.filter(function(c){return c.estado==='noContesta';}).length;
+  if(ni) ni.textContent='\u2717 '+_all.filter(function(c){return c.estado==='noInteresa';}).length;
+  if(du) du.textContent='? '+_all.filter(function(c){return c.estado==='duda';}).length;
+  if(tot) tot.textContent='Total: '+_ids.length+' / '+campaignQueue.length;
 }
 
 async function syncToGitHub(data){
