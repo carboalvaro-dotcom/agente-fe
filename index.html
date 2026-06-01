@@ -2351,21 +2351,27 @@ function updateCampLiveStats(){
   const ni=document.getElementById('cls-ni');
   const du=document.getElementById('cls-du');
   const tot=document.getElementById('cls-tot');
-  // Leer estado actualizado directamente del localStorage
+  // Contar desde localStorage todos los IDs de la campaña que ya tienen estado
   var _storeKey=accMode?'fe_acc_v1':talMode?'fe_tal_v1':supMode?'fe_sup_v1':null;
   var _storeData=_storeKey?JSON.parse(localStorage.getItem(_storeKey)||'{}'):null;
-  var _ids=campaignQueue.slice(0,campaignIdx).map(function(id){
+  // Todos los IDs de la campaña
+  var _allIds=campaignQueue.map(function(id){
     return (accMode||talMode||supMode)?id.substring(4):id;
   });
-  var _all=_storeData?_ids.map(function(id){return _storeData[id]||{estado:'sinLlamar'};}):
-    _ids.map(function(id){return C.find(function(x){return x.id===id;})||{estado:'sinLlamar'};});
+  // Los que ya tienen llamadas (han sido procesados)
+  var _called;
+  if(_storeData){
+    _called=_allIds.map(function(id){return _storeData[id]||null;}).filter(function(s){return s&&s.llamadas>0;});
+  } else {
+    _called=_allIds.map(function(id){return C.find(function(x){return x.id===id;});}).filter(function(c){return c&&(c.llamadas||0)>0;});
+  }
   var _vk=visitaKey;
-  if(v) v.textContent='\u2713 '+_all.filter(function(c){return c.estado===_vk;}).length;
-  if(r) r.textContent='\u21ba '+_all.filter(function(c){return c.estado==='rellamar';}).length;
-  if(nc) nc.textContent='\u2014 '+_all.filter(function(c){return c.estado==='noContesta';}).length;
-  if(ni) ni.textContent='\u2717 '+_all.filter(function(c){return c.estado==='noInteresa';}).length;
-  if(du) du.textContent='? '+_all.filter(function(c){return c.estado==='duda';}).length;
-  if(tot) tot.textContent='Total: '+_ids.length+' / '+campaignQueue.length;
+  if(v) v.textContent='\u2713 '+_called.filter(function(c){return c.estado===_vk;}).length;
+  if(r) r.textContent='\u21ba '+_called.filter(function(c){return c.estado==='rellamar';}).length;
+  if(nc) nc.textContent='\u2014 '+_called.filter(function(c){return c.estado==='noContesta';}).length;
+  if(ni) ni.textContent='\u2717 '+_called.filter(function(c){return c.estado==='noInteresa';}).length;
+  if(du) du.textContent='? '+_called.filter(function(c){return c.estado==='duda';}).length;
+  if(tot) tot.textContent='Total: '+_called.length+' / '+campaignQueue.length;
 }
 
 async function syncToGitHub(data){
