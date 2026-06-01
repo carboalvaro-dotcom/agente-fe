@@ -301,6 +301,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
       <option value="ACC-aragon">&#127963; Arag&#243;n</option>
       <option value="TAL">&#128295; Talleres (todos)</option>
       <option value="SUP">&#127890; Supermercados (todos)</option>
+            <option value="DEN">&#129463; Clínicas Dentales (todas)</option>
       <option value="08390" style="color:#000">08390 Montgat</option>
       <option value="08391" style="color:#000">08391 Tiana</option>
       <option value="08329" style="color:#000">08329 Teià</option>
@@ -367,7 +368,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
   <div class="lp">
     <div class="lp-top">
       <button id="btn-compact" onclick="toggleCompact()" title="Vista compacta / normal" style="background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:11px;color:var(--mt);flex-shrink:0;font-weight:500" aria-label="Vista compacta">Vista</button>
-      <input class="lp-search" type="text" id="sq" placeholder="🔍  Buscar empresa, calle, sector..." oninput="renderList();accRenderList();try{talRenderList();}catch(e){}try{supRenderList();}catch(e){};">
+      <input class="lp-search" type="text" id="sq" placeholder="🔍  Buscar empresa, calle, sector..." oninput="renderList();accRenderList();try{talRenderList();}catch(e){}try{supRenderList();}catch(e){}try{denRenderList();}catch(e){};">
       <div class="lp-filters">
         <button class="ftab on" onclick="setF('todos',this)">Todos</button>
         <button class="ftab" onclick="setF('prioritario',this)">⚡ PRO</button>
@@ -491,6 +492,31 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
       </select>
     </div>
     <div id="sup-list"></div>
+  </div>
+  <div class="acc-section" id="den-section">
+    <div class="acc-header" onclick="denToggle()">
+      <span class="acc-title">&#129463; Clinicas Dentales</span>
+      <span class="acc-count" id="den-hdr-count"></span>
+    </div>
+    <div style="padding:5px 10px 6px;border-bottom:1px solid var(--bd);background:var(--s1);">
+      <select id="den-muni-filter" onchange="denRenderList()" style="width:100%;font-size:11px;padding:3px 6px;border:1px solid var(--bd);border-radius:4px;background:var(--s0);color:var(--tx);">
+        <option value="">Todos los municipios</option>
+        <option value="Badalona">Badalona</option>
+        <option value="Montgat">Montgat</option>
+        <option value="El Masnou">El Masnou</option>
+        <option value="Alella">Alella</option>
+        <option value="Premia de Mar">Premia de Mar</option>
+        <option value="Premia de Dalt">Premia de Dalt</option>
+        <option value="Argentona">Argentona</option>
+        <option value="Arenys de Mar">Arenys de Mar</option>
+        <option value="Mataro">Mataro</option>
+        <option value="Vilassar de Mar">Vilassar de Mar</option>
+        <option value="Vilassar de Dalt">Vilassar de Dalt</option>
+        <option value="Sant Andreu de Llavaneres">Sant Andreu de Llavaneres</option>
+        <option value="Sant Adria del Besos">Sant Adria del Besos</option>
+      </select>
+    </div>
+    <div id="den-list"></div>
   </div>
   </div>
   <div class="rp">
@@ -1115,17 +1141,23 @@ function upStats(){
   var _sni4=document.getElementById('sni');if(_sni4)_sni4.textContent=parseInt(_sni4.textContent||0)+_supV4.filter(function(s){return s.estado==='noInteresa';}).length;
   var _sd4=document.getElementById('sduda');if(_sd4)_sd4.textContent=parseInt(_sd4.textContent||0)+_supV4.filter(function(s){return s.estado==='duda';}).length;
   document.getElementById('sllamadas').textContent=parseInt(document.getElementById('sllamadas').textContent||0)+_supV4.reduce(function(s,x){return s+(x.llamadas||0);},0);
+  // DEN
+  var _denSt4=JSON.parse(localStorage.getItem('fe_den_v1')||'{}');
+  var _denV4=Object.values(_denSt4);
+  document.getElementById('sv').textContent=parseInt(document.getElementById('sv').textContent||0)+_denV4.filter(function(s){return s.estado==='visita';}).length;
+  document.getElementById('sr').textContent=parseInt(document.getElementById('sr').textContent||0)+_denV4.filter(function(s){return s.estado==='rellamar';}).length;
+  document.getElementById('sllamadas').textContent=parseInt(document.getElementById('sllamadas').textContent||0)+_denV4.reduce(function(s,x){return s+(x.llamadas||0);},0);
 
 function setFechaHoy(){
   var t=new Date().toISOString().split('T')[0];
   document.getElementById('fecha-desde').value=t;
   document.getElementById('fecha-hasta').value=t;
-  renderList();accRenderList();try{talRenderList();}catch(e){}try{supRenderList();}catch(e){}
+  renderList();accRenderList();try{talRenderList();}catch(e){}try{supRenderList();}catch(e){}try{denRenderList();}catch(e){}
 }
 function clearFechas(){
   document.getElementById('fecha-desde').value='';
   document.getElementById('fecha-hasta').value='';
-  renderList();accRenderList();try{talRenderList();}catch(e){}try{supRenderList();}catch(e){}
+  renderList();accRenderList();try{talRenderList();}catch(e){}try{supRenderList();}catch(e){}try{denRenderList();}catch(e){}
 }
 var _compact=localStorage.getItem('fe_compact')==='1';
 // compact init via setTimeout after render
@@ -1142,7 +1174,7 @@ function toggleCompact(){
 }
 function setF(f,el){
   curF=f;
-  accRenderList();try{talRenderList();}catch(e){}try{supRenderList();}catch(e){}try{talRenderList();}catch(e){}
+  accRenderList();try{talRenderList();}catch(e){}try{supRenderList();}catch(e){}try{denRenderList();}catch(e){}try{talRenderList();}catch(e){}
   document.querySelectorAll('.ftab').forEach(t=>t.classList.remove('on'));
   if(el){el.classList.add('on');}
   else{
@@ -1579,6 +1611,14 @@ async function stopCall(){
 function endCall(contactId, reason){
   clearInterval(iv);
   document.getElementById('cban').classList.remove('on');
+  // Si es clinica dental
+  if(typeof contactId==='string'&&contactId.startsWith('DEN:')){
+    var denId3=contactId.substring(4);
+    if(!denSt[denId3])denSt[denId3]={};
+    denSave();denRenderList();upStats();
+    if(denSel===denId3)denOpen2(denId3);
+    return;
+  }
   // Si es supermercado
   if(typeof contactId==='string'&&contactId.startsWith('SUP:')){
     var supId3=contactId.substring(4);
@@ -1835,6 +1875,21 @@ function getCampaignOrder(){
     });
     return talFiltered.map(function(t){return 'TAL:'+t.id;});
   }
+  if(cpFilter==='DEN'){
+    var denStData=JSON.parse(localStorage.getItem('fe_den_v1')||'{}');
+    var clinicas2=typeof DEN!=='undefined'&&DEN.clinicas?DEN.clinicas:[];
+    var denFiltered=clinicas2.filter(function(c){
+      if(!c.telefono)return false;
+      var st=(denStData[c.id]||{estado:'sinLlamar'}).estado;
+      if(filter==='nuevos') return st==='sinLlamar';
+      if(filter==='todos'||filter==='pendiente') return st!=='visita'&&st!=='noInteresa';
+      if(filter==='rellamar') return st==='rellamar';
+      if(filter==='duda') return st==='duda';
+      if(filter==='noContesta') return st==='noContesta';
+      return false;
+    });
+    return denFiltered.map(function(c){return 'DEN:'+c.id;});
+  }
   if(cpFilter==='SUP'){
     var supStData=JSON.parse(localStorage.getItem('fe_sup_v1')||'{}');
     var supers=typeof SUP!=='undefined'&&SUP.supers?SUP.supers:[];
@@ -1968,6 +2023,26 @@ async function runNextCampaignCall(){
     if(campaignRunning&&!campaignPaused){document.getElementById('camp-sub').textContent='Esperando 45s...';await new Promise(r=>{campaignTimer=setTimeout(r,45000);});}
     runNextCampaignCall();return;
   }
+  // === DEN clinica dental call ===
+  if(typeof id==='string'&&id.startsWith('DEN:')){
+    const denIdC=id.substring(4);
+    const clinicas=typeof DEN!=='undefined'&&DEN.clinicas?DEN.clinicas:[];
+    const tD=clinicas.find(function(x){return x.id===denIdC;});
+    if(!tD||!tD.telefono){campaignIdx++;runNextCampaignCall();return;}
+    const doneD=campaignIdx,totalD=campaignQueue.length,pctD=Math.round((doneD/totalD)*100);
+    document.getElementById('camp-title').textContent='Llamando: '+tD.nombre.slice(0,35);
+    document.getElementById('camp-sub').textContent=(doneD+1)+' de '+totalD;
+    document.getElementById('camp-fill').style.width=pctD+'%';
+    document.getElementById('camp-pct').textContent=pctD+'%';
+    denSel=denIdC;window._denId=denIdC;
+    try{denOpen2(denIdC);}catch(e){}
+    window.scrollTo(0,0);
+    await denLlamar(denIdC);
+    await new Promise(r=>{campaignTimer=setTimeout(r,60000);});
+    campaignIdx++;updateCampLiveStats();
+    if(campaignRunning&&!campaignPaused){document.getElementById('camp-sub').textContent='Esperando 45s...';await new Promise(r=>{campaignTimer=setTimeout(r,45000);});}
+    runNextCampaignCall();return;
+  }
   // === TAL taller call ===
   if(typeof id==='string'&&id.startsWith('TAL:')){
     const talId=id.substring(4);
@@ -2080,6 +2155,19 @@ function applyCallResult(data,callId,contactId){
     upStats();updateCampLiveStats();
     toast('\u2713 '+TAL.talleres.find(function(x){return x.id===talId2;})?.nombre+' \u2014 analizado','ok');
     return;
+  }
+  // Handle DEN clinica dental results
+  if(typeof contactId==='string'&&contactId.startsWith('DEN:')){
+    var denId2=contactId.substring(4);
+    if(!denSt[denId2])denSt[denId2]={};
+    denSt[denId2]._callId=callId;
+    if(data.recordingUrl)denSt[denId2]._recordingUrl=data.recordingUrl;
+    if(data.notas){var denEx=denSt[denId2].notas||'';denSt[denId2].notas=denEx?denEx+'\n\n'+data.notas:data.notas;}
+    var denRM={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
+    if(data.resultado&&denRM[data.resultado])denSt[denId2].estado=denRM[data.resultado];
+    denSave();clearInterval(iv);document.getElementById('cban').classList.remove('on');
+    if(denSel===denId2)denOpen2(denId2);else denRenderList();
+    upStats();updateCampLiveStats();return;
   }
   // Handle SUP supermercado results
   if(typeof contactId==='string'&&contactId.startsWith('SUP:')){
@@ -2321,6 +2409,7 @@ function showCampHistory(){
 function updateCampLiveStats(){
   var accMode=campaignQueue.length>0&&typeof campaignQueue[0]==='string'&&campaignQueue[0].startsWith('ACC:');
   var talMode=campaignQueue.length>0&&typeof campaignQueue[0]==='string'&&campaignQueue[0].startsWith('TAL:');
+  var denMode=campaignQueue.length>0&&typeof campaignQueue[0]==='string'&&campaignQueue[0].startsWith('DEN:');
   var supMode=campaignQueue.length>0&&typeof campaignQueue[0]==='string'&&campaignQueue[0].startsWith('SUP:');
   var done;
   if(accMode){
@@ -2344,7 +2433,7 @@ function updateCampLiveStats(){
   } else {
     done=campaignQueue.slice(0,campaignIdx).map(function(id){return C.find(function(x){return x.id===id;});}).filter(Boolean);
   }
-  var visitaKey=(accMode||talMode||supMode)?'visita':'visitaOK';
+  var visitaKey=(accMode||talMode||supMode||denMode)?'visita':'visitaOK';
   const v=document.getElementById('cls-v');
   const r=document.getElementById('cls-r');
   const nc=document.getElementById('cls-nc');
@@ -2352,11 +2441,11 @@ function updateCampLiveStats(){
   const du=document.getElementById('cls-du');
   const tot=document.getElementById('cls-tot');
   // Contar desde localStorage todos los IDs de la campaña que ya tienen estado
-  var _storeKey=accMode?'fe_acc_v1':talMode?'fe_tal_v1':supMode?'fe_sup_v1':null;
+  var _storeKey=accMode?'fe_acc_v1':talMode?'fe_tal_v1':supMode?'fe_sup_v1':denMode?'fe_den_v1':null;
   var _storeData=_storeKey?JSON.parse(localStorage.getItem(_storeKey)||'{}'):null;
   // Todos los IDs de la campaña
   var _allIds=campaignQueue.map(function(id){
-    return (accMode||talMode||supMode)?id.substring(4):id;
+    return (accMode||talMode||supMode||denMode)?id.substring(4):id;
   });
   // Los que ya tienen llamadas (han sido procesados)
   var _called;
@@ -3687,6 +3776,306 @@ window.selMob=function(id,el){
 
 
 (function s(){var l=document.getElementById('sup-list');if(l){supRenderList();}else{setTimeout(s,300);}})();
+
+</script>
+
+<script id="den-module">
+var DEN={"clinicas": [{"id": "den_instituts_badalona", "nombre": "Instituts Odontologics Badalona", "telefono": "933894331", "direccion": "Av. Marti Pujol 254", "cp": "08911", "municipio": "Badalona"}, {"id": "den_bru_badalona", "nombre": "BRU Clinica Dental Badalona", "telefono": "933848572", "direccion": "Carrer Sant Bru 198", "cp": "08911", "municipio": "Badalona"}, {"id": "den_ulldent_badalona", "nombre": "Clinica Dental UllDent", "telefono": "933955385", "direccion": "Carrer Pere III 11", "cp": "08911", "municipio": "Badalona"}, {"id": "den_morera_badalona", "nombre": "Clinica Dental la Morera", "telefono": "934653003", "direccion": "Carrer Joan d Austria 36", "cp": "08911", "municipio": "Badalona"}, {"id": "den_mim_badalona", "nombre": "Mim Espai Dental Badalona", "telefono": "933848170", "direccion": "Carrer Francesc Layret 108", "cp": "08911", "municipio": "Badalona"}, {"id": "den_gaudi_montgat", "nombre": "Dental Gaudi Montgat", "telefono": "932776407", "direccion": "", "cp": "08390", "municipio": "Montgat"}, {"id": "den_maresme_masnou", "nombre": "Dental Maresme El Masnou", "telefono": "934690405", "direccion": "Av. Can Serra 7", "cp": "08320", "municipio": "El Masnou"}, {"id": "den_harmonia_masnou", "nombre": "Harmonia Dental Masnou", "telefono": "932777674", "direccion": "Carrer Almeria 9", "cp": "08320", "municipio": "El Masnou"}, {"id": "den_dentalella_alella", "nombre": "Dentalella Alella", "telefono": "935405057", "direccion": "Carrer les Heures", "cp": "08328", "municipio": "Alella"}, {"id": "den_dental_premia", "nombre": "DENTAL PREMIA", "telefono": "640525703", "direccion": "Espai la Fabrica Carrer Teixidores 1", "cp": "08330", "municipio": "Premia de Mar"}, {"id": "den_bernat_ximenes", "nombre": "Clinica Dental Bernat Ximenes", "telefono": "937974188", "direccion": "Carrer Anselm Clave 10", "cp": "08330", "municipio": "Premia de Mar"}, {"id": "den_institut_premia", "nombre": "Institut Dental Premia de Mar", "telefono": "938535736", "direccion": "", "cp": "08330", "municipio": "Premia de Mar"}, {"id": "den_clinargent_argentona", "nombre": "Clinargent Argentona", "telefono": "937560661", "direccion": "Av. Dr. Farrero 18", "cp": "08310", "municipio": "Argentona"}, {"id": "den_munt_espai_llavaneres", "nombre": "Munt Espai Dental Llavaneres", "telefono": "937952361", "direccion": "Carrer Munt 27-31", "cp": "08392", "municipio": "Sant Andreu de Llavaneres"}, {"id": "den_saubat_arenys", "nombre": "DENTAL SAUBAT Arenys de Mar", "telefono": "937959700", "direccion": "Carrer del Cogoll 20", "cp": "08350", "municipio": "Arenys de Mar"}, {"id": "den_instituts_mataro", "nombre": "Instituts Odontologics Mataro", "telefono": "930134512", "direccion": "", "cp": "08301", "municipio": "Mataro"}, {"id": "den_clinimat_mataro", "nombre": "Clinimat Mataro", "telefono": "937573940", "direccion": "Carrer Unio 104-106", "cp": "08302", "municipio": "Mataro"}, {"id": "den_dentaro_mataro", "nombre": "Dentaro Mataro", "telefono": "937902687", "direccion": "", "cp": "08301", "municipio": "Mataro"}, {"id": "den_vitaldent_mataro", "nombre": "Vitaldent Mataro", "telefono": "937554760", "direccion": "", "cp": "08301", "municipio": "Mataro"}, {"id": "den_ustrell_mataro", "nombre": "Ustrell Garcia Clinica Dental Mataro", "telefono": "615821845", "direccion": "", "cp": "08301", "municipio": "Mataro"}, {"id": "den_vilassar_mar", "nombre": "Clinica Dental Vilassar de Mar", "telefono": "937508025", "direccion": "Carrer Murillo 1", "cp": "08340", "municipio": "Vilassar de Mar"}, {"id": "den_salut_vilassar", "nombre": "Clinica Dental Salut Vilassar", "telefono": "937507392", "direccion": "Carrer Sant Genis 35", "cp": "08340", "municipio": "Vilassar de Mar"}, {"id": "den_clapes_vilassar", "nombre": "Clinica Dental Clapes Vilassar", "telefono": "937508293", "direccion": "Carrer Sant Antoni 28", "cp": "08340", "municipio": "Vilassar de Mar"}, {"id": "den_tot_dental_sant_adria", "nombre": "Tot Dental Sant Adria", "telefono": "934627207", "direccion": "Av. Catalunya 46", "cp": "08930", "municipio": "Sant Adria del Besos"}, {"id": "den_espai_dental_sant_adria", "nombre": "Espai Dental Sant Adria", "telefono": "933812200", "direccion": "Carrer Ricart 17", "cp": "08930", "municipio": "Sant Adria del Besos"}, {"id": "den_vitaldent_sant_adria", "nombre": "Vitaldent Sant Adria", "telefono": "669885079", "direccion": "Carrer Ricart 32", "cp": "08930", "municipio": "Sant Adria del Besos"}]};
+var denSt=JSON.parse(localStorage.getItem('fe_den_v1')||'{}'),denSel=null,denOpen=true;
+function denSave(){localStorage.setItem('fe_den_v1',JSON.stringify(denSt));}
+function denToggle(){denOpen=!denOpen;document.getElementById('den-list').style.display=talOpen?'':'none';}
+
+function denRenderList(){
+  var el=document.getElementById('den-list');if(!el)return;
+  var muniF=(document.getElementById('den-muni-filter')||{}).value||'';
+  var tipoF=(document.getElementById('den-tipo-filter')||{}).value||'';
+  var dD=document.getElementById('fecha-desde')?.value||'';
+  var dH=document.getElementById('fecha-hasta')?.value||'';
+  var filtered=DEN.clinicas.filter(function(t){
+    if(muniF&&t.municipio!==muniF)return false;
+    
+    if(dD||dH){
+      var ul=(denSt[t.id]||{}).ultimaLlamada||'';if(!ul)return false;
+      var _pcd=typeof parseCallDate==='function'?parseCallDate(ul):null;
+      if(!_pcd)return false;
+      var cd=_pcd.toISOString().split('T')[0];
+      if(dD&&cd<dD)return false;if(dH&&cd>dH)return false;
+    }
+    var st2=(denSt[t.id]||{}).estado||'sinLlamar';
+    var cf=curF;if(cf==='visitaOK')cf='visita';
+    if(cf==='pendiente'&&st2!=='pendiente')return false;
+    if(cf==='rellamar'&&st2!=='rellamar')return false;
+    if(cf==='duda'&&st2!=='duda')return false;
+    if(cf==='noContesta'&&st2!=='noContesta')return false;
+    if(cf==='noInteresa'&&st2!=='noInteresa')return false;
+    if(cf==='visita'&&st2!=='visita')return false;
+    if(curF==='llamadas'&&!((denSt[t.id]||{}).llamadas>0))return false;
+    var q=(document.getElementById('sq')?.value||'').toLowerCase().trim();
+    if(q&&!(t.nombre+' '+t.municipio+' '+t.cp+' '+t.tipo).toLowerCase().includes(q))return false;
+    return true;
+  }).sort(function(a,b){
+    var ua=(denSt[a.id]||{}).ultimaLlamada||'',ub=(denSt[b.id]||{}).ultimaLlamada||'';
+    if(!ua&&!ub)return 0;if(!ua)return 1;if(!ub)return -1;
+    var pa=ua.split(/[/,: ]/),pb=ub.split(/[/,: ]/);
+    var da=pa[2]+pa[1]+pa[0]+(pa[4]||'')+(pa[5]||'');
+    var db=pb[2]+pb[1]+pb[0]+(pb[4]||'')+(pb[5]||'');
+    return db>da?1:db<da?-1:0;
+  });
+  var hdr=document.getElementById('den-hdr-count');
+  if(hdr){
+    var _talTotal=DEN.clinicas.length;
+    var _talSt3=JSON.parse(localStorage.getItem('fe_den_v1')||'{}');
+    var _talLL=Object.values(_talSt3).filter(function(s){return s.llamadas>0;}).length;
+    var _talV=Object.values(_talSt3).filter(function(s){return s.estado==='visita';}).length;
+    var _talNC=Object.values(_talSt3).filter(function(s){return s.estado==='noContesta';}).length;
+    hdr.innerHTML=filtered.length+' <span style="color:var(--mt);font-weight:400">/ '+_talTotal+'</span>'
+      +(_talLL>0?' <span style="color:var(--ac);font-size:9px">• '+_talLL+' llamados</span>':'')
+      +(_talV>0?' <span style="color:var(--gr);font-size:9px">• '+_talV+' ✓</span>':'');
+  }
+  var stLbl={sinLlamar:'Sin llamar',visita:'\u2713 Visita',rellamar:'\u21ba Rellamar',noContesta:'\u2014 No contesta',noInteresa:'\u00d7 No interesa',pendiente:'\u25cf Pendiente',duda:'? Duda'};
+  var denIcon={};
+  el.innerHTML=filtered.map(function(t){
+    var st=denSt[t.id]||{},ec=st.estado||'sinLlamar';
+    var ic='\uD83E\uDDB7';
+    var ll=st.llamadas||0,ul=st.ultimaLlamada||'';
+    return '<div class="acc-admin-item ci est-'+ec+(denSel===t.id?' sel':'')+' den-item" data-denid="'+t.id+'">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;">'
+      +'<span style="font-size:11px;font-weight:600;color:var(--tx)">'+ic+' '+t.nombre+'</span>'
+      +'<span class="stag '+ec+'" style="font-size:9px">'+(stLbl[ec]||ec)+'</span>'
+      +'</div>'
+      +'<div style="font-size:10px;color:var(--mt);margin-top:2px;">'
+      +(t.telefono?'\uD83D\uDCDE '+t.telefono+'  ':'')+'\uD83D\uDCCD '+t.municipio
+      +(ul?'</div><div style="font-size:9px;color:var(--ac);margin-top:2px;font-family:var(--mo)">\uD83D\uDCDE '+(ll>0?ll+'x  ':'')+ul.split(',')[0]+'</div></div>':'</div></div>');
+  }).join('');
+  // Event delegation en el contenedor (más robusto)
+  el.onclick=function(ev){
+    var item=ev.target.closest('.den-item');
+    if(item&&item.dataset.denid)selTal(item.dataset.denid);
+  };
+}
+
+function selTal(id){
+  var t=DEN.clinicas.find(function(x){return x.id===id;});if(!t)return;
+  denSel=id;window._denId=id;
+  var fw=document.getElementById('acc-ficha-wrap');if(fw)fw.style.display='none';
+  var _empty=document.getElementById('empty');if(_empty)_empty.style.display='none';
+  var det=document.getElementById('det');
+  if(!det)return;
+  det.classList.add('vis');
+  det.style.display='flex';
+  if(typeof openMobileDet==='function')openMobileDet();
+  denOpen2(id);
+  // En mobile: mostrar el panel derecho
+  var rp=document.querySelector('.rp');
+  var lp2=document.querySelector('.lp');
+  if(rp&&window.innerWidth<=768){
+    if(lp2)lp2.style.display='none';
+    rp.style.display='flex';
+  }
+  denRenderList();
+}
+
+function denOpen2(id){
+  var t=DEN.clinicas.find(function(x){return x.id===id;});if(!t)return;
+  window._denId=id;
+  // Asegurar que el panel det está visible
+  var _det=document.getElementById('det');if(_det){_det.classList.add('vis');_det.style.display='flex';}
+  var st=denSt[id]||{};
+  var ec=st.estado||'sinLlamar';
+  var SL2={sinLlamar:'Sin llamar',visita:'✓ Visita',rellamar:'↺ Rellamar',noContesta:'— No contesta',noInteresa:'× No interesa',pendiente:'● Pendiente',duda:'? Duda'};
+  var nb=t.nombre.replace(/S\.L\.L?\.?|S\.A\.U?\.?|S\.L\.U?\.?|S\.A?\.?|C\.B\.?/gi,'').trim();
+  document.getElementById('d-name').textContent=t.nombre;
+  var stEl=document.getElementById('d-stag');
+  stEl.className='stag '+ec;stEl.textContent=SL2[ec]||ec;
+  document.getElementById('d-meta').innerHTML=
+    '<span class="stag '+ec+' ch-badge">'+(SL2[ec]||ec)+'</span>'
+    +'<span class="ch-badge" style="background:#f0f4ff;color:#2563eb;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:500">&#129463; Clínica Dental</span>'
+    +'<span class="ch-badge" style="background:var(--s2);color:var(--mt);padding:2px 9px;border-radius:20px;font-size:10px">&#128205; '+t.municipio+'</span>';
+  var bcall=document.getElementById('bcall');
+  if(bcall){bcall.onclick=function(){denLlamar(window._denId);};bcall.style.display=t.telefono?'':' none';}
+  document.getElementById('ficha-grid').innerHTML=
+    '<div class="fg-item span4"><div class="fg-label">Nombre contacto</div>'
+    +'<input class="fg-input" id="tal-contacto-cur" value="'+(st.contacto||'')+'" placeholder="Responsable/recepcionista" onchange="denSaveContacto(window._denId,this.value)"></div>'
+    +'<div class="fg-item span2"><div class="fg-label">Tel&eacute;fono</div>'
+    +'<input class="fg-input" value="'+(t.telefono||'')+'" onchange="denUpdateField(window._denId,\'telefono\',this.value)" placeholder="Sin tel&eacute;fono"></div>'
+    +'<div class="fg-item span2"><div class="fg-label">Direcci&oacute;n</div>'
+    +'<input class="fg-input" value="'+(t.direccion||'')+'" readonly></div>'
+    +'<div class="fg-item"><div class="fg-label">Municipio</div>'
+    +'<input class="fg-input" value="'+t.municipio+'" readonly></div>'
+    +'<div class="fg-item"><div class="fg-label">CP</div>'
+    +'<input class="fg-input" value="'+t.cp+'" readonly></div>'
+    +'<div class="fg-item"><div class="fg-label">Tipo taller</div>'
+    +'<input class="fg-input" value="'+t.municipio+'" readonly></div>'
+    +'<div class="fg-item"><div class="fg-label">Llamadas</div>'
+    +'<input class="fg-input" value="'+(st.llamadas||0)+'" readonly></div>'
+    +'<div class="fg-item span2"><div class="fg-label">&Uacute;ltima llamada</div>'
+    +'<input class="fg-input" value="'+(st.ultimaLlamada||'—')+'" readonly></div>'
+    +'<div class="fg-item span4"><div class="fg-label">Speech de apertura</div>'
+    +'<input class="fg-input" value="Le llamo porque detectamos que '+nb+' podr&iacute;a tener la potencia el&eacute;ctrica con sobrecoste. Son solo diez minutos. &iquest;Le encaja esta semana?" readonly style="font-style:italic;font-size:10px;"></div>';
+  document.getElementById('notas').value=st.notas||'';
+  // Reasignar botones de resultado al taller actual
+  var btns=document.querySelectorAll('.res-btns .rbtn');
+  var estados=['visitaOK','rellamar','noContesta','noInteresa','duda'];
+  btns.forEach(function(btn,idx){
+    if(idx<estados.length){
+      btn.onclick=(function(est){
+        return function(){
+          var talEst=est==='visitaOK'?'visita':est;
+          denSetEstado(window._denId,talEst);
+          btns.forEach(function(b){b.style.opacity='1';});
+        };
+      })(estados[idx]);
+    }
+  });
+  var clearBtn=document.querySelector('.save-bar .btn-gh');
+  if(clearBtn)clearBtn.onclick=function(){denSetEstado(window._denId,'sinLlamar');};
+  var saveBtn=document.querySelector('.save-bar .btn-pr');
+  if(saveBtn)saveBtn.onclick=function(){
+    if(!denSt[window._denId])denSt[window._denId]={};
+    denSt[window._denId].notas=document.getElementById('notas').value;
+    denSave();toast('Guardado','ok');
+  };
+  // Audio player y resumen llamada
+  var lcp=document.getElementById('last-call-panel');
+  if(lcp){
+    if(st.llamadas>0&&(st._recordingUrl||st.notas)){
+      lcp.style.display='block';
+      document.getElementById('last-call-time').textContent=st.ultimaLlamada||'';
+      var recUrl=st._recordingUrl||'';
+      if(!recUrl&&st.notas){var si=st.notas.indexOf('https://storage.vapi.ai/');if(si>-1){var ei=st.notas.indexOf('\n',si);recUrl=ei>-1?st.notas.slice(si,ei).trim():st.notas.slice(si).trim();}}
+      var summary=st.notas||'';
+      if(summary){var si2=summary.indexOf('https://storage.vapi.ai/');if(si2>-1){var ei2=summary.indexOf('\n',si2);summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();}}
+      document.getElementById('last-call-summary').textContent=summary.slice(0,400)+(summary.length>400?'...':'')
+      var audio=document.getElementById('last-call-audio');
+      if(recUrl){audio.src=recUrl;audio.style.display='block';}else{audio.style.display='none';audio.src='';}
+    }else{lcp.style.display='none';}
+  }
+  var lb=document.getElementById('llamadas-badge');
+  if(lb)lb.textContent=st.llamadas>0?'📞 LLAMADAS: '+st.llamadas+(st.ultimaLlamada?' · Última: '+st.ultimaLlamada:''):''
+}
+
+function denSetEstado(id,estado){
+  if(!denSt[id])denSt[id]={};
+  denSt[id].estado=estado;denSave();denOpen2(id);denRenderList();upStats();
+  toast('Estado actualizado','ok');
+}
+function denSaveNotas(id,val){if(!denSt[id])denSt[id]={};denSt[id].notas=val;denSave();}
+function denSaveContacto(id,val){if(!denSt[id])denSt[id]={};denSt[id].contacto=val;denSave();}
+function denUpdateField(id,field,val){var t=DEN.clinicas.find(function(x){return x.id===id;});if(t)t[field]=val;}
+
+async function denLlamar(id){
+  var t=DEN.clinicas.find(function(x){return x.id===id;});
+  if(!t||!t.telefono){toast('Sin teléfono','err');return;}
+  var phone='+34'+t.telefono.replace(/\D/g,'');
+  var nb=t.nombre.replace(/S\.L\.L?\.?|S\.A\.U?\.?|S\.L\.U?\.?|S\.A?\.?|C\.B\.?/gi,'').trim();
+  if(!denSt[id])denSt[id]={};
+  denSt[id].llamadas=(denSt[id].llamadas||0)+1;
+  denSt[id].ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  denSave();denOpen2(id);denRenderList();
+  // Banner de llamada
+  var cbanName=document.getElementById('cban-name');
+  if(cbanName)cbanName.textContent='\uD83D\uDCDE '+t.nombre;
+  document.getElementById('cban').classList.add('on');
+  sec=0;clearInterval(iv);
+  iv=setInterval(function(){sec++;var m=Math.floor(sec/60),s=sec%60;document.getElementById('ctm').textContent=m+':'+(s<10?'0':'')+s;},1000);
+  var systemPrompt='Eres CARLA, comercial de una asesoría energética.\n\n'
+    +'TALLER: '+t.nombre+' ('+t.municipio+', '+t.municipio+')\n\n'
+    +'FLUJO DE LA LLAMADA:\n'
+    +'1. El sistema ya ha preguntado si habla con la clínica. Si confirman, preséntate:\n'
+    +'   Hola, soy Carla, de una asesor\u00eda energ\u00e9tica.\n'
+    +'2. Motivo SIN mencionar el nombre del taller:\n'
+    +'   Le llamo porque clínicas dentales de su zona tienen de m\u00e1s en la factura de luz\n'
+    +'   por la potencia contratada. Diez minutos de revisi\u00f3n, \u00bfle encaja esta semana?\n'
+    +'3. SIEMPRE consigue el nombre: \u00bfCon qui\u00e9n tengo el gusto?\n'
+    +'4. Si el responsable de luz no est\u00e1, pregunta su nombre y cu\u00e1ndo llamarle.\n\n'
+    +'REGLAS ESTRICTAS:\n'
+    +'- NUNCA repitas el nombre de la clínica despu\u00e9s de la primera apertura\n'
+    +'- NUNCA digas Buenos d\u00edas (ya se dijo al inicio)\n'
+    +'- Castellano, trato de usted, m\u00e1ximo 2 frases por turno\n'
+    +'- Tel\u00e9fono si lo piden: seiscientos diecinueve cero doce seiscientos ochenta\n'
+    +'- No insistir m\u00e1s de 2 veces si no hay inter\u00e9s\n'
+    +'- Buz\u00f3n de voz: colgar inmediatamente sin dejar mensaje';
+  var payload={
+    phoneNumberId:'0d4fe76e-760c-4cf8-8760-b291bb96aac5',
+    customer:{number:phone,name:t.nombre},
+    assistant:{
+      name:'CARLA - Factor Energia',
+      firstMessageMode:'assistant-speaks-first',
+      startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},
+      stopSpeakingPlan:{numWords:2,voiceSeconds:0.1,backoffSeconds:1},
+      firstMessage:'Buenos d\u00edas, \u00bfhablo con '+nb+'?',
+      model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,
+        messages:[{role:'system',content:systemPrompt}]},
+      voice:{provider:'11labs',voiceId:'uQw4jpKzMLrZuo0RLPS9',model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8},
+      transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
+      endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
+      recordingEnabled:true,
+      silenceTimeoutSeconds:10,
+      endCallPhrases:['adi\u00f3s','adios','hasta luego','hasta pronto','vale gracias','muchas gracias adi\u00f3s','buenas','chao','bye','deje su mensaje','después del pitido','no está disponible','buzón de voz']
+    }
+  };
+  try{
+    var r=await fetch('https://api.vapi.ai/call/phone',{
+      method:'POST',
+      headers:{Authorization:'Bearer '+VAPI_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    var rd=await r.json();
+    if(rd.id){
+      denSt[id]._callId=rd.id;denSave();
+      toast('\uD83D\uDCDE Llamando a '+t.nombre,'ok');
+      setTimeout(function(){denFetchResult(rd.id,id);},12000);
+    }else{
+      document.getElementById('cban').classList.remove('on');
+      clearInterval(iv);
+      toast('Error al llamar: '+(rd.message||JSON.stringify(rd)),'err');
+    }
+  }catch(e){
+    document.getElementById('cban').classList.remove('on');
+    clearInterval(iv);
+    toast('Error: '+e.message,'err');
+  }
+}
+
+async function denFetchResult(callId,talId,attempt){
+  attempt=attempt||0;if(attempt>10)return;
+  try{
+    var r=await fetch('https://api.vapi.ai/call/'+callId,{headers:{Authorization:'Bearer '+VAPI_KEY}});
+    if(!r.ok)throw new Error(r.status);
+    var d=await r.json();
+    if(d.status!=='ended'){setTimeout(function(){denFetchResult(callId,talId,attempt+1);},5000);return;}
+    var dur=d.endedAt&&d.startedAt?Math.round((new Date(d.endedAt)-new Date(d.startedAt))/1000):0;
+    var now=d.endedAt?new Date(d.endedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):new Date().toLocaleString('es-ES');
+    var eMap={'customer-did-not-answer':'No contest\u00f3','silence-timed-out':'No contest\u00f3 (silencio)','customer-ended-call':'Cort\u00f3','assistant-ended-call':'Finalizada'};
+    var nota='📞 '+now+(dur?' \u00b7 '+dur+'s':'')+'\n\u26AB '+(eMap[d.endedReason]||'Finalizada');
+    if(d.transcript)nota+='\n&#128172; "'+d.transcript.substring(0,400)+'"';
+    if(d.recordingUrl)nota+='\n'+d.recordingUrl;
+    if(!denSt[talId])denSt[talId]={};
+    var ex=denSt[talId].notas||'';
+    denSt[talId].notas=ex?ex+'\n\n'+nota:nota;
+    if(d.recordingUrl)denSt[talId]._recordingUrl=d.recordingUrl;
+    denSt[talId].ultimaLlamada=now;
+    if(d.endedReason==='customer-did-not-answer'||d.endedReason==='silence-timed-out'||d.endedReason==='voicemail'){
+      if(!denSt[talId].estado||denSt[talId].estado==='sinLlamar')denSt[talId].estado='noContesta';
+    } else if(!denSt[talId].estado||denSt[talId].estado==='sinLlamar'){
+      denSt[talId].estado='noContesta';
+    }
+    denSave();
+    if(denSel===talId)denOpen2(talId);else denRenderList();
+    toast('\u2713 Llamada clinica dental grabada','ok');
+    fetchCallNotes(callId,'DEN:'+denId);
+  }catch(e){setTimeout(function(){denFetchResult(callId,talId,attempt+1);},5000);}
+}
+
+var _smDen=window.selMob;
+window.selMob=function(id,el){
+  if(denSel){var fw=document.getElementById('acc-ficha-wrap');if(fw)fw.style.display='none';denSel=null;}
+  if(_smDen)_smTal(id,el);
+};
+
+
+
+(function dn(){var l=document.getElementById('den-list');if(l){denRenderList();}else{setTimeout(dn,300);}})();
 
 </script>
 </body>
