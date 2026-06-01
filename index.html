@@ -2368,7 +2368,7 @@ function updateCampLiveStats(){
   var _vk=visitaKey;
   if(v) v.textContent='\u2713 '+_called.filter(function(c){return c.estado===_vk;}).length;
   if(r) r.textContent='\u21ba '+_called.filter(function(c){return c.estado==='rellamar';}).length;
-  if(nc) nc.textContent='\u2014 '+_called.filter(function(c){return c.estado==='noContesta';}).length;
+  if(nc) nc.textContent='\u2014 '+_called.filter(function(c){return c.estado==='noContesta'||!c.estado||c.estado==='sinLlamar';}).length;
   if(ni) ni.textContent='\u2717 '+_called.filter(function(c){return c.estado==='noInteresa';}).length;
   if(du) du.textContent='? '+_called.filter(function(c){return c.estado==='duda';}).length;
   if(tot) tot.textContent='Total: '+_called.length+' / '+campaignQueue.length;
@@ -3364,8 +3364,10 @@ async function talFetchResult(callId,talId,attempt){
     talSt[talId].notas=ex?ex+'\n\n'+nota:nota;
     if(d.recordingUrl)talSt[talId]._recordingUrl=d.recordingUrl;
     talSt[talId].ultimaLlamada=now;
-    if(d.endedReason==='customer-did-not-answer'||d.endedReason==='silence-timed-out'){
+    if(d.endedReason==='customer-did-not-answer'||d.endedReason==='silence-timed-out'||d.endedReason==='voicemail'){
       if(!talSt[talId].estado||talSt[talId].estado==='sinLlamar')talSt[talId].estado='noContesta';
+    } else if(!talSt[talId].estado||talSt[talId].estado==='sinLlamar'){
+      talSt[talId].estado='noContesta';
     }
     talSave();
     if(talSel===talId)talOpen2(talId);else talRenderList();
