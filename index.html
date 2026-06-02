@@ -3548,7 +3548,15 @@ function supRenderList(){
   // Event delegation en el contenedor (más robusto)
   el.onclick=function(ev){
     var item=ev.target.closest('.sup-item');
-    if(item&&item.dataset.supid)selTal(item.dataset.supid);
+    if(item&&item.dataset.supid){
+      var _sid=item.dataset.supid;
+      supSel=_sid;window._supId=_sid;
+      var _fw=document.getElementById('acc-ficha-wrap');if(_fw)_fw.style.display='none';
+      var _det=document.getElementById('det');if(_det){_det.classList.add('vis');_det.style.display='flex';}
+      if(typeof openMobileDet==='function')openMobileDet();
+      supOpen2(_sid);
+      supRenderList();
+    }
   };
 }
 
