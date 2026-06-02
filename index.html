@@ -1585,6 +1585,17 @@ async function callViaProxy(phone,c){
 }
 
 async function stopCall(){
+  // Check sector calls (TAL/SUP/DEN)
+  if(window._sectorActiveCallId){
+    const callId=window._sectorActiveCallId;
+    const sId=window._sectorActiveId;
+    const sPfx=window._sectorActivePrefix;
+    try{await fetch('https://api.vapi.ai/call/'+callId,{method:'PATCH',headers:{Authorization:'Bearer '+VAPI_KEY,'Content-Type':'application/json'},body:JSON.stringify({status:'ended'})});}catch(e){}
+    clearInterval(iv);document.getElementById('cban').classList.remove('on');
+    window._sectorActiveCallId=null;window._sectorActiveId=null;window._sectorActivePrefix=null;
+    if(sId)setTimeout(function(){fetchCallNotes(callId,sPfx+':'+sId);},3000);
+    return;
+  }
   // Check if it's an ACC admin call first
   if(window._accActiveCallId){
     const callId=window._accActiveCallId;
@@ -1614,17 +1625,22 @@ async function stopCall(){
       });
     }catch(e){}
   }
-  endCall(curId,'pendiente');
+  endCall(curId,'duda');
   if(callId&&curId) setTimeout(()=>fetchCallNotes(callId,curId),3000);
 }
 
 function endCall(contactId, reason){
   clearInterval(iv);
   document.getElementById('cban').classList.remove('on');
-  // Si es clinica dental
+  // Limpiar flags sector/acc
+  window._sectorActiveCallId=null;window._sectorActiveId=null;window._sectorActivePrefix=null;
+  window._accActiveCallId=null;window._accActiveId=null;
+  // Si es salud/dental
   if(typeof contactId==='string'&&contactId.startsWith('DEN:')){
     var denId3=contactId.substring(4);
     if(!denSt[denId3])denSt[denId3]={};
+    if(reason&&reason!=='duda')denSt[denId3].estado=reason;
+    else if(!denSt[denId3].estado||denSt[denId3].estado==='sinLlamar')denSt[denId3].estado='duda';
     denSave();denRenderList();upStats();
     if(denSel===denId3)denOpen2(denId3);
     return;
@@ -1633,20 +1649,33 @@ function endCall(contactId, reason){
   if(typeof contactId==='string'&&contactId.startsWith('SUP:')){
     var supId3=contactId.substring(4);
     if(!supSt[supId3])supSt[supId3]={};
+    if(reason&&reason!=='duda')supSt[supId3].estado=reason;
+    else if(!supSt[supId3].estado||supSt[supId3].estado==='sinLlamar')supSt[supId3].estado='duda';
     supSave();supRenderList();upStats();
     if(supSel===supId3)supOpen2(supId3);
     return;
   }
-  // Si es taller, cerrar y actualizar estado
+  // Si es taller
   if(typeof contactId==='string'&&contactId.startsWith('TAL:')){
     var talId3=contactId.substring(4);
     if(!talSt[talId3])talSt[talId3]={};
-    if(reason&&reason!=='pendiente'&&talResultMap2[reason])talSt[talId3].estado=talResultMap2[reason];
+    if(reason&&reason!=='duda')talSt[talId3].estado=reason;
+    else if(!talSt[talId3].estado||talSt[talId3].estado==='sinLlamar')talSt[talId3].estado='duda';
     talSave();talRenderList();upStats();
     if(talSel===talId3)talOpen2(talId3);
     return;
   }
   var talResultMap2={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
+  // Si es administrador ACC
+  if(typeof contactId==='string'&&contactId.startsWith('ACC:')){
+    var accId3=contactId.substring(4);
+    if(!accSt[accId3])accSt[accId3]={};
+    if(reason&&reason!=='duda')accSt[accId3].estado=reason;
+    else if(!accSt[accId3].estado||accSt[accId3].estado==='sinLlamar')accSt[accId3].estado='duda';
+    accSave();accRenderList();upStats();
+    if(accSel===accId3)accOpen2(accId3);
+    return;
+  }
   const c=C.find(x=>x.id===contactId);
   if(!c) return;
   if(c.estado==='llamando'){
@@ -1675,14 +1704,6 @@ async function pollCallStatus(callId,contactId){
           endedReason==='customer-did-not-answer'||endedReason==='no-answer'?'noContesta':
           endedReason?.includes('voicemail')?'noContesta':'duda';
         // Handle ACC calls differently
-        if(typeof contactId==='string'&&contactId.startsWith('ACC:')){
-          clearInterval(iv);
-          document.getElementById('cban').classList.remove('on');
-          window._accActiveCallId=null;window._accActiveId=null;
-          await new Promise(r=>setTimeout(r,2000));
-          fetchCallNotes(callId,contactId);
-          return;
-        }
         endCall(contactId, reason);
         // Now fetch notes
         await new Promise(r=>setTimeout(r,2000));
@@ -3083,7 +3104,7 @@ async function accLlamar(id){
       window._accActiveCallId=callId;
       window._accActiveId=id;
       toast('\u2713 Llamada lanzada a '+a.nombre,'ok');
-      setTimeout(function(){accFetchDirect(callId,id);},5000);
+      pollCallStatus(callId,'ACC:'+id);
     }
   }catch(e){
     toast('Error: '+e.message,'err');
@@ -3442,7 +3463,8 @@ async function talLlamar(id){
     if(rd.id){
       talSt[id]._callId=rd.id;talSave();
       toast('\uD83D\uDCDE Llamando a '+t.nombre,'ok');
-      setTimeout(function(){talFetchResult(rd.id,id);},12000);
+      window._sectorActiveCallId=rd.id;window._sectorActiveId=id;window._sectorActivePrefix='TAL';
+      pollCallStatus(rd.id,'TAL:'+id);
     }else{
       document.getElementById('cban').classList.remove('on');
       clearInterval(iv);
@@ -3752,7 +3774,8 @@ async function supLlamar(id){
     if(rd.id){
       supSt[id]._callId=rd.id;supSave();
       toast('\uD83D\uDCDE Llamando a '+t.nombre,'ok');
-      setTimeout(function(){supFetchResult(rd.id,id);},12000);
+      window._sectorActiveCallId=rd.id;window._sectorActiveId=id;window._sectorActivePrefix='SUP';
+      pollCallStatus(rd.id,'SUP:'+id);
     }else{
       document.getElementById('cban').classList.remove('on');
       clearInterval(iv);
@@ -4055,7 +4078,8 @@ async function denLlamar(id){
     if(rd.id){
       denSt[id]._callId=rd.id;denSave();
       toast('\uD83D\uDCDE Llamando a '+t.nombre,'ok');
-      setTimeout(function(){denFetchResult(rd.id,id);},12000);
+      window._sectorActiveCallId=rd.id;window._sectorActiveId=id;window._sectorActivePrefix='DEN';
+      pollCallStatus(rd.id,'DEN:'+id);
     }else{
       document.getElementById('cban').classList.remove('on');
       clearInterval(iv);
