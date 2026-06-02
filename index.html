@@ -1535,7 +1535,9 @@ function saveRes(){
 function clearRes(){curR=null;document.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('on'));document.getElementById('notas').value='';}
 
 async function launchCall(){
-  const c=C.find(x=>x.id===curId);if(!c) return;
+  if(window._callInProgress){toast('Ya hay una llamada en curso','err');return;}
+  window._callInProgress=true;
+  const c=C.find(x=>x.id===curId);if(!c){window._callInProgress=false;return;}
   const phone=c.telefono.startsWith('+')?c.telefono:'+34'+c.telefono.replace(/\s/g,'');
   c.estado='llamando';
   c.llamadas=(c.llamadas||0)+1;
@@ -1626,10 +1628,12 @@ async function stopCall(){
     }catch(e){}
   }
   endCall(curId,'duda');
+  window._callInProgress=false;
   if(callId&&curId) setTimeout(()=>fetchCallNotes(callId,curId),3000);
 }
 
 function endCall(contactId, reason){
+  window._callInProgress=false;
   clearInterval(iv);
   document.getElementById('cban').classList.remove('on');
   // Limpiar flags sector/acc
@@ -3028,7 +3032,9 @@ function accOpen2(id){
 }
 
 async function accLlamar(id){
-  var a=ACC.admins.find(function(x){return x.id===id;});if(!a)return;
+  if(window._callInProgress){toast('Ya hay una llamada en curso','err');return;}
+  window._callInProgress=true;
+  var a=ACC.admins.find(function(x){return x.id===id;});if(!a){window._callInProgress=false;return;}
   var st=accSt[id]||{};
   var phone=a.telefono.startsWith('+')?a.telefono:'+34'+a.telefono.replace(/\s/g,'');
   // Registrar llamada en accSt
@@ -3181,41 +3187,7 @@ function accRecoverCalls(){
   });
 }
 
-async function accFetchDirect(callId,accId,attempt){
-  attempt=attempt||0;
-  if(attempt>10)return;
-  try{
-    var r=await fetch('https://api.vapi.ai/call/'+callId,{headers:{Authorization:'Bearer '+VAPI_KEY}});
-    if(!r.ok)throw new Error(r.status);
-    var d=await r.json();
-    if(d.status!=='ended'){setTimeout(function(){accFetchDirect(callId,accId,attempt+1);},4000);return;}
-    var dur=d.endedAt&&d.startedAt?Math.round((new Date(d.endedAt)-new Date(d.startedAt))/1000):0;
-    var now=d.endedAt?new Date(d.endedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'';
-    var eMap={'customer-did-not-answer':'No contest\u00f3','silence-timed-out':'No contest\u00f3 (silencio)','customer-ended-call':'Cort\u00f3 el cliente','assistant-said-end-call-phrase':'Conversaci\u00f3n completada','voicemail':'Buz\u00f3n de voz'};
-    var estado=eMap[d.endedReason]||'Finalizada';
-    var nota='\uD83D\uDCDE '+now+(dur?' \u00b7 '+dur+'s':'')+' \n\u26AB '+estado;
-    if(d.transcript)nota+='\n\uD83D\uDCAC "'+d.transcript.substring(0,400)+'"';
-    if(d.recordingUrl)nota+='\n'+d.recordingUrl;
-    if(!accSt[accId])accSt[accId]={};
-    var ex=accSt[accId].notas||'';
-    accSt[accId].notas=ex?ex+'\n\n'+nota:nota;
-    if(d.recordingUrl)accSt[accId]._recordingUrl=d.recordingUrl;
-    accSt[accId].ultimaLlamada=now;
-    if(d.endedReason==='customer-did-not-answer'||d.endedReason==='silence-timed-out'||d.endedReason==='voicemail'){
-      if(!accSt[accId].estado||accSt[accId].estado==='sinLlamar')accSt[accId].estado='noContesta';
-    } else if(!accSt[accId].estado||accSt[accId].estado==='sinLlamar'){
-      accSt[accId].estado='duda';
-    }
-    accSave();
-    clearInterval(iv);
-    document.getElementById('cban').classList.remove('on');
-    window._accActiveCallId=null;window._accActiveId=null;
-    if(accSel===accId)accOpen2(accId);else accRenderList();
-    toast('\u2713 Llamada grabada — analizando...','ok');
-    // Now call backend for full analysis (summary, resultado, contact name)
-    fetchCallNotes(callId,'ACC:'+accId);
-  }catch(e){setTimeout(function(){accFetchDirect(callId,accId,attempt+1);},5000);}
-}
+async function accFetchDirect(){/* deprecated — flujo unificado via pollCallStatus */}
 </script>
 <script id="tal-module">
 var TAL={"talleres": [{"id": "compi_motors", "nombre": "Compi Motors", "telefono": "934693112", "direccion": "Rambla Turó 9", "cp": "08390", "municipio": "Montgat", "tipo": "Mecánico"}, {"id": "talleres_perez", "nombre": "TALLERES PEREZ MONTGAT", "telefono": "933893734", "direccion": "Pol. Les Pedreres, Nave D3", "cp": "08390", "municipio": "Montgat", "tipo": "Mecánico"}, {"id": "taller_montgat", "nombre": "Taller Montgat", "telefono": "931703437", "direccion": "Carrer Arno Jager 30", "cp": "08390", "municipio": "Montgat", "tipo": "Mecánico"}, {"id": "sukauto", "nombre": "Sukauto Montgat", "telefono": "622805040", "direccion": "Av. Sant Jordi 31", "cp": "08390", "municipio": "Montgat", "tipo": "Mecánico"}, {"id": "autolavado_montgat", "nombre": "AUTOLAVADO MONTGAT - DRIVER CENTER", "telefono": "934690509", "direccion": "Carrer Ramón y Cajal 33", "cp": "08390", "municipio": "Montgat", "tipo": "Lavado"}, {"id": "taller_plana", "nombre": "Auto Taller La Plana", "telefono": "934626240", "direccion": "Carrer Arno Jager 32", "cp": "08390", "municipio": "Montgat", "tipo": "Mecánico"}, {"id": "harpu", "nombre": "HARPU", "telefono": "934693775", "direccion": "Carrer Arno Jager 34-36", "cp": "08390", "municipio": "Montgat", "tipo": "Mecánico"}, {"id": "tot_motor_tiana", "nombre": "Tot Motor Tiana", "telefono": "933952442", "direccion": "Carrer Matas 84", "cp": "08391", "municipio": "Tiana", "tipo": "Mecánico"}, {"id": "auto_rep_teia", "nombre": "Auto Reparacions Teià", "telefono": "935559319", "direccion": "Carrer Can Bassols 9", "cp": "08329", "municipio": "Teià", "tipo": "Mecánico"}, {"id": "taller_3auto", "nombre": "TALLER 3AUTOMOCIÓ", "telefono": "935559319", "direccion": "Carrer Josep M. Folch i Torres 9", "cp": "08329", "municipio": "Teià", "tipo": "Mecánico"}, {"id": "noda_motors", "nombre": "Noda Motors S.L.", "telefono": "678855200", "direccion": "Pol. Buvisa, Carrer del Nord 8", "cp": "08329", "municipio": "Teià", "tipo": "Mecánico"}, {"id": "mestral_auto", "nombre": "Taller Mestral Auto", "telefono": "937522848", "direccion": "Carrer Sud 5", "cp": "08329", "municipio": "Teià", "tipo": "Mecánico"}, {"id": "alella_motors", "nombre": "ALELLA MOTORS", "telefono": "935551493", "direccion": "Av. Sant Josep de Calassanç 12", "cp": "08328", "municipio": "Alella", "tipo": "Mecánico"}, {"id": "automocio_sant_miquel", "nombre": "AUTOMOCIO SANT MIQUEL S.L.", "telefono": "935403436", "direccion": "Carrer Sant Miquel 10", "cp": "08320", "municipio": "El Masnou", "tipo": "Mecánico"}, {"id": "masnou_motors", "nombre": "Masnou Motors", "telefono": "", "direccion": "Carrer Sant Miquel 42", "cp": "08320", "municipio": "El Masnou", "tipo": "Mecánico"}, {"id": "auto_loas", "nombre": "Taller Auto-Loas", "telefono": "", "direccion": "Carrer de Josep Estrada 30", "cp": "08320", "municipio": "El Masnou", "tipo": "Mecánico"}, {"id": "first_stop_masnou", "nombre": "FIRST STOP MASNOU", "telefono": "", "direccion": "Carrer Itàlia 12", "cp": "08320", "municipio": "El Masnou", "tipo": "Neumáticos"}, {"id": "verema_autos", "nombre": "Verema Autos", "telefono": "", "direccion": "Carrer República Argentina 26", "cp": "08320", "municipio": "El Masnou", "tipo": "Mecánico"}, {"id": "paco_cars", "nombre": "PACO CARS GARAGE", "telefono": "635871601", "direccion": "Carrer Indústria 16", "cp": "08320", "municipio": "El Masnou", "tipo": "Mecánico"}, {"id": "sala_automocio", "nombre": "SALA AUTOMOCIÓ", "telefono": "935404204", "direccion": "Carrer de Xile 1", "cp": "08320", "municipio": "El Masnou", "tipo": "Mecánico"}, {"id": "nieto_camps", "nombre": "Auto Reparacions Nieto I Camps", "telefono": "935404083", "direccion": "Carrer Navarra 121", "cp": "08320", "municipio": "El Masnou", "tipo": "Mecánico"}, {"id": "julia_automobile", "nombre": "Julià Automobile", "telefono": "934511878", "direccion": "Carrer Enriqueta Pujal 10", "cp": "08320", "municipio": "El Masnou", "tipo": "Mecánico"}, {"id": "dalom_motor", "nombre": "DalomMotor", "telefono": "", "direccion": "Carrer Marina 1", "cp": "08339", "municipio": "Premià de Dalt", "tipo": "Mecánico"}, {"id": "autotaller_marmar", "nombre": "Autotaller MarMar Premià de Dalt", "telefono": "937513606", "direccion": "Carrer Xaloc 5b", "cp": "08339", "municipio": "Premià de Dalt", "tipo": "Mecánico"}, {"id": "servei_automocio", "nombre": "Servei Automoció SL", "telefono": "937510189", "direccion": "Av. Lleida 34", "cp": "08339", "municipio": "Premià de Dalt", "tipo": "Mecánico"}, {"id": "automocio_calavia", "nombre": "AUTOMOCIO CALAVIA", "telefono": "937510189", "direccion": "Av. Girona 9", "cp": "08339", "municipio": "Premià de Dalt", "tipo": "Mecánico"}, {"id": "car_condal_premia", "nombre": "Car Condal Premià de Dalt", "telefono": "", "direccion": "Carrer Montseny 4", "cp": "08339", "municipio": "Premià de Dalt", "tipo": "Chapa/Pintura"}, {"id": "automobils_3gen", "nombre": "Automobils tercera generació", "telefono": "", "direccion": "Carrer Montseny 2", "cp": "08339", "municipio": "Premià de Dalt", "tipo": "Mecánico"}, {"id": "galdser", "nombre": "Galdser Automoció", "telefono": "937417400", "direccion": "Carrer de Joan Prim 139", "cp": "08330", "municipio": "Premià de Mar", "tipo": "Mecánico"}, {"id": "automoviles_premar", "nombre": "AUTOMOVILES PREMAR S.L.", "telefono": "937525352", "direccion": "Carrer de l-Esperança 12", "cp": "08330", "municipio": "Premià de Mar", "tipo": "Mecánico"}, {"id": "talleres_martinez", "nombre": "Talleres Martínez Y Ato S L", "telefono": "", "direccion": "Carrer Lleida 6", "cp": "08330", "municipio": "Premià de Mar", "tipo": "Mecánico"}, {"id": "auto_premia", "nombre": "Auto Premià", "telefono": "937523448", "direccion": "Carrer Esperança", "cp": "08330", "municipio": "Premià de Mar", "tipo": "Mecánico"}, {"id": "superauto_premia", "nombre": "SuperAuto", "telefono": "", "direccion": "Carrer d-Elisenda de Montcada 23", "cp": "08330", "municipio": "Premià de Mar", "tipo": "Mecánico"}, {"id": "autoland_box", "nombre": "AUTOLAND BOX", "telefono": "", "direccion": "Carrer de la Mercè 39", "cp": "08330", "municipio": "Premià de Mar", "tipo": "Mecánico"}, {"id": "mjd_motors", "nombre": "MJD Motors Castrol Service", "telefono": "", "direccion": "Carrer Ramon Llull 13", "cp": "08330", "municipio": "Premià de Mar", "tipo": "Mecánico"}, {"id": "taller_argentona", "nombre": "Taller Argentona", "telefono": "937561653", "direccion": "Carrer de Montserrat Roig 12", "cp": "08310", "municipio": "Argentona", "tipo": "Mecánico"}, {"id": "taller_can_pisto", "nombre": "TALLER CAN PISTÓ S.L.", "telefono": "937971110", "direccion": "", "cp": "08310", "municipio": "Argentona", "tipo": "Mecánico"}, {"id": "tallers_cudi", "nombre": "Tallers Cudi Automoció", "telefono": "937971961", "direccion": "Carrer Sant Jaume 59", "cp": "08310", "municipio": "Argentona", "tipo": "Mecánico"}, {"id": "fervic_automocio", "nombre": "FERVIC AUTOMOCIÓ", "telefono": "937971526", "direccion": "Carrer Enric Granados 17", "cp": "08310", "municipio": "Argentona", "tipo": "Mecánico"}, {"id": "neumatics_argentona", "nombre": "Neumáticos Argentona J&B Lozano", "telefono": "937970712", "direccion": "Carrer Enric Granados 3", "cp": "08310", "municipio": "Argentona", "tipo": "Neumáticos"}, {"id": "taller_xalabarde", "nombre": "Taller Xalabarde S.L.", "telefono": "937980639", "direccion": "Pol. Can Baletes 11", "cp": "08310", "municipio": "Argentona", "tipo": "Mecánico"}, {"id": "taller_euromotors", "nombre": "TALLER EUROMOTORS", "telefono": "", "direccion": "Carrer d-Avall 24", "cp": "08350", "municipio": "Arenys de Mar", "tipo": "Mecánico"}, {"id": "taller_modern", "nombre": "Taller Modern Eurorepar", "telefono": "937920392", "direccion": "Carrer Joan Draper i Fossas 20", "cp": "08350", "municipio": "Arenys de Mar", "tipo": "Mecánico"}, {"id": "taller_chia", "nombre": "Taller Barcelona Joan M. Chia", "telefono": "937922056", "direccion": "Pol. Valldegata, Draper 14", "cp": "08350", "municipio": "Arenys de Mar", "tipo": "Mecánico"}, {"id": "maresmauto", "nombre": "Maresmauto S.A.", "telefono": "937921016", "direccion": "", "cp": "08350", "municipio": "Arenys de Mar", "tipo": "Mecánico"}, {"id": "motor_extrem", "nombre": "Motor Extrem - Arenys", "telefono": "697264314", "direccion": "", "cp": "08350", "municipio": "Arenys de Mar", "tipo": "Mecánico"}, {"id": "midas_badalona", "nombre": "Midas Badalona", "telefono": "933899630", "direccion": "Carrer Sant Bru", "cp": "08911", "municipio": "Badalona", "tipo": "Neumáticos"}, {"id": "catalunya_auto", "nombre": "Catalunya Auto Center", "telefono": "934655334", "direccion": "Ctra. Conreria s/n", "cp": "08911", "municipio": "Badalona", "tipo": "Mecánico"}, {"id": "bufala_auto", "nombre": "BUFALÀ AUTO", "telefono": "699812757", "direccion": "Carrer de la Sardana 7", "cp": "08911", "municipio": "Badalona", "tipo": "Mecánico"}, {"id": "goianocar", "nombre": "GOIANOCAR Taller mecánico", "telefono": "", "direccion": "Carrer de les Nou Cases 134", "cp": "08911", "municipio": "Badalona", "tipo": "Mecánico"}, {"id": "barnadiesel", "nombre": "Barnadiesel", "telefono": "934656007", "direccion": "Carrer de l-Electrònica 36", "cp": "08917", "municipio": "Badalona", "tipo": "Mecánico"}, {"id": "mecanic_centre", "nombre": "El Mecànic del Centre", "telefono": "933891498", "direccion": "Carrer d-Ignasi Iglesias 19", "cp": "08911", "municipio": "Badalona", "tipo": "Mecánico"}, {"id": "taller_rh", "nombre": "Taller RH", "telefono": "632327473", "direccion": "Carrer de Balmes 73", "cp": "08911", "municipio": "Badalona", "tipo": "Mecánico"}, {"id": "tallers_dacar", "nombre": "Tallers Dacar S.L.", "telefono": "934642497", "direccion": "Ctra. de Mataró 75", "cp": "08911", "municipio": "Badalona", "tipo": "Mecánico"}, {"id": "tallers_camara", "nombre": "Tallers Camara S.C.C.L.", "telefono": "933878041", "direccion": "Carrer de Ramon Casas 4", "cp": "08911", "municipio": "Badalona", "tipo": "Mecánico"}, {"id": "car_condal_bdn", "nombre": "Car Condal Badalona - TESLA Body Shop", "telefono": "934646698", "direccion": "Pol. Can Ribó, Nave 3", "cp": "08917", "municipio": "Badalona", "tipo": "Chapa/Pintura"}, {"id": "bdn_planxa", "nombre": "A bdn planxa i pintura", "telefono": "", "direccion": "Carrer del Rector 54", "cp": "08911", "municipio": "Badalona", "tipo": "Chapa/Pintura"}, {"id": "auto_anser", "nombre": "Auto Anser", "telefono": "", "direccion": "Carrer de la Independència 1", "cp": "08911", "municipio": "Badalona", "tipo": "Mecánico"}, {"id": "midas_sant_adria", "nombre": "Midas Sant Adrià de Besòs", "telefono": "933819052", "direccion": "Calle Ramón Viñas", "cp": "08930", "municipio": "Sant Adrià del Besòs", "tipo": "Neumáticos"}, {"id": "tallers_bermudez", "nombre": "Tallers Bermúdez", "telefono": "933810305", "direccion": "Carrer de l-Atlàntida 21", "cp": "08930", "municipio": "Sant Adrià del Besòs", "tipo": "Mecánico"}, {"id": "auto_besos", "nombre": "Talleres Auto Besòs", "telefono": "", "direccion": "Carrer de Ramon Viñas 42", "cp": "08930", "municipio": "Sant Adrià del Besòs", "tipo": "Mecánico"}, {"id": "talleres_ana", "nombre": "Talleres ANA", "telefono": "933810799", "direccion": "Carrer Mare de Déu de Montserrat 27", "cp": "08930", "municipio": "Sant Adrià del Besòs", "tipo": "Mecánico"}, {"id": "auto_taller_sant_adria", "nombre": "Auto Taller Sant Adrià", "telefono": "", "direccion": "Passeig de la Pollancreda 20", "cp": "08930", "municipio": "Sant Adrià del Besòs", "tipo": "Mecánico"}, {"id": "speedpau", "nombre": "TALLER SPEEDPAU", "telefono": "", "direccion": "Carrer del Bogatell 62", "cp": "08930", "municipio": "Sant Adrià del Besòs", "tipo": "Mecánico"}, {"id": "itv_badalona", "nombre": "ITV Badalona Applus+", "telefono": "934157200", "direccion": "Carrer de la Indústria 427", "cp": "08911", "municipio": "Badalona", "tipo": "ITV"}, {"id": "itv_argentona", "nombre": "ITV Argentona Applus", "telefono": "937971600", "direccion": "Pol. El Cros Sur", "cp": "08310", "municipio": "Argentona", "tipo": "ITV"}]};
@@ -3403,6 +3375,8 @@ function talSaveContacto(id,val){if(!talSt[id])talSt[id]={};talSt[id].contacto=v
 function talUpdateField(id,field,val){var t=TAL.talleres.find(function(x){return x.id===id;});if(t)t[field]=val;}
 
 async function talLlamar(id){
+  if(window._callInProgress){toast('Ya hay una llamada en curso','err');return;}
+  window._callInProgress=true;
   var t=TAL.talleres.find(function(x){return x.id===id;});
   if(!t||!t.telefono){toast('Sin teléfono','err');return;}
   var phone='+34'+t.telefono.replace(/\D/g,'');
@@ -3477,35 +3451,7 @@ async function talLlamar(id){
   }
 }
 
-async function talFetchResult(callId,talId,attempt){
-  attempt=attempt||0;if(attempt>10)return;
-  try{
-    var r=await fetch('https://api.vapi.ai/call/'+callId,{headers:{Authorization:'Bearer '+VAPI_KEY}});
-    if(!r.ok)throw new Error(r.status);
-    var d=await r.json();
-    if(d.status!=='ended'){setTimeout(function(){talFetchResult(callId,talId,attempt+1);},5000);return;}
-    var dur=d.endedAt&&d.startedAt?Math.round((new Date(d.endedAt)-new Date(d.startedAt))/1000):0;
-    var now=d.endedAt?new Date(d.endedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):new Date().toLocaleString('es-ES');
-    var eMap={'customer-did-not-answer':'No contest\u00f3','silence-timed-out':'No contest\u00f3 (silencio)','customer-ended-call':'Cort\u00f3','assistant-ended-call':'Finalizada'};
-    var nota='📞 '+now+(dur?' \u00b7 '+dur+'s':'')+'\n\u26AB '+(eMap[d.endedReason]||'Finalizada');
-    if(d.transcript)nota+='\n&#128172; "'+d.transcript.substring(0,400)+'"';
-    if(d.recordingUrl)nota+='\n'+d.recordingUrl;
-    if(!talSt[talId])talSt[talId]={};
-    var ex=talSt[talId].notas||'';
-    talSt[talId].notas=ex?ex+'\n\n'+nota:nota;
-    if(d.recordingUrl)talSt[talId]._recordingUrl=d.recordingUrl;
-    talSt[talId].ultimaLlamada=now;
-    if(d.endedReason==='customer-did-not-answer'||d.endedReason==='silence-timed-out'||d.endedReason==='voicemail'){
-      if(!talSt[talId].estado||talSt[talId].estado==='sinLlamar')talSt[talId].estado='noContesta';
-    } else if(!talSt[talId].estado||talSt[talId].estado==='sinLlamar'){
-      talSt[talId].estado='duda';
-    }
-    talSave();
-    if(talSel===talId)talOpen2(talId);else talRenderList();
-    toast('\u2713 Llamada taller grabada','ok');
-    fetchCallNotes(callId,'TAL:'+talId);
-  }catch(e){setTimeout(function(){talFetchResult(callId,talId,attempt+1);},5000);}
-}
+async function talFetchResult(){/* deprecated — flujo unificado via pollCallStatus */}
 
 var _smTal=window.selMob;
 window.selMob=function(id,el){
@@ -3714,6 +3660,8 @@ function supSaveContacto(id,val){if(!supSt[id])supSt[id]={};supSt[id].contacto=v
 function supUpdateField(id,field,val){var t=SUP.supers.find(function(x){return x.id===id;});if(t)t[field]=val;}
 
 async function supLlamar(id){
+  if(window._callInProgress){toast('Ya hay una llamada en curso','err');return;}
+  window._callInProgress=true;
   var t=SUP.supers.find(function(x){return x.id===id;});
   if(!t||!t.telefono){toast('Sin teléfono','err');return;}
   var phone='+34'+t.telefono.replace(/\D/g,'');
@@ -3788,38 +3736,7 @@ async function supLlamar(id){
   }
 }
 
-async function supFetchResult(callId,talId,attempt){
-  attempt=attempt||0;if(attempt>10)return;
-  try{
-    var r=await fetch('https://api.vapi.ai/call/'+callId,{headers:{Authorization:'Bearer '+VAPI_KEY}});
-    if(!r.ok)throw new Error(r.status);
-    var d=await r.json();
-    if(d.status!=='ended'){setTimeout(function(){supFetchResult(callId,talId,attempt+1);},5000);return;}
-    var dur=d.endedAt&&d.startedAt?Math.round((new Date(d.endedAt)-new Date(d.startedAt))/1000):0;
-    var now=d.endedAt?new Date(d.endedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):new Date().toLocaleString('es-ES');
-    var eMap={'customer-did-not-answer':'No contest\u00f3','silence-timed-out':'No contest\u00f3 (silencio)','customer-ended-call':'Cort\u00f3','assistant-ended-call':'Finalizada'};
-    var nota='📞 '+now+(dur?' \u00b7 '+dur+'s':'')+'\n\u26AB '+(eMap[d.endedReason]||'Finalizada');
-    if(d.transcript)nota+='\n&#128172; "'+d.transcript.substring(0,400)+'"';
-    if(d.recordingUrl)nota+='\n'+d.recordingUrl;
-    if(!supSt[talId])supSt[talId]={};
-    var ex=supSt[talId].notas||'';
-    supSt[talId].notas=ex?ex+'\n\n'+nota:nota;
-    if(d.recordingUrl)supSt[talId]._recordingUrl=d.recordingUrl;
-    supSt[talId].ultimaLlamada=now;
-    if(d.endedReason==='customer-did-not-answer'||d.endedReason==='silence-timed-out'||d.endedReason==='voicemail'){
-      if(!supSt[talId].estado||supSt[talId].estado==='sinLlamar')supSt[talId].estado='noContesta';
-    } else if(!supSt[talId].estado||supSt[talId].estado==='sinLlamar'){
-      supSt[talId].estado='duda';
-    }
-    supSave();
-    window._supActiveCallId=null;window._supActiveId=null;
-    clearInterval(iv);document.getElementById('cban').classList.remove('on');
-    if(supSel===talId)supOpen2(talId);else supRenderList();
-    upStats();
-    toast('\u2713 Llamada supermercado grabada','ok');
-    fetchCallNotes(callId,'SUP:'+talId);
-  }catch(e){setTimeout(function(){supFetchResult(callId,talId,attempt+1);},5000);}
-}
+async function supFetchResult(){/* deprecated — flujo unificado via pollCallStatus */}
 
 var _smSup=window.selMob;
 window.selMob=function(id,el){
@@ -4018,6 +3935,8 @@ function denSaveContacto(id,val){if(!denSt[id])denSt[id]={};denSt[id].contacto=v
 function denUpdateField(id,field,val){var t=DEN.clinicas.find(function(x){return x.id===id;});if(t)t[field]=val;}
 
 async function denLlamar(id){
+  if(window._callInProgress){toast('Ya hay una llamada en curso','err');return;}
+  window._callInProgress=true;
   var t=DEN.clinicas.find(function(x){return x.id===id;});
   if(!t||!t.telefono){toast('Sin teléfono','err');return;}
   var phone='+34'+t.telefono.replace(/\D/g,'');
@@ -4092,35 +4011,7 @@ async function denLlamar(id){
   }
 }
 
-async function denFetchResult(callId,talId,attempt){
-  attempt=attempt||0;if(attempt>10)return;
-  try{
-    var r=await fetch('https://api.vapi.ai/call/'+callId,{headers:{Authorization:'Bearer '+VAPI_KEY}});
-    if(!r.ok)throw new Error(r.status);
-    var d=await r.json();
-    if(d.status!=='ended'){setTimeout(function(){denFetchResult(callId,talId,attempt+1);},5000);return;}
-    var dur=d.endedAt&&d.startedAt?Math.round((new Date(d.endedAt)-new Date(d.startedAt))/1000):0;
-    var now=d.endedAt?new Date(d.endedAt).toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):new Date().toLocaleString('es-ES');
-    var eMap={'customer-did-not-answer':'No contest\u00f3','silence-timed-out':'No contest\u00f3 (silencio)','customer-ended-call':'Cort\u00f3','assistant-ended-call':'Finalizada'};
-    var nota='📞 '+now+(dur?' \u00b7 '+dur+'s':'')+'\n\u26AB '+(eMap[d.endedReason]||'Finalizada');
-    if(d.transcript)nota+='\n&#128172; "'+d.transcript.substring(0,400)+'"';
-    if(d.recordingUrl)nota+='\n'+d.recordingUrl;
-    if(!denSt[talId])denSt[talId]={};
-    var ex=denSt[talId].notas||'';
-    denSt[talId].notas=ex?ex+'\n\n'+nota:nota;
-    if(d.recordingUrl)denSt[talId]._recordingUrl=d.recordingUrl;
-    denSt[talId].ultimaLlamada=now;
-    if(d.endedReason==='customer-did-not-answer'||d.endedReason==='silence-timed-out'||d.endedReason==='voicemail'){
-      if(!denSt[talId].estado||denSt[talId].estado==='sinLlamar')denSt[talId].estado='noContesta';
-    } else if(!denSt[talId].estado||denSt[talId].estado==='sinLlamar'){
-      denSt[talId].estado='duda';
-    }
-    denSave();
-    if(denSel===talId)denOpen2(talId);else denRenderList();
-    toast('\u2713 Llamada clinica dental grabada','ok');
-    fetchCallNotes(callId,'DEN:'+denId);
-  }catch(e){setTimeout(function(){denFetchResult(callId,talId,attempt+1);},5000);}
-}
+async function denFetchResult(){/* deprecated — flujo unificado via pollCallStatus */}
 
 var _smDen=window.selMob;
 window.selMob=function(id,el){
