@@ -1139,7 +1139,6 @@ function upStats(){
   var _snc3=document.getElementById('snc');if(_snc3)_snc3.textContent=parseInt(_snc3.textContent||0)+_talV.filter(function(s){return s.estado==='noContesta';}).length;
   var _sduda3=document.getElementById('sduda');if(_sduda3)_sduda3.textContent=parseInt(_sduda3.textContent||0)+_talV.filter(function(s){return s.estado==='duda';}).length;
   document.getElementById('sllamadas').textContent=parseInt(document.getElementById('sllamadas').textContent||0)+_talV.reduce(function(s,x){return s+(x.llamadas||0);},0);
-}
   // SUP
   var _supSt4=JSON.parse(localStorage.getItem('fe_sup_v1')||'{}');
   var _supV4=Object.values(_supSt4);
@@ -1154,8 +1153,11 @@ function upStats(){
   var _denV4=Object.values(_denSt4);
   document.getElementById('sv').textContent=parseInt(document.getElementById('sv').textContent||0)+_denV4.filter(function(s){return s.estado==='visita';}).length;
   document.getElementById('sr').textContent=parseInt(document.getElementById('sr').textContent||0)+_denV4.filter(function(s){return s.estado==='rellamar';}).length;
+  var _snc5=document.getElementById('snc');if(_snc5)_snc5.textContent=parseInt(_snc5.textContent||0)+_denV4.filter(function(s){return s.estado==='noContesta';}).length;
+  var _sni5=document.getElementById('sni');if(_sni5)_sni5.textContent=parseInt(_sni5.textContent||0)+_denV4.filter(function(s){return s.estado==='noInteresa';}).length;
+  var _sd5=document.getElementById('sduda');if(_sd5)_sd5.textContent=parseInt(_sd5.textContent||0)+_denV4.filter(function(s){return s.estado==='duda';}).length;
   document.getElementById('sllamadas').textContent=parseInt(document.getElementById('sllamadas').textContent||0)+_denV4.reduce(function(s,x){return s+(x.llamadas||0);},0);
-
+}
 function setFechaHoy(){
   var t=new Date().toISOString().split('T')[0];
   document.getElementById('fecha-desde').value=t;
