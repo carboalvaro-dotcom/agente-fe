@@ -1125,7 +1125,7 @@ function upStats(){
   var _accNC=Object.values(_accSt2).filter(s=>s.estado==='noContesta').length;
   var _accDuda=Object.values(_accSt2).filter(s=>s.estado==='duda').length;
   var _accCalls=Object.values(_accSt2).reduce(function(s,x){return s+(x.llamadas||0);},0);
-  document.getElementById('sv').textContent=C.filter(c=>c.estado==='visitaOK').length+_accVisitas;
+  document.getElementById('sv').textContent=C.filter(c=>c.estado==='visitaOK').length+_accVisitas+_salVisitas;
   document.getElementById('sr').textContent=C.filter(c=>c.estado==='rellamar').length+_accRellamar;
   document.getElementById('sni').textContent=C.filter(c=>c.estado==='noInteresa').length+_accNI;
   document.getElementById('snc').textContent=C.filter(c=>c.estado==='noContesta').length+_accNC;
@@ -1150,6 +1150,11 @@ function upStats(){
   var _sd4=document.getElementById('sduda');if(_sd4)_sd4.textContent=parseInt(_sd4.textContent||0)+_supV4.filter(function(s){return s.estado==='duda';}).length;
   document.getElementById('sllamadas').textContent=parseInt(document.getElementById('sllamadas').textContent||0)+_supV4.reduce(function(s,x){return s+(x.llamadas||0);},0);
   // DEN
+  var _salSt4=JSON.parse(localStorage.getItem('fe_sal_v1')||'{}');
+  var _salVisitas=Object.values(_salSt4).filter(function(s){return s.estado==='visita';}).length;
+  var _salRellamar=Object.values(_salSt4).filter(function(s){return s.estado==='rellamar';}).length;
+  var _salNI=Object.values(_salSt4).filter(function(s){return s.estado==='noInteresa';}).length;
+  var _salNC=Object.values(_salSt4).filter(function(s){return s.estado==='noContesta';}).length;
   var _denSt4=JSON.parse(localStorage.getItem('fe_den_v1')||'{}');
   var _denV4=Object.values(_denSt4);
   document.getElementById('sv').textContent=parseInt(document.getElementById('sv').textContent||0)+_denV4.filter(function(s){return s.estado==='visita';}).length;
@@ -1901,6 +1906,21 @@ function getCampaignOrder(){
     });
     return denFiltered.map(function(c){return 'DEN:'+c.id;});
   }
+  if(cpFilter==='SAL'){
+    var salStData=JSON.parse(localStorage.getItem('fe_sal_v1')||'{}');
+    var centros2=typeof SAL!=='undefined'&&SAL.centros?SAL.centros:[];
+    var salFiltered=centros2.filter(function(c){
+      if(!c.telefono)return false;
+      var st=(salStData[c.id]||{estado:'sinLlamar'}).estado;
+      if(filter==='nuevos') return st==='sinLlamar';
+      if(filter==='todos'||filter==='pendiente') return st!=='visita'&&st!=='noInteresa';
+      if(filter==='rellamar') return st==='rellamar';
+      if(filter==='duda') return st==='duda';
+      if(filter==='noContesta') return st==='noContesta';
+      return false;
+    });
+    return salFiltered.map(function(c){return 'SAL:'+c.id;});
+  }
   if(cpFilter==='SUP'){
     var supStData=JSON.parse(localStorage.getItem('fe_sup_v1')||'{}');
     var supers=typeof SUP!=='undefined'&&SUP.supers?SUP.supers:[];
@@ -2054,6 +2074,26 @@ async function runNextCampaignCall(){
     if(campaignRunning&&!campaignPaused){document.getElementById('camp-sub').textContent='Esperando 45s...';await new Promise(r=>{campaignTimer=setTimeout(r,45000);});}
     runNextCampaignCall();return;
   }
+  // === SAL salud call ===
+  if(typeof id==='string'&&id.startsWith('SAL:')){
+    const salIdC=id.substring(4);
+    const centros=typeof SAL!=='undefined'&&SAL.centros?SAL.centros:[];
+    const tSal=centros.find(function(x){return x.id===salIdC;});
+    if(!tSal||!tSal.telefono){campaignIdx++;runNextCampaignCall();return;}
+    const doneSal=campaignIdx,totalSal=campaignQueue.length,pctSal=Math.round((doneSal/totalSal)*100);
+    document.getElementById('camp-title').textContent='Llamando: '+tSal.nombre.slice(0,35);
+    document.getElementById('camp-sub').textContent=(doneSal+1)+' de '+totalSal;
+    document.getElementById('camp-fill').style.width=pctSal+'%';
+    document.getElementById('camp-pct').textContent=pctSal+'%';
+    window._salId=salIdC;
+    try{salOpen2(salIdC);}catch(e){}
+    window.scrollTo(0,0);
+    await salLlamar(salIdC);
+    await new Promise(r=>{campaignTimer=setTimeout(r,60000);});
+    campaignIdx++;updateCampLiveStats();
+    if(campaignRunning&&!campaignPaused){document.getElementById('camp-sub').textContent='Esperando 45s...';await new Promise(r=>{campaignTimer=setTimeout(r,45000);});}
+    runNextCampaignCall();return;
+  }
   // === TAL taller call ===
   if(typeof id==='string'&&id.startsWith('TAL:')){
     const talId=id.substring(4);
@@ -2166,6 +2206,19 @@ function applyCallResult(data,callId,contactId){
     upStats();updateCampLiveStats();
     toast('\u2713 '+TAL.talleres.find(function(x){return x.id===talId2;})?.nombre+' \u2014 analizado','ok');
     return;
+  }
+  // Handle SAL salud results
+  if(typeof contactId==='string'&&contactId.startsWith('SAL:')){
+    var salId2=contactId.substring(4);
+    if(!salSt[salId2])salSt[salId2]={};
+    salSt[salId2]._callId=callId;
+    if(data.recordingUrl)salSt[salId2]._recordingUrl=data.recordingUrl;
+    if(data.notas){var salEx=salSt[salId2].notas||'';salSt[salId2].notas=salEx?salEx+'\n\n'+data.notas:data.notas;}
+    var salRM={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
+    if(data.resultado&&salRM[data.resultado])salSt[salId2].estado=salRM[data.resultado];
+    salSave();clearInterval(iv);document.getElementById('cban').classList.remove('on');
+    if(window._salId===salId2)salOpen2(salId2);else salRenderList();
+    upStats();updateCampLiveStats();return;
   }
   // Handle DEN clinica dental results
   if(typeof contactId==='string'&&contactId.startsWith('DEN:')){
