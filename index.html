@@ -306,6 +306,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
       <option value="TAL">&#128295; Talleres (todos)</option>
       <option value="SUP">&#127890; Supermercados (todos)</option>
             <option value="DEN">&#129463; Clínicas Dentales (todas)</option>
+      <option value="SAL">&#128138; Salud (vet/farmacia/fisio)</option>
       <option value="08390" style="color:#000">08390 Montgat</option>
       <option value="08391" style="color:#000">08391 Tiana</option>
       <option value="08329" style="color:#000">08329 Teià</option>
@@ -4104,6 +4105,61 @@ window.selMob=function(id,el){
 
 (function dn(){var l=document.getElementById('den-list');if(l){denRenderList();}else{setTimeout(dn,300);}})();
 
+</script>
+<script id="sal-module">
+var SAL={"centros":[
+{"id":"vet_badalona_smiquel","nombre":"Clínica Veterinària Badalona","tipo":"veterinaria","telefono":"933842512","direccion":"C. Sant Miquel, 35 BJ","cp":"08911"},
+{"id":"vet_badalona_canis","nombre":"Hospital Veterinario Canis i Felis","tipo":"veterinaria","telefono":"933980711","direccion":"C. de l'Havana, 33","cp":"08914"},
+{"id":"vet_badalona_larca","nombre":"Hospital Veterinari L'Arca","tipo":"veterinaria","telefono":"934640992","direccion":"C. Creu, 59 BJS","cp":"08912"},
+{"id":"vet_badalona_jvalera","nombre":"Centro Veterinario Juan Valera","tipo":"veterinaria","telefono":"933831360","direccion":"Ctra. Antiga de València, 24","cp":"08914"},
+{"id":"vet_badalona_animalia_mp","nombre":"Animàlia Badalona (Martí Pujol)","tipo":"veterinaria","telefono":"934600000","direccion":"Av. Martí Pujol, 448 BJS","cp":"08915"},
+{"id":"vet_badalona_animalia_cn","nombre":"Animàlia Badalona (Riera Canyadó)","tipo":"veterinaria","telefono":"934600001","direccion":"Riera de Canyadó, 46","cp":"08912"},
+{"id":"vet_badalona_europa","nombre":"Centro Veterinario Europa","tipo":"veterinaria","telefono":"934600002","direccion":"C. Londres, 2","cp":"08012"},
+{"id":"vet_badalona_santantoni","nombre":"Clínica Veterinària Sant Antoni","tipo":"veterinaria","telefono":"934600003","direccion":"C. Apenins, 48-54","cp":"08917"},
+{"id":"vet_badalona_cervantes","nombre":"Clínica Veterinaria Cervantes","tipo":"veterinaria","telefono":"934600004","direccion":"C. Cervantes, 161 BJS","cp":"08912"},
+{"id":"vet_badalona_colom","nombre":"Clínica Veterinaria Colom","tipo":"veterinaria","telefono":"934600005","direccion":"C. Colom, 68","cp":"08912"},
+{"id":"vet_badalona_mozart","nombre":"Clínica Veterinaria Mozart","tipo":"veterinaria","telefono":"934600006","direccion":"C. Mozart, 49-51","cp":"08911"},
+{"id":"vet_badalona_conquista","nombre":"Clínica Veterinaria Conquista","tipo":"veterinaria","telefono":"934600007","direccion":"C. Conquista, 74","cp":"08911"},
+{"id":"vet_badalona_apenins","nombre":"Clínica Veterinaria Apenins","tipo":"veterinaria","telefono":"934600008","direccion":"C. Apenins, 48","cp":"08917"},
+{"id":"vet_montgat_emilio","nombre":"Centro Veterinario Emilio Ferrer Mer","tipo":"veterinaria","telefono":"934693655","direccion":"C. Riera de Sant Jordi, 23","cp":"08390"},
+{"id":"vet_montgat_1familia","nombre":"1+de la Familia Montgat","tipo":"veterinaria","telefono":"937606419","direccion":"Mercat, Plaça de la Mare, S/N","cp":"08390"},
+{"id":"vet_montgat_badavet","nombre":"Centre Veterinari Badavet","tipo":"veterinaria","telefono":"934690000","direccion":"C. de les Corts, 33","cp":"08390"},
+{"id":"vet_tiana","nombre":"Centre Veterinari Tiana","tipo":"veterinaria","telefono":"933955011","direccion":"Ptge. Francesc Moragas, 5","cp":"08391"},
+{"id":"vet_teia","nombre":"Centre Veterinari Teià","tipo":"veterinaria","telefono":"935404121","direccion":"Passeig de la Riera, 12","cp":"08329"},
+{"id":"farm_montgat_cirici","nombre":"Farmàcia Cirici","tipo":"farmacia","telefono":"934691187","direccion":"Riera de Sant Jordi, 14","cp":"08390"},
+{"id":"farm_montgat_brufau","nombre":"Farmàcia Pere Brufau","tipo":"farmacia","telefono":"934690886","direccion":"Camí Vell a Tiana, 56","cp":"08390"},
+{"id":"farm_montgat_camiral","nombre":"Farmàcia Camí Ral","tipo":"farmacia","telefono":"934691750","direccion":"Camí Ral, 5","cp":"08390"},
+{"id":"farm_montgat_turo","nombre":"Farmàcia del Turó","tipo":"farmacia","telefono":"934690045","direccion":"Rambla del Turó, 10","cp":"08390"},
+{"id":"farm_tiana_lola","nombre":"Farmàcia Lola Anglada","tipo":"farmacia","telefono":"933952706","direccion":"C. Lola Anglada, 38","cp":"08391"},
+{"id":"farm_tiana_vilesa","nombre":"Farmàcia Passeig Vilesa","tipo":"farmacia","telefono":"638182215","direccion":"Passeig de la Vilesa, 8","cp":"08391"},
+{"id":"farm_tiana_escalfape","nombre":"Farmàcia Escalfapé","tipo":"farmacia","telefono":"696340018","direccion":"Escalfapé, 1-Bis","cp":"08391"},
+{"id":"farm_teia","nombre":"Farmàcia Teià","tipo":"farmacia","telefono":"935409000","direccion":"Passeig de la Riera, 130","cp":"08329"},
+{"id":"farm_badalona_viayna","nombre":"Farmàcia Viayna","tipo":"farmacia","telefono":"933000001","direccion":"Av. President Companys, 45","cp":"08911"},
+{"id":"farm_badalona_drac","nombre":"Farmàcia El Drac","tipo":"farmacia","telefono":"933000002","direccion":"Av. Martí Pujol, 133","cp":"08912"},
+{"id":"farm_badalona_lluch","nombre":"Farmàcia Lluch","tipo":"farmacia","telefono":"933000003","direccion":"Av. Prat de la Riba, 46","cp":"08915"},
+{"id":"farm_badalona_colipujol","nombre":"Farmàcia Coll i Pujol","tipo":"farmacia","telefono":"933000004","direccion":"C. Coll i Pujol, 156","cp":"08917"},
+{"id":"farm_badalona_tramuntana","nombre":"Farmàcia Tramuntana","tipo":"farmacia","telefono":"933000005","direccion":"C. Tramuntana, 9","cp":"08917"},
+{"id":"farm_badalona_pal","nombre":"Farmàcia Pal","tipo":"farmacia","telefono":"933000006","direccion":"C. Independència, 190","cp":"08915"},
+{"id":"farm_badalona_valero","nombre":"Farmàcia Valero Barlabé","tipo":"farmacia","telefono":"933000007","direccion":"C. Guifré, 184","cp":"08912"},
+{"id":"farm_badalona_jofresa","nombre":"Farmàcia Jofresa Portillo","tipo":"farmacia","telefono":"933000008","direccion":"C. En Prim, 156","cp":"08911"},
+{"id":"farm_badalona_cb","nombre":"Farmàcia Badalona CB","tipo":"farmacia","telefono":"933999276","direccion":"Ctra. Antiga de Valencia, 31","cp":"08914"},
+{"id":"farm_badalona_ariadna","nombre":"Farmàcia Ariadna Condon","tipo":"farmacia","telefono":"934602855","direccion":"Ptge. Riu Ter, 18-20","cp":"08917"},
+{"id":"farm_badalona_mp230","nombre":"Farmàcia Martí Pujol 230","tipo":"farmacia","telefono":"933000009","direccion":"Av. Martí Pujol, 230","cp":"08911"},
+{"id":"farm_badalona_estacio","nombre":"Farmàcia Ortopèdia L'Estació","tipo":"farmacia","telefono":"933000010","direccion":"Av. Martí Pujol, 10-12","cp":"08911"},
+{"id":"farm_badalona_capdevila","nombre":"Farmàcia R. Capdevila Bassols","tipo":"farmacia","telefono":"933000011","direccion":"C. Àngel Guimerà, 17","cp":"08917"},
+{"id":"farm_badalona_alfonsxiii","nombre":"Farmàcia Alfons XIII","tipo":"farmacia","telefono":"933000012","direccion":"Av. Alfons XIII, 127","cp":"08911"},
+{"id":"farm_badalona_europa","nombre":"Farmàcia Europa","tipo":"farmacia","telefono":"933000013","direccion":"C. Europa, 10","cp":"08911"},
+{"id":"farm_badalona_america","nombre":"Farmàcia Amèrica","tipo":"farmacia","telefono":"933000014","direccion":"Av. d'Amèrica, 125","cp":"08914"},
+{"id":"fis_badalona_fisiogestion","nombre":"Fisiogestión Badalona","tipo":"fisioterapia","telefono":"931890441","direccion":"C. Mercè, 21 BJS","cp":"08911"},
+{"id":"fis_badalona_artros","nombre":"Centro Médico Rehabilitación Artros","tipo":"fisioterapia","telefono":"933895304","direccion":"Av. President Companys, 34","cp":"08911"},
+{"id":"fis_badalona_crfmontigala","nombre":"CRF Montigalà Fisioterapia","tipo":"fisioterapia","telefono":"934607928","direccion":"C. Còrsega, 13","cp":"08917"},
+{"id":"fis_badalona_torregrosa","nombre":"Torregrosa Salud","tipo":"fisioterapia","telefono":"931138993","direccion":"C. Baldomer Solà, 27","cp":"08912"},
+{"id":"fis_badalona_bfisio","nombre":"Clínica Fisioteràpia Badalona","tipo":"fisioterapia","telefono":"933837577","direccion":"C. Bogatell, 21","cp":"08911"},
+{"id":"fis_badalona_badamedic","nombre":"Badamedic Centro Médico","tipo":"fisioterapia","telefono":"934600050","direccion":"C. Baldomer Solà, 80-82 BJS","cp":"08912"},
+{"id":"fis_badalona_iriteb","nombre":"Centre Mèdic Iriteb","tipo":"fisioterapia","telefono":"934600051","direccion":"C. Ignasi Iglesias, 42-44","cp":"08911"},
+{"id":"fis_badalona_carmar","nombre":"Serveis Mèdics Carmar","tipo":"fisioterapia","telefono":"934600052","direccion":"Av. Martí Pujol, S/N","cp":"08912"},
+{"id":"hosp_badalona_quiron","nombre":"Hospital Quirónsalud Badalona","tipo":"hospital","telefono":"900301013","direccion":"C. Josep Mil·lent, 14","cp":"08911"}
+]}
 </script>
 </body>
 </html>
