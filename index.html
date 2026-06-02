@@ -247,7 +247,11 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
 .ci.sel{background:var(--acl);border-left-color:var(--ac)!important;border-left-width:9px;}
 
 /* === ACC ADMINS === */
-.acc-section{border-top:2px solid var(--ac);overflow-y:auto;max-height:calc(100vh - 280px);}
+.acc-section{border-top:2px solid var(--ac);}
+.acc-section .acc-body{display:none;overflow-y:auto;max-height:calc(100vh - 220px);}
+.acc-section.open .acc-body{display:block;}
+.acc-header-arrow{font-size:11px;color:var(--ac);transition:transform .15s;line-height:1;}
+.acc-section.open .acc-header-arrow{transform:rotate(180deg);}
 .acc-header{display:flex;align-items:center;justify-content:space-between;padding:7px 12px 5px;background:rgba(49,82,161,0.08);border-bottom:1px solid var(--bd);cursor:pointer;user-select:none;position:sticky;top:0;z-index:1;}
 .acc-header:hover{background:rgba(49,82,161,0.14);}
 .acc-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--ac);}
@@ -389,10 +393,10 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
       </div>
       <div class="lp-list" id="lp-list"></div>
   <div class="acc-section" id="acc-section">
-    <div class="acc-header" onclick="accToggle()">
-      <span class="acc-title">&#127970; Administradores ACC</span>
-      <span class="acc-count" id="acc-hdr-count"></span>
+    <div class="acc-header" onclick="openSector('acc-section')">
+      <span style="display:flex;align-items:center;gap:5px"><span class="acc-title">&#127970; Administradores</span><span class="acc-count" id="acc-hdr-count"></span></span><span class="acc-header-arrow">&#9660;</span>
     </div>
+  <div class="acc-body">
     <div style="padding:5px 10px 6px;border-bottom:1px solid var(--bd);background:var(--s1);">
       <select id="acc-prov-filter" onchange="accRenderList()" onclick="event.stopPropagation()" style="width:100%;font-size:11px;padding:3px 6px;border:1px solid var(--bd);border-radius:4px;background:var(--bg);color:var(--tx);font-family:var(--fn);">
         <option value="">Todas las provincias</option>
@@ -422,14 +426,15 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
         </select>
     </div>
     <div id="acc-list"></div>
+  </div><!--/acc-body-->
   </div>
 
   <!-- ===== SECCIÓN TALLERES ===== -->
   <div class="acc-section" id="tal-section">
-    <div class="acc-header" onclick="talToggle()">
-      <span class="acc-title">🔧 Talleres</span>
-      <span class="acc-count" id="tal-hdr-count"></span>
+    <div class="acc-header" onclick="openSector('tal-section')">
+      <span style="display:flex;align-items:center;gap:5px"><span class="acc-title">🔧 Talleres</span><span class="acc-count" id="tal-hdr-count"></span></span><span class="acc-header-arrow">&#9660;</span>
     </div>
+  <div class="acc-body">
     <div style="padding:5px 10px 6px;border-bottom:1px solid var(--bd);background:var(--s1);">
       <select id="tal-muni-filter" onchange="talRenderList()" style="width:100%;font-size:11px;padding:3px 6px;border:1px solid var(--bd);border-radius:6px;background:var(--s1);color:var(--tx);">
         <option value="">Todos los municipios</option>
@@ -455,14 +460,15 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
       </select>
     </div>
     <div id="tal-list"></div>
+  </div><!--/acc-body-->
   </div>
 
   <!-- ===== SECCIÓN TALLERES ===== -->
   <div class="acc-section" id="sup-section">
-    <div class="acc-header" onclick="supToggle()">
-      <span class="acc-title">&#127890; Supermercados</span>
-      <span class="acc-count" id="sup-hdr-count"></span>
+    <div class="acc-header" onclick="openSector('sup-section')">
+      <span style="display:flex;align-items:center;gap:5px"><span class="acc-title">&#127890; Supermercados</span><span class="acc-count" id="sup-hdr-count"></span></span><span class="acc-header-arrow">&#9660;</span>
     </div>
+  <div class="acc-body">
     <div style="padding:5px 10px 6px;border-bottom:1px solid var(--bd);background:var(--s1);">
       <select id="sup-muni-filter" onchange="supRenderList()" style="width:100%;font-size:11px;padding:3px 6px;border:1px solid var(--bd);border-radius:4px;background:var(--s0);color:var(--tx);">
         <option value="">Todos los municipios</option>
@@ -492,12 +498,13 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
       </select>
     </div>
     <div id="sup-list"></div>
+  </div><!--/acc-body-->
   </div>
   <div class="acc-section" id="den-section">
-    <div class="acc-header" onclick="denToggle()">
-      <span class="acc-title">&#129463; Clinicas Dentales</span>
-      <span class="acc-count" id="den-hdr-count"></span>
+    <div class="acc-header" onclick="openSector('den-section')">
+      <span style="display:flex;align-items:center;gap:5px"><span class="acc-title">&#129463; Cl&iacute;nicas Dentales</span><span class="acc-count" id="den-hdr-count"></span></span><span class="acc-header-arrow">&#9660;</span>
     </div>
+  <div class="acc-body">
     <div style="padding:5px 10px 6px;border-bottom:1px solid var(--bd);background:var(--s1);">
       <select id="den-muni-filter" onchange="denRenderList()" style="width:100%;font-size:11px;padding:3px 6px;border:1px solid var(--bd);border-radius:4px;background:var(--s0);color:var(--tx);">
         <option value="">Todos los municipios</option>
@@ -517,6 +524,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
       </select>
     </div>
     <div id="den-list"></div>
+  </div><!--/acc-body-->
   </div>
   </div>
   <div class="rp">
@@ -2795,6 +2803,14 @@ var accSt=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}'),accSel=null,accOpe
 try{updateStats();}catch(e){}
 try{setTimeout(applyCompact,100);}catch(e){}
 function accSave(){localStorage.setItem('fe_acc_v1',JSON.stringify(accSt));}
+function openSector(id){
+  ['acc-section','tal-section','sup-section','den-section'].forEach(function(s){
+    var el=document.getElementById(s);
+    if(!el)return;
+    if(s===id){el.classList.toggle('open');}
+    else{el.classList.remove('open');}
+  });
+}
 function accToggle(){accOpen=!accOpen;document.getElementById('acc-list').style.display=accOpen?'':'none';}
 
 function accRenderList(){
