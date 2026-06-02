@@ -1748,7 +1748,7 @@ async function pollCallStatus(callId,contactId){
   toast('Llamada finalizada','');
 }
 
-async function fetchCallNotes(callId,contactId,retries=5){
+async function fetchCallNotes(callId,contactId,retries=12){
   if(!callId) return;
   toast('Analizando llamada...','');
   for(let i=0;i<retries;i++){
@@ -1758,7 +1758,7 @@ async function fetchCallNotes(callId,contactId,retries=5){
       const data=await r.json();
       if(data.retry){
         toast('Procesando...','');
-        await new Promise(r=>setTimeout(r,10000));
+        await new Promise(r=>setTimeout(r,15000));
         continue;
       }
       applyCallResult(data,callId,contactId);
@@ -2186,7 +2186,7 @@ function applyCallResult(data,callId,contactId){
     talSave();
     clearInterval(iv);
     document.getElementById('cban').classList.remove('on');
-    if(talSel===talId2)talOpen2(talId2);else talRenderList();
+    talRenderList();if(talSel===talId2)talOpen2(talId2);
     upStats();updateCampLiveStats();
     toast('\u2713 '+TAL.talleres.find(function(x){return x.id===talId2;})?.nombre+' \u2014 analizado','ok');
     return;
@@ -2201,7 +2201,7 @@ function applyCallResult(data,callId,contactId){
     var denRM={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
     if(data.resultado&&denRM[data.resultado])denSt[denId2].estado=denRM[data.resultado];
     denSave();clearInterval(iv);document.getElementById('cban').classList.remove('on');
-    if(denSel===denId2)denOpen2(denId2);else denRenderList();
+    denRenderList();if(denSel===denId2)denOpen2(denId2);
     upStats();updateCampLiveStats();return;
   }
   // Handle SUP supermercado results
@@ -2214,7 +2214,7 @@ function applyCallResult(data,callId,contactId){
     var supRM={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
     if(data.resultado&&supRM[data.resultado])supSt[supId2].estado=supRM[data.resultado];
     supSave();clearInterval(iv);document.getElementById('cban').classList.remove('on');
-    if(supSel===supId2)supOpen2(supId2);else supRenderList();
+    supRenderList();if(supSel===supId2)supOpen2(supId2);
     upStats();return;
   }
   // Handle ACC admin results
