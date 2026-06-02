@@ -1673,7 +1673,7 @@ async function pollCallStatus(callId,contactId){
       if(status==='ended'||status==='failed'){
         const reason=
           endedReason==='customer-did-not-answer'||endedReason==='no-answer'?'noContesta':
-          endedReason?.includes('voicemail')?'noContesta':'pendiente';
+          endedReason?.includes('voicemail')?'noContesta':'duda';
         // Handle ACC calls differently
         if(typeof contactId==='string'&&contactId.startsWith('ACC:')){
           clearInterval(iv);
@@ -1691,7 +1691,7 @@ async function pollCallStatus(callId,contactId){
       }
       // If backend returned notas it means call ended and was analyzed
       if(data.notas){
-        endCall(contactId,'pendiente');
+        endCall(contactId,'duda');
         const c=C.find(x=>x.id===contactId);if(!c) return;
         c._callId=callId;
         if(data.recordingUrl) c._recordingUrl=data.recordingUrl;
@@ -2137,7 +2137,7 @@ async function waitForCallEnd(callId,contactId){
       return;
     }catch(e){await new Promise(r=>setTimeout(r,8000));}
   }
-  endCall(contactId,'pendiente');
+  endCall(contactId,'duda');
 }
 
 function applyCallResult(data,callId,contactId){
@@ -3180,8 +3180,10 @@ async function accFetchDirect(callId,accId,attempt){
     accSt[accId].notas=ex?ex+'\n\n'+nota:nota;
     if(d.recordingUrl)accSt[accId]._recordingUrl=d.recordingUrl;
     accSt[accId].ultimaLlamada=now;
-    if(d.endedReason==='customer-did-not-answer'||d.endedReason==='silence-timed-out'){
+    if(d.endedReason==='customer-did-not-answer'||d.endedReason==='silence-timed-out'||d.endedReason==='voicemail'){
       if(!accSt[accId].estado||accSt[accId].estado==='sinLlamar')accSt[accId].estado='noContesta';
+    } else if(!accSt[accId].estado||accSt[accId].estado==='sinLlamar'){
+      accSt[accId].estado='duda';
     }
     accSave();
     clearInterval(iv);
@@ -3474,7 +3476,7 @@ async function talFetchResult(callId,talId,attempt){
     if(d.endedReason==='customer-did-not-answer'||d.endedReason==='silence-timed-out'||d.endedReason==='voicemail'){
       if(!talSt[talId].estado||talSt[talId].estado==='sinLlamar')talSt[talId].estado='noContesta';
     } else if(!talSt[talId].estado||talSt[talId].estado==='sinLlamar'){
-      talSt[talId].estado='noContesta';
+      talSt[talId].estado='duda';
     }
     talSave();
     if(talSel===talId)talOpen2(talId);else talRenderList();
@@ -3781,8 +3783,10 @@ async function supFetchResult(callId,talId,attempt){
     supSt[talId].notas=ex?ex+'\n\n'+nota:nota;
     if(d.recordingUrl)supSt[talId]._recordingUrl=d.recordingUrl;
     supSt[talId].ultimaLlamada=now;
-    if(d.endedReason==='customer-did-not-answer'||d.endedReason==='silence-timed-out'){
+    if(d.endedReason==='customer-did-not-answer'||d.endedReason==='silence-timed-out'||d.endedReason==='voicemail'){
       if(!supSt[talId].estado||supSt[talId].estado==='sinLlamar')supSt[talId].estado='noContesta';
+    } else if(!supSt[talId].estado||supSt[talId].estado==='sinLlamar'){
+      supSt[talId].estado='duda';
     }
     supSave();
     window._supActiveCallId=null;window._supActiveId=null;
@@ -4085,7 +4089,7 @@ async function denFetchResult(callId,talId,attempt){
     if(d.endedReason==='customer-did-not-answer'||d.endedReason==='silence-timed-out'||d.endedReason==='voicemail'){
       if(!denSt[talId].estado||denSt[talId].estado==='sinLlamar')denSt[talId].estado='noContesta';
     } else if(!denSt[talId].estado||denSt[talId].estado==='sinLlamar'){
-      denSt[talId].estado='noContesta';
+      denSt[talId].estado='duda';
     }
     denSave();
     if(denSel===talId)denOpen2(talId);else denRenderList();
