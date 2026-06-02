@@ -3553,6 +3553,7 @@ function supRenderList(){
       supSel=_sid;window._supId=_sid;
       var _fw=document.getElementById('acc-ficha-wrap');if(_fw)_fw.style.display='none';
       var _det=document.getElementById('det');if(_det){_det.classList.add('vis');_det.style.display='flex';}
+      var _emp=document.getElementById('empty');if(_emp)_emp.style.display='none';
       if(typeof openMobileDet==='function')openMobileDet();
       supOpen2(_sid);
       supRenderList();
