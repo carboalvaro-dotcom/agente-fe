@@ -23,7 +23,7 @@ export default async function handler(req, res) {
         return res.status(200).json({ callStatus: data.status, callEndedReason: data.endedReason });
       }
 
-      if (data.status === 'in-progress') continue;
+      if (data.status === 'in-progress' || data.status === 'queued' || data.status === 'ringing') { return res.status(200).json({ retry: true }); }
 
       const transcript = data.transcript || '';
       const lines = transcript.split('\n');
@@ -209,7 +209,7 @@ export default async function handler(req, res) {
 
       notas += `🔗 ${callId}`;
 
-      const recordingUrl = data.recordingUrl || data.artifact?.recordingUrl || data.artifact?.videoRecordingUrl || '';
+      const recordingUrl = data.recordingUrl || data.stereoRecordingUrl || (data.artifact ? (data.artifact.recordingUrl || data.artifact.videoRecordingUrl || '') : '') || '';
       return res.status(200).json({
         notas, resultado, nombreContacto, fechaVisita, emailContacto,
         esResponsable, cuandoLlamar, duration, transcript, recordingUrl
