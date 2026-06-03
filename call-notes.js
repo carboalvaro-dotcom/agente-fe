@@ -209,9 +209,10 @@ export default async function handler(req, res) {
 
       notas += `🔗 ${callId}`;
 
+      const recordingUrl = data.recordingUrl || data.artifact?.recordingUrl || data.artifact?.videoRecordingUrl || '';
       return res.status(200).json({
         notas, resultado, nombreContacto, fechaVisita, emailContacto,
-        esResponsable, cuandoLlamar, duration, transcript
+        esResponsable, cuandoLlamar, duration, transcript, recordingUrl
       });
 
     } catch (e) {
