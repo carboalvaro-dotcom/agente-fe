@@ -1346,7 +1346,7 @@ function sel(id){
           summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();
         }
       }
-      document.getElementById('last-call-summary').textContent=summary.slice(0,400)+(summary.length>400?'...':'');
+      document.getElementById('last-call-summary').textContent=summary.slice(0,600)+(summary.length>600?'...':'');
       // Show audio player
       const audio=document.getElementById('last-call-audio');
       if(recUrl){
@@ -3184,8 +3184,9 @@ function talOpen2(id){
       var recUrl=st._recordingUrl||'';
       if(!recUrl&&st.notas){var si=st.notas.indexOf('https://storage.vapi.ai/');if(si>-1){var ei=st.notas.indexOf('\n',si);recUrl=ei>-1?st.notas.slice(si,ei).trim():st.notas.slice(si).trim();}}
       var summary=st.notas||'';
+      if(!summary){summary=(st.ultimaLlamada||'Llamada realizada')+(st.estado?' — '+st.estado:'');}
       if(summary){var si2=summary.indexOf('https://storage.vapi.ai/');if(si2>-1){var ei2=summary.indexOf('\n',si2);summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();}}
-      document.getElementById('last-call-summary').textContent=summary.slice(0,400)+(summary.length>400?'...':'')
+      document.getElementById('last-call-summary').textContent=summary.slice(0,600)+(summary.length>600?'...':'')
       var audio=document.getElementById('last-call-audio');
       if(recUrl){audio.src=recUrl;audio.style.display='block';}else{audio.style.display='none';audio.src='';}
     }else{lcp.style.display='none';}
@@ -3472,8 +3473,9 @@ function supOpen2(id){
       var recUrl=st._recordingUrl||'';
       if(!recUrl&&st.notas){var si=st.notas.indexOf('https://storage.vapi.ai/');if(si>-1){var ei=st.notas.indexOf('\n',si);recUrl=ei>-1?st.notas.slice(si,ei).trim():st.notas.slice(si).trim();}}
       var summary=st.notas||'';
+      if(!summary){summary=(st.ultimaLlamada||'Llamada realizada')+(st.estado?' — '+st.estado:'');}
       if(summary){var si2=summary.indexOf('https://storage.vapi.ai/');if(si2>-1){var ei2=summary.indexOf('\n',si2);summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();}}
-      document.getElementById('last-call-summary').textContent=summary.slice(0,400)+(summary.length>400?'...':'')
+      document.getElementById('last-call-summary').textContent=summary.slice(0,600)+(summary.length>600?'...':'')
       var audio=document.getElementById('last-call-audio');
       if(recUrl){audio.src=recUrl;audio.style.display='block';}else{audio.style.display='none';audio.src='';}
     }else{lcp.style.display='none';}
@@ -3751,8 +3753,9 @@ function denOpen2(id){
       var recUrl=st._recordingUrl||'';
       if(!recUrl&&st.notas){var si=st.notas.indexOf('https://storage.vapi.ai/');if(si>-1){var ei=st.notas.indexOf('\n',si);recUrl=ei>-1?st.notas.slice(si,ei).trim():st.notas.slice(si).trim();}}
       var summary=st.notas||'';
+      if(!summary){summary=(st.ultimaLlamada||'Llamada realizada')+(st.estado?' — '+st.estado:'');}
       if(summary){var si2=summary.indexOf('https://storage.vapi.ai/');if(si2>-1){var ei2=summary.indexOf('\n',si2);summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();}}
-      document.getElementById('last-call-summary').textContent=summary.slice(0,400)+(summary.length>400?'...':'')
+      document.getElementById('last-call-summary').textContent=summary.slice(0,600)+(summary.length>600?'...':'')
       var audio=document.getElementById('last-call-audio');
       if(recUrl){audio.src=recUrl;audio.style.display='block';}else{audio.style.display='none';audio.src='';}
     }else{lcp.style.display='none';}
