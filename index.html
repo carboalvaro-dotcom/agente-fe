@@ -2800,8 +2800,8 @@ async function accLlamar(id){
     assistant:{
       name:'Agente Factor Energia',
       firstMessageMode:'assistant-speaks-first',
-      startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},
-      stopSpeakingPlan:{numWords:2,voiceSeconds:0.1,backoffSeconds:1},
+      startSpeakingPlan:{waitSeconds:0.1,smartEndpointingEnabled:true},
+      stopSpeakingPlan:{numWords:1,voiceSeconds:0.1,backoffSeconds:0.2},
       firstMessage:apertura,
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,
         messages:[{role:'system',content:systemPrompt}]},
@@ -3139,8 +3139,8 @@ async function talLlamar(id){
     assistant:{
       name:'CARLA - Factor Energia',
       firstMessageMode:'assistant-speaks-first',
-      startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},
-      stopSpeakingPlan:{numWords:2,voiceSeconds:0.1,backoffSeconds:1},
+      startSpeakingPlan:{waitSeconds:0.1,smartEndpointingEnabled:true},
+      stopSpeakingPlan:{numWords:1,voiceSeconds:0.1,backoffSeconds:0.2},
       firstMessage:'Buenos d\u00edas, \u00bfhablo con '+nb+'?',
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,
         messages:[{role:'system',content:systemPrompt}]},
@@ -3426,8 +3426,8 @@ async function supLlamar(id){
     assistant:{
       name:'CARLA - Factor Energia',
       firstMessageMode:'assistant-speaks-first',
-      startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},
-      stopSpeakingPlan:{numWords:2,voiceSeconds:0.1,backoffSeconds:1},
+      startSpeakingPlan:{waitSeconds:0.1,smartEndpointingEnabled:true},
+      stopSpeakingPlan:{numWords:1,voiceSeconds:0.1,backoffSeconds:0.2},
       firstMessage:'\u00bfHablo con '+nb+'?',
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,
         messages:[{role:'system',content:systemPrompt}]},
@@ -3688,9 +3688,9 @@ async function denLlamar(id){
     +'1. El sistema ya ha preguntado si habla con el negocio. Si confirman, preséntate:\n'
     +'   Hola, soy Carla, de la empresa colaboradora de la distribuidora el\u00e9ctrica de su zona.\n'
     +'2. Motivo SIN mencionar el tipo de negocio:\n'
-    +'   Le llamo porque muchos negocios del sector tienen las potencias desajustadas,\n'
-    +'   lo que genera un sobrecoste en la factura de la luz. Nosotros nos encargamos\n'
-    +'   de solucionar ese problema sin coste para usted. Diez minutos de revisi\u00f3n, \u00bfle encaja esta semana?\n'
+    +'   Le llamo porque hemos detectado desajustes de potencia en los negocios de su zona,\n'
+    +'   nosotros nos encargamos de solucionar ese problema sin coste para usted.\n'
+    +'   Diez minutos de revisi\u00f3n, \u00bfle encaja esta semana?\n'
     +'3. SIEMPRE consigue el nombre: \u00bfCon qui\u00e9n tengo el gusto?\n'
     +'4. Si el responsable de luz no est\u00e1, pregunta su nombre y cu\u00e1ndo llamarle.\n\n'
     +'REGLAS ESTRICTAS:\n'
@@ -3708,8 +3708,8 @@ async function denLlamar(id){
     assistant:{
       name:'CARLA - Factor Energia',
       firstMessageMode:'assistant-speaks-first',
-      startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},
-      stopSpeakingPlan:{numWords:2,voiceSeconds:0.1,backoffSeconds:1},
+      startSpeakingPlan:{waitSeconds:0.1,smartEndpointingEnabled:true},
+      stopSpeakingPlan:{numWords:1,voiceSeconds:0.1,backoffSeconds:0.2},
       firstMessage:'Buenos d\u00edas, \u00bfhablo con '+nb+'?',
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,
         messages:[{role:'system',content:systemPrompt}]},
