@@ -1769,7 +1769,8 @@ async function fetchCallNotes(callId,contactId,retries=12){
       return;
     }catch(e){await new Promise(r=>setTimeout(r,8000));}
   }
-  toast('No se pudo obtener análisis','err');
+  applyCallResult({notas:'',resultado:'duda'},callId,contactId);
+  toast('Resultado guardado sin transcript','');
 }
 
 function copyScript(){
@@ -2233,6 +2234,7 @@ function applyCallResult(data,callId,contactId){
     var _agN=['carla','carlos'];
     if(data.nombreContacto&&!talSt[talId2].contacto&&!_agN.includes((data.nombreContacto||'').toLowerCase()))talSt[talId2].contacto=data.nombreContacto;
     if(data.cuandoLlamar&&data.resultado==='rellamar'&&!talSt[talId2].fechaRellamar){talSt[talId2].fechaRellamar=data.cuandoLlamar;addCalendarEvent(TAL.talleres.find(function(x){return x.id===talId2;}),data.cuandoLlamar);}
+    if(!talSt[talId2].notas){talSt[talId2].notas=new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+' - '+(talSt[talId2].estado||'duda')+' - Pendiente de analisis';}
     talSave();
     clearInterval(iv);
     document.getElementById('cban').classList.remove('on');
@@ -2254,6 +2256,7 @@ function applyCallResult(data,callId,contactId){
     var _agND=['carla','carlos'];
     if(data.nombreContacto&&!denSt[denId2].contacto&&!_agND.includes((data.nombreContacto||'').toLowerCase()))denSt[denId2].contacto=data.nombreContacto;
     if(data.cuandoLlamar&&data.resultado==='rellamar'&&!denSt[denId2].fechaRellamar){denSt[denId2].fechaRellamar=data.cuandoLlamar;addCalendarEvent(DEN.clinicas.find(function(x){return x.id===denId2;}),data.cuandoLlamar);}
+    if(!denSt[denId2].notas){denSt[denId2].notas=new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+' - '+( denSt[denId2].estado||'duda')+' - Pendiente de analisis';}
     denSave();clearInterval(iv);document.getElementById('cban').classList.remove('on');
     denRenderList();if(denSel===denId2)denOpen2(denId2);
     upStats();updateCampLiveStats();return;
@@ -2271,6 +2274,7 @@ function applyCallResult(data,callId,contactId){
     var _agNS=['carla','carlos'];
     if(data.nombreContacto&&!supSt[supId2].contacto&&!_agNS.includes((data.nombreContacto||'').toLowerCase()))supSt[supId2].contacto=data.nombreContacto;
     if(data.cuandoLlamar&&data.resultado==='rellamar'&&!supSt[supId2].fechaRellamar){supSt[supId2].fechaRellamar=data.cuandoLlamar;addCalendarEvent(SUP.supers.find(function(x){return x.id===supId2;}),data.cuandoLlamar);}
+    if(!supSt[supId2].notas){supSt[supId2].notas=new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+' - '+(supSt[supId2].estado||'duda')+' - Pendiente de analisis';}
     supSave();clearInterval(iv);document.getElementById('cban').classList.remove('on');
     supRenderList();if(supSel===supId2)supOpen2(supId2);
     upStats();return;
@@ -3174,7 +3178,7 @@ function talOpen2(id){
   // Audio player y resumen llamada
   var lcp=document.getElementById('last-call-panel');
   if(lcp){
-    if(st.llamadas>0&&(st._recordingUrl||st.notas)){
+    if(st.llamadas>0){
       lcp.style.display='block';
       document.getElementById('last-call-time').textContent=st.ultimaLlamada||'';
       var recUrl=st._recordingUrl||'';
@@ -3462,7 +3466,7 @@ function supOpen2(id){
   // Audio player y resumen llamada
   var lcp=document.getElementById('last-call-panel');
   if(lcp){
-    if(st.llamadas>0&&(st._recordingUrl||st.notas)){
+    if(st.llamadas>0){
       lcp.style.display='block';
       document.getElementById('last-call-time').textContent=st.ultimaLlamada||'';
       var recUrl=st._recordingUrl||'';
@@ -3740,7 +3744,7 @@ function denOpen2(id){
   // Audio player y resumen llamada
   var lcp=document.getElementById('last-call-panel');
   if(lcp){
-    if(st.llamadas>0&&(st._recordingUrl||st.notas)){
+    if(st.llamadas>0){
       lcp.style.display='block';
       document.getElementById('last-call-time').textContent=st.ultimaLlamada||'';
       var recUrl=st._recordingUrl||'';
