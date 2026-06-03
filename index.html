@@ -87,7 +87,7 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .rp{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);min-height:0;}
 .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--mt2);}
 .empty-icon{font-size:40px;opacity:.25;}.empty p{font-size:13px;}
-.det{flex:1;overflow-y:auto;padding:10px 14px 60px;display:none;flex-direction:column;gap:8px;min-height:0;max-height:100%;}
+.det{flex:1;overflow-y:auto;padding:10px 14px 60px;display:none;flex-direction:column;gap:8px;min-height:0;max-height:calc(100vh - 95px);resize:vertical;}
 .det.vis{display:flex;}
 .det::-webkit-scrollbar{width:3px;}.det::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px;}
 .card{background:var(--s0);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
@@ -1545,7 +1545,7 @@ async function launchCall(){
   const phone=c.telefono.startsWith('+')?c.telefono:'+34'+c.telefono.replace(/\s/g,'');
   c.estado='llamando';
   c.llamadas=(c.llamadas||0)+1;
-  c.ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  c.ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'});
   save();upStats();renderList();sel(curId);
   document.getElementById('cban').classList.add('on');
   sec=0;clearInterval(iv);
@@ -2167,7 +2167,7 @@ async function runNextCampaignCall(){
   try{
     const phone=c.telefono.startsWith('+')?c.telefono:'+34'+c.telefono.replace(/\s/g,'');
     c.estado='llamando';c.llamadas=(c.llamadas||0)+1;
-    c.ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    c.ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'});
     save();upStats();renderList();
     const cbanName=document.getElementById('cban-name');
     if(cbanName){const cx=C.find(x=>x.id===curId);cbanName.textContent=cx?'📞 '+cx.nombre:'Llamada en curso';}
@@ -2519,7 +2519,7 @@ const HIST_KEY='fe_camp_hist';
 function saveCampHistory(total,results){
   const hist=JSON.parse(localStorage.getItem(HIST_KEY)||'[]');
   hist.unshift({
-    date:new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}),
+    date:new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'}),
     total,
     visitas:results.visitas||0,
     rellamar:results.rellamar||0,
@@ -2871,7 +2871,7 @@ async function accLlamar(id){
   if(!accSt[id])accSt[id]={};
   accSt[id].estado=accSt[id].estado||'sinLlamar';
   accSt[id].llamadas=(accSt[id].llamadas||0)+1;
-  accSt[id].ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  accSt[id].ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'});
   accSave();
   // Mostrar banner de llamada (igual que cliente)
   var cbanName=document.getElementById('cban-name');
@@ -3215,7 +3215,7 @@ async function talLlamar(id){
   var nb=t.nombre.replace(/S\.L\.L?\.?|S\.A\.U?\.?|S\.L\.U?\.?|S\.A?\.?|C\.B\.?/gi,'').trim();
   if(!talSt[id])talSt[id]={};
   talSt[id].llamadas=(talSt[id].llamadas||0)+1;
-  talSt[id].ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  talSt[id].ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'});
   talSave();talOpen2(id);talRenderList();
   // Banner de llamada
   var cbanName=document.getElementById('cban-name');
@@ -3231,7 +3231,7 @@ async function talLlamar(id){
     +'2. Motivo SIN mencionar el nombre del taller:\n'
     +'   Le llamo porque talleres de su zona pagan de m\u00e1s en la factura de luz\n'
     +'   por la potencia contratada. Diez minutos de revisi\u00f3n, \u00bfle encaja esta semana?\n'
-    +'3. SIEMPRE consigue el nombre: \u00bfCon qui\u00e9n tengo el gusto?\n'
+    +'3. Si no has conseguido el nombre, pregunta de forma natural: \u00bfY c\u00f3mo se llama usted?\n'
     +'4. Si el responsable de luz no est\u00e1, pregunta su nombre y cu\u00e1ndo llamarle.\n\n'
     +'REGLAS ESTRICTAS:\n'
     +'- NUNCA repitas el nombre del taller despu\u00e9s de la primera apertura\n'
@@ -3504,7 +3504,7 @@ async function supLlamar(id){
   var nb=t.nombre.replace(/S\.L\.L?\.?|S\.A\.U?\.?|S\.L\.U?\.?|S\.A?\.?|C\.B\.?/gi,'').trim();
   if(!supSt[id])supSt[id]={};
   supSt[id].llamadas=(supSt[id].llamadas||0)+1;
-  supSt[id].ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  supSt[id].ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'});
   supSave();try{supOpen2(id);}catch(e){}try{supRenderList();}catch(e){}
   // Banner de llamada
   var cbanName=document.getElementById('cban-name');
@@ -3520,7 +3520,7 @@ async function supLlamar(id){
     +'2. Motivo SIN mencionar el nombre del establecimiento:\n'
     +'   Le llamo porque establecimientos con camaras frigorificas de su zona pagan de m\u00e1s en la factura de luz\n'
     +'   por la potencia contratada. Diez minutos de revisi\u00f3n, \u00bfle encaja esta semana?\n'
-    +'3. SIEMPRE consigue el nombre: \u00bfCon qui\u00e9n tengo el gusto?\n'
+    +'3. Si no has conseguido el nombre, pregunta de forma natural: \u00bfY c\u00f3mo se llama usted?\n'
     +'4. Si el responsable de luz no est\u00e1, pregunta su nombre y cu\u00e1ndo llamarle.\n\n'
     +'REGLAS ESTRICTAS:\n'
     +'- NUNCA repitas el nombre del establecimiento despu\u00e9s de la primera apertura\n'
@@ -3783,7 +3783,7 @@ async function denLlamar(id){
   var nb=t.nombre.replace(/S\.L\.L?\.?|S\.A\.U?\.?|S\.L\.U?\.?|S\.A?\.?|C\.B\.?/gi,'').trim();
   if(!denSt[id])denSt[id]={};
   denSt[id].llamadas=(denSt[id].llamadas||0)+1;
-  denSt[id].ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  denSt[id].ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'});
   denSave();denOpen2(id);denRenderList();
   // Banner de llamada
   var cbanName=document.getElementById('cban-name');
@@ -3801,7 +3801,7 @@ async function denLlamar(id){
     +'   Le llamo porque hemos detectado desajustes de potencia en los negocios de su zona,\n'
     +'   nosotros nos encargamos de solucionar ese problema sin coste para usted.\n'
     +'   Diez minutos de revisi\u00f3n, \u00bfle encaja esta semana?\n'
-    +'3. SIEMPRE consigue el nombre: \u00bfCon qui\u00e9n tengo el gusto?\n'
+    +'3. Si no has conseguido el nombre, pregunta de forma natural: \u00bfY c\u00f3mo se llama usted?\n'
     +'4. Si el responsable de luz no est\u00e1, pregunta su nombre y cu\u00e1ndo llamarle.\n\n'
     +'REGLAS ESTRICTAS:\n'
     +'- NUNCA menciones cl\u00ednica dental, veterinaria, farmacia ni tipo de negocio\n'
