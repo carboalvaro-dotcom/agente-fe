@@ -3183,6 +3183,7 @@ function talOpen2(id){
       document.getElementById('last-call-time').textContent=st.ultimaLlamada||'';
       var recUrl=st._recordingUrl||'';
       if(!recUrl&&st.notas){var si=st.notas.indexOf('https://storage.vapi.ai/');if(si>-1){var ei=st.notas.indexOf('\n',si);recUrl=ei>-1?st.notas.slice(si,ei).trim():st.notas.slice(si).trim();}}
+      if(!recUrl&&st._recordingUrl)recUrl=st._recordingUrl;
       var summary=st.notas||'';
       if(!summary){summary=(st.ultimaLlamada||'Llamada realizada')+(st.estado?' — '+st.estado:'');}
       if(summary){var si2=summary.indexOf('https://storage.vapi.ai/');if(si2>-1){var ei2=summary.indexOf('\n',si2);summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();}}
@@ -3472,6 +3473,7 @@ function supOpen2(id){
       document.getElementById('last-call-time').textContent=st.ultimaLlamada||'';
       var recUrl=st._recordingUrl||'';
       if(!recUrl&&st.notas){var si=st.notas.indexOf('https://storage.vapi.ai/');if(si>-1){var ei=st.notas.indexOf('\n',si);recUrl=ei>-1?st.notas.slice(si,ei).trim():st.notas.slice(si).trim();}}
+      if(!recUrl&&st._recordingUrl)recUrl=st._recordingUrl;
       var summary=st.notas||'';
       if(!summary){summary=(st.ultimaLlamada||'Llamada realizada')+(st.estado?' — '+st.estado:'');}
       if(summary){var si2=summary.indexOf('https://storage.vapi.ai/');if(si2>-1){var ei2=summary.indexOf('\n',si2);summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();}}
@@ -3752,6 +3754,7 @@ function denOpen2(id){
       document.getElementById('last-call-time').textContent=st.ultimaLlamada||'';
       var recUrl=st._recordingUrl||'';
       if(!recUrl&&st.notas){var si=st.notas.indexOf('https://storage.vapi.ai/');if(si>-1){var ei=st.notas.indexOf('\n',si);recUrl=ei>-1?st.notas.slice(si,ei).trim():st.notas.slice(si).trim();}}
+      if(!recUrl&&st._recordingUrl)recUrl=st._recordingUrl;
       var summary=st.notas||'';
       if(!summary){summary=(st.ultimaLlamada||'Llamada realizada')+(st.estado?' — '+st.estado:'');}
       if(summary){var si2=summary.indexOf('https://storage.vapi.ai/');if(si2>-1){var ei2=summary.indexOf('\n',si2);summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();}}
