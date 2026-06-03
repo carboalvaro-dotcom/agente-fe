@@ -2171,6 +2171,7 @@ function applyCallResult(data,callId,contactId){
     var talId2=contactId.substring(4);
     if(!talSt[talId2])talSt[talId2]={};
     talSt[talId2]._callId=callId;
+    if(!talSt[talId2].llamadas||talSt[talId2].llamadas<1)talSt[talId2].llamadas=1;
     if(data.recordingUrl)talSt[talId2]._recordingUrl=data.recordingUrl;
     if(data.notas){
       var talEx=talSt[talId2].notas||'';
@@ -2196,6 +2197,7 @@ function applyCallResult(data,callId,contactId){
     var denId2=contactId.substring(4);
     if(!denSt[denId2])denSt[denId2]={};
     denSt[denId2]._callId=callId;
+    if(!denSt[denId2].llamadas||denSt[denId2].llamadas<1)denSt[denId2].llamadas=1;
     if(data.recordingUrl)denSt[denId2]._recordingUrl=data.recordingUrl;
     if(data.notas){var denEx=denSt[denId2].notas||'';denSt[denId2].notas=denEx?denEx+'\n\n'+data.notas:data.notas;}
     var denRM={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
@@ -2209,6 +2211,7 @@ function applyCallResult(data,callId,contactId){
     var supId2=contactId.substring(4);
     if(!supSt[supId2])supSt[supId2]={};
     supSt[supId2]._callId=callId;
+    if(!supSt[supId2].llamadas||supSt[supId2].llamadas<1)supSt[supId2].llamadas=1;
     if(data.recordingUrl)supSt[supId2]._recordingUrl=data.recordingUrl;
     if(data.notas){var supEx=supSt[supId2].notas||'';supSt[supId2].notas=supEx?supEx+'\n\n'+data.notas:data.notas;}
     var supRM={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
