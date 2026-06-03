@@ -181,7 +181,8 @@ export default async function handler(req, res) {
       // ── CONSTRUIR NOTAS CON RESUMEN REAL ────────────────────────────────────
       const now = new Date().toLocaleDateString('es-ES', {
         day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit'
+        hour: '2-digit', minute: '2-digit',
+        timeZone: 'Europe/Madrid'
       });
 
       let notas = `📞 ${now}${duration ? ' · ' + duration + 's' : ''}\n`;
