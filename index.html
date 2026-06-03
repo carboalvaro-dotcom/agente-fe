@@ -1124,7 +1124,8 @@ function upStats(){
   var _accNC=Object.values(_accSt2).filter(s=>s.estado==='noContesta').length;
   var _accDuda=Object.values(_accSt2).filter(s=>s.estado==='duda').length;
   var _accCalls=Object.values(_accSt2).reduce(function(s,x){return s+(x.llamadas||0);},0);
-  document.getElementById('sv').textContent=C.filter(c=>c.estado==='visitaOK').length+_accVisitas;
+  var _cpV=C.filter(c=>c.estado==='visitaOK').length;
+  document.getElementById('sv').textContent=_cpV+_accVisitas;
   document.getElementById('sr').textContent=C.filter(c=>c.estado==='rellamar').length+_accRellamar;
   document.getElementById('sni').textContent=C.filter(c=>c.estado==='noInteresa').length+_accNI;
   document.getElementById('snc').textContent=C.filter(c=>c.estado==='noContesta').length+_accNC;
@@ -1133,7 +1134,8 @@ function upStats(){
   // Sumar talleres TAL
   var _talSt3=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
   var _talV=Object.values(_talSt3);
-  document.getElementById('sv').textContent=parseInt(document.getElementById('sv').textContent||0)+_talV.filter(function(s){return s.estado==='visita';}).length;
+  var _talVc=_talV.filter(function(s){return s.estado==='visita';}).length;
+  document.getElementById('sv').textContent=_cpV+_accVisitas+_talVc;
   document.getElementById('sr').textContent=parseInt(document.getElementById('sr').textContent||0)+_talV.filter(function(s){return s.estado==='rellamar';}).length;
   var _sni3=document.getElementById('sni');if(_sni3)_sni3.textContent=parseInt(_sni3.textContent||0)+_talV.filter(function(s){return s.estado==='noInteresa';}).length;
   var _snc3=document.getElementById('snc');if(_snc3)_snc3.textContent=parseInt(_snc3.textContent||0)+_talV.filter(function(s){return s.estado==='noContesta';}).length;
@@ -1142,7 +1144,8 @@ function upStats(){
   // SUP
   var _supSt4=JSON.parse(localStorage.getItem('fe_sup_v1')||'{}');
   var _supV4=Object.values(_supSt4);
-  document.getElementById('sv').textContent=parseInt(document.getElementById('sv').textContent||0)+_supV4.filter(function(s){return s.estado==='visita';}).length;
+  var _supVc=_supV4.filter(function(s){return s.estado==='visita';}).length;
+  document.getElementById('sv').textContent=_cpV+_accVisitas+_talVc+_supVc;
   document.getElementById('sr').textContent=parseInt(document.getElementById('sr').textContent||0)+_supV4.filter(function(s){return s.estado==='rellamar';}).length;
   var _snc4=document.getElementById('snc');if(_snc4)_snc4.textContent=parseInt(_snc4.textContent||0)+_supV4.filter(function(s){return s.estado==='noContesta';}).length;
   var _sni4=document.getElementById('sni');if(_sni4)_sni4.textContent=parseInt(_sni4.textContent||0)+_supV4.filter(function(s){return s.estado==='noInteresa';}).length;
@@ -1151,7 +1154,8 @@ function upStats(){
   // DEN
   var _denSt4=JSON.parse(localStorage.getItem('fe_den_v1')||'{}');
   var _denV4=Object.values(_denSt4);
-  document.getElementById('sv').textContent=parseInt(document.getElementById('sv').textContent||0)+_denV4.filter(function(s){return s.estado==='visita';}).length;
+  var _denVc=_denV4.filter(function(s){return s.estado==='visita';}).length;
+  document.getElementById('sv').textContent=_cpV+_accVisitas+_talVc+_supVc+_denVc;
   document.getElementById('sr').textContent=parseInt(document.getElementById('sr').textContent||0)+_denV4.filter(function(s){return s.estado==='rellamar';}).length;
   var _snc5=document.getElementById('snc');if(_snc5)_snc5.textContent=parseInt(_snc5.textContent||0)+_denV4.filter(function(s){return s.estado==='noContesta';}).length;
   var _sni5=document.getElementById('sni');if(_sni5)_sni5.textContent=parseInt(_sni5.textContent||0)+_denV4.filter(function(s){return s.estado==='noInteresa';}).length;
@@ -1830,12 +1834,33 @@ function renderDashboard(){
     if(to&&d>to) return false;
     return true;
   });
-  const total=C.length;
-  const llamadas=inRange.length;
-  const visitas=inRange.filter(c=>c.estado==='visitaOK').length;
-  const noContesta=inRange.filter(c=>c.estado==='noContesta').length;
+  var _dTSt=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
+  var _dDSt=JSON.parse(localStorage.getItem('fe_den_v1')||'{}');
+  var _dSSt=JSON.parse(localStorage.getItem('fe_sup_v1')||'{}');
+  var _dASt=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}');
+  var inDR=function(ul){if(!from&&!to)return true;var dd=parseCallDate(ul);if(!dd)return false;if(from&&dd<from)return false;if(to&&dd>to)return false;return true;};
+  var gv=function(arr,st,est){return Array.isArray(arr)?arr.filter(function(t){return (st[t.id]||{}).estado===est;}).length:0;};
+  var _dTA=TAL&&TAL.talleres?TAL.talleres.filter(function(t){var s=_dTSt[t.id];return s&&(s.llamadas||0)>0&&inDR(s.ultimaLlamada||'');}):[];
+  var _dDA=DEN&&DEN.clinicas?DEN.clinicas.filter(function(t){var s=_dDSt[t.id];return s&&(s.llamadas||0)>0&&inDR(s.ultimaLlamada||'');}):[];
+  var _dSA=SUP&&SUP.supers?SUP.supers.filter(function(t){var s=_dSSt[t.id];return s&&(s.llamadas||0)>0&&inDR(s.ultimaLlamada||'');}):[];
+  var _dAA=ACC&&ACC.admins?ACC.admins.filter(function(t){var s=_dASt[t.id];return s&&(s.llamadas||0)>0&&inDR(s.ultimaLlamada||'');}):[];
+  var _sD=[
+    {n:'CP/Empresas',l:inRange.length,v:inRange.filter(c=>c.estado==='visitaOK').length,nc:inRange.filter(c=>c.estado==='noContesta').length,rl:inRange.filter(c=>c.estado==='rellamar').length},
+    {n:'Talleres',l:_dTA.length,v:gv(_dTA,_dTSt,'visita'),nc:gv(_dTA,_dTSt,'noContesta'),rl:gv(_dTA,_dTSt,'rellamar')},
+    {n:'Salud',l:_dDA.length,v:gv(_dDA,_dDSt,'visita'),nc:gv(_dDA,_dDSt,'noContesta'),rl:gv(_dDA,_dDSt,'rellamar')},
+    {n:'Supermercados',l:_dSA.length,v:gv(_dSA,_dSSt,'visita'),nc:gv(_dSA,_dSSt,'noContesta'),rl:gv(_dSA,_dSSt,'rellamar')},
+    {n:'Admins',l:_dAA.length,v:gv(_dAA,_dASt,'visita'),nc:gv(_dAA,_dASt,'noContesta'),rl:gv(_dAA,_dASt,'rellamar')},
+  ];
+  var _eL=_dTA.length+_dDA.length+_dSA.length+_dAA.length;
+  var _eV=_sD.slice(1).reduce(function(a,s){return a+s.v;},0);
+  var _eNC=_sD.slice(1).reduce(function(a,s){return a+s.nc;},0);
+  var _eRL=_sD.slice(1).reduce(function(a,s){return a+s.rl;},0);
+  const total=C.length+(TAL&&TAL.talleres?TAL.talleres.length:0)+(DEN&&DEN.clinicas?DEN.clinicas.length:0)+(SUP&&SUP.supers?SUP.supers.length:0)+(ACC&&ACC.admins?ACC.admins.length:0);
+  const llamadas=inRange.length+_eL;
+  const visitas=inRange.filter(c=>c.estado==='visitaOK').length+_eV;
+  const noContesta=inRange.filter(c=>c.estado==='noContesta').length+_eNC;
   const noInteresa=inRange.filter(c=>c.estado==='noInteresa').length;
-  const rellamar=inRange.filter(c=>c.estado==='rellamar').length;
+  const rellamar=inRange.filter(c=>c.estado==='rellamar').length+_eRL;
   const duda=inRange.filter(c=>c.estado==='duda').length;
   const pendiente=inRange.filter(c=>c.estado==='pendiente').length;
   const conversion=llamadas>0?Math.round((visitas/llamadas)*100):0;
@@ -1852,6 +1877,28 @@ function renderDashboard(){
   // Sin llamar
   const sinLlamar=C.filter(c=>(c.llamadas||0)===0&&c.nif!=='TEST'&&c.nif!=='AMIGO').length;
   const bar=(val,max,color)=>'<div style="background:var(--s2);border-radius:4px;height:8px;overflow:hidden;flex:1"><div style="width:'+(max>0?Math.round((val/max)*100):0)+'%;background:'+color+';height:100%;border-radius:4px;"></div></div>';
+  var _sTbl=_sD.filter(function(s){return s.l>0;}).length>1
+    ?'<div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:14px">'
+    +'<div style="font-weight:700;font-size:12px;margin-bottom:8px;color:var(--mt2);text-transform:uppercase;letter-spacing:.5px">Resultados por sector</div>'
+    +'<table style="width:100%;border-collapse:collapse;font-size:11px">'
+    +'<tr style="color:var(--mt2);font-size:10px;border-bottom:2px solid var(--bd)">'
+    +'<th style="text-align:left;padding:3px 6px">Sector</th><th style="padding:3px;text-align:center">Llamadas</th>'
+    +'<th style="padding:3px;text-align:center;color:#16a34a">Visitas</th>'
+    +'<th style="padding:3px;text-align:center;color:#d97706">Rellamar</th>'
+    +'<th style="padding:3px;text-align:center">No cont.</th>'
+    +'<th style="padding:3px;text-align:center">Conv%</th></tr>'
+    +_sD.filter(function(s){return s.l>0;}).map(function(s){
+      var cv=s.l>0?Math.round(s.v/s.l*100):0;
+      var cc=cv>=5?'#16a34a':cv>=2?'#d97706':'var(--mt2)';
+      return '<tr style="border-bottom:1px solid var(--bd)">'
+        +'<td style="padding:4px 6px;font-weight:600">'+s.n+'</td>'
+        +'<td style="text-align:center;padding:4px">'+s.l+'</td>'
+        +'<td style="text-align:center;padding:4px;color:#16a34a;font-weight:700">'+s.v+'</td>'
+        +'<td style="text-align:center;padding:4px;color:#d97706">'+s.rl+'</td>'
+        +'<td style="text-align:center;padding:4px">'+s.nc+'</td>'
+        +'<td style="text-align:center;padding:4px;font-weight:700;color:'+cc+'">'+cv+'%</td></tr>';
+    }).join('')+'</table></div>'
+    :'';
   const visitasList=inRange.filter(c=>c.estado==='visitaOK').map(c=>'<tr><td style="padding:5px 8px;font-size:11px;font-weight:500">'+c.nombre+'</td><td style="padding:5px 8px;font-size:11px;color:var(--mt)">'+(c.visitDate||'—')+'</td><td style="padding:5px 8px;font-size:11px;font-family:var(--mo)">'+c.telefono+'</td></tr>').join('');
   const rellamarList=inRange.filter(c=>c.estado==='rellamar').map(c=>'<tr><td style="padding:5px 8px;font-size:11px;font-weight:500">'+c.nombre+'</td><td style="padding:5px 8px;font-size:11px;color:var(--mt)">'+(c.ultimaLlamada||'—')+'</td></tr>').join('');
   document.getElementById('dash-content').innerHTML='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;">'
@@ -1871,6 +1918,7 @@ function renderDashboard(){
     +'<div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center"><div style="font-size:11px;color:var(--mt);margin-bottom:4px">Llamadas/Visita</div><div style="font-size:22px;font-weight:700;color:var(--ac)">'+mediaLlamadasVisita+'</div></div>'
     +'<div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center"><div style="font-size:11px;color:var(--mt);margin-bottom:4px">Top CP visitas</div><div style="font-size:13px;font-weight:700;color:var(--gr);margin-top:4px">'+topCPstr+'</div></div>'
     +'</div>'
+    +_sTbl
     +(rellamar>0?'<div style="background:var(--aml);border:1px solid rgba(180,83,9,.15);border-radius:10px;padding:16px;"><div style="font-size:11px;font-weight:600;color:var(--am);margin-bottom:10px">🟡 Rellamar ('+rellamar+')</div><table style="width:100%;border-collapse:collapse">'+rellamarList+'</table></div>':'');
 }
 
@@ -2184,6 +2232,7 @@ function applyCallResult(data,callId,contactId){
     if(data.resultado&&talResultMap[data.resultado])talSt[talId2].estado=talResultMap[data.resultado];
     var _agN=['carla','carlos'];
     if(data.nombreContacto&&!talSt[talId2].contacto&&!_agN.includes((data.nombreContacto||'').toLowerCase()))talSt[talId2].contacto=data.nombreContacto;
+    if(data.cuandoLlamar&&data.resultado==='rellamar'&&!talSt[talId2].fechaRellamar){talSt[talId2].fechaRellamar=data.cuandoLlamar;addCalendarEvent(TAL.talleres.find(function(x){return x.id===talId2;}),data.cuandoLlamar);}
     talSave();
     clearInterval(iv);
     document.getElementById('cban').classList.remove('on');
@@ -2202,6 +2251,9 @@ function applyCallResult(data,callId,contactId){
     if(data.notas){var denEx=denSt[denId2].notas||'';denSt[denId2].notas=denEx?denEx+'\n\n'+data.notas:data.notas;}
     var denRM={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
     if(data.resultado&&denRM[data.resultado])denSt[denId2].estado=denRM[data.resultado];
+    var _agND=['carla','carlos'];
+    if(data.nombreContacto&&!denSt[denId2].contacto&&!_agND.includes((data.nombreContacto||'').toLowerCase()))denSt[denId2].contacto=data.nombreContacto;
+    if(data.cuandoLlamar&&data.resultado==='rellamar'&&!denSt[denId2].fechaRellamar){denSt[denId2].fechaRellamar=data.cuandoLlamar;addCalendarEvent(DEN.clinicas.find(function(x){return x.id===denId2;}),data.cuandoLlamar);}
     denSave();clearInterval(iv);document.getElementById('cban').classList.remove('on');
     denRenderList();if(denSel===denId2)denOpen2(denId2);
     upStats();updateCampLiveStats();return;
@@ -2216,6 +2268,9 @@ function applyCallResult(data,callId,contactId){
     if(data.notas){var supEx=supSt[supId2].notas||'';supSt[supId2].notas=supEx?supEx+'\n\n'+data.notas:data.notas;}
     var supRM={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
     if(data.resultado&&supRM[data.resultado])supSt[supId2].estado=supRM[data.resultado];
+    var _agNS=['carla','carlos'];
+    if(data.nombreContacto&&!supSt[supId2].contacto&&!_agNS.includes((data.nombreContacto||'').toLowerCase()))supSt[supId2].contacto=data.nombreContacto;
+    if(data.cuandoLlamar&&data.resultado==='rellamar'&&!supSt[supId2].fechaRellamar){supSt[supId2].fechaRellamar=data.cuandoLlamar;addCalendarEvent(SUP.supers.find(function(x){return x.id===supId2;}),data.cuandoLlamar);}
     supSave();clearInterval(iv);document.getElementById('cban').classList.remove('on');
     supRenderList();if(supSel===supId2)supOpen2(supId2);
     upStats();return;
@@ -2242,6 +2297,7 @@ function applyCallResult(data,callId,contactId){
     if(data.nombreContacto&&!accSt[accId].contacto&&!agentNamesArr.includes((data.nombreContacto||'').toLowerCase())){
       accSt[accId].contacto=data.nombreContacto;
     }
+    if(data.cuandoLlamar&&data.resultado==='rellamar'&&!accSt[accId].fechaRellamar){accSt[accId].fechaRellamar=data.cuandoLlamar;addCalendarEvent(ACC.admins.find(function(x){return x.id===accId;}),data.cuandoLlamar);}
     accSave();
     clearInterval(iv);
     document.getElementById('cban').classList.remove('on');
@@ -2264,9 +2320,54 @@ function applyCallResult(data,callId,contactId){
   if(data.nombreContacto&&!c.contactName&&!agentNamesArr.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
   if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
   if(data.emailContacto&&!c.email) c.email=data.emailContacto;
+  if(data.cuandoLlamar&&data.resultado==='rellamar'&&!c.fechaRellamar){c.fechaRellamar=data.cuandoLlamar;addCalendarEvent(c,data.cuandoLlamar);}
   save();upStats();renderList();
   if(curId===contactId) sel(contactId);
   toast('✓ '+c.nombre+' — '+( data.resultado==='visitaOK'?'VISITA':'analizado'),'ok');
+}
+
+function addCalendarEvent(contacto,cuandoLlamar){
+  if(!contacto||!cuandoLlamar)return;
+  var now=new Date(),target=new Date(now);
+  var txt=(cuandoLlamar||'').toLowerCase();
+  if(txt.includes('pasado')){target.setDate(target.getDate()+2);}
+  else if(txt.includes('mañana')){target.setDate(target.getDate()+1);}
+  else if(txt.includes('lunes')){var dd=target.getDay();target.setDate(target.getDate()+((1+7-dd)%7||7));}
+  else if(txt.includes('martes')){var dd=target.getDay();target.setDate(target.getDate()+((2+7-dd)%7||7));}
+  else if(txt.includes('miércoles')||txt.includes('miercoles')){var dd=target.getDay();target.setDate(target.getDate()+((3+7-dd)%7||7));}
+  else if(txt.includes('jueves')){var dd=target.getDay();target.setDate(target.getDate()+((4+7-dd)%7||7));}
+  else if(txt.includes('viernes')){var dd=target.getDay();target.setDate(target.getDate()+((5+7-dd)%7||7));}
+  else{target.setDate(target.getDate()+1);}
+  var hora=10,minn=0;
+  var hm=txt.match(/a las\s*(\d{1,2})(?:[:h](\d{2})?)?/);
+  if(hm){hora=parseInt(hm[1]);minn=hm[2]?parseInt(hm[2]):0;}
+  else if(txt.includes('tarde')){hora=16;}
+  target.setHours(hora,minn,0,0);
+  var end=new Date(target.getTime()+30*60000);
+  var pad=function(n){return n<10?'0'+n:''+n;};
+  var fmt=function(dt){return dt.getFullYear()+pad(dt.getMonth()+1)+pad(dt.getDate())+'T'+pad(dt.getHours())+pad(dt.getMinutes())+'00';};
+  var nombre=contacto.nombre||contacto.name||'Contacto';
+  var telefono=contacto.telefono||contacto.phone||'';
+  var titulo=encodeURIComponent('Rellamar: '+nombre+(telefono?' ('+telefono+')':''));
+  var det=encodeURIComponent('CRM Factor Energia - '+nombre+' Tel: '+telefono+' Rellamar: '+cuandoLlamar);
+  var url='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+titulo+'&dates='+fmt(target)+'/'+fmt(end)+'&details='+det+'&add=carboalvaro%40gmail.com';
+  window.open(url,'_blank');
+  toast('📅 Añadido al calendario','ok');
+}
+function checkDuplicate(telefono){
+  if(!telefono)return null;
+  var ph=telefono.replace(/\D/g,'').slice(-9);
+  var r=C.find(function(c){return (c.telefono||'').replace(/\D/g,'').slice(-9)===ph;});
+  if(r)return{modulo:'Empresas',nombre:r.nombre};
+  r=(TAL&&TAL.talleres?TAL.talleres:[]).find(function(t){return (t.telefono||'').replace(/\D/g,'').slice(-9)===ph;});
+  if(r)return{modulo:'Talleres',nombre:r.nombre};
+  r=(DEN&&DEN.clinicas?DEN.clinicas:[]).find(function(t){return (t.telefono||'').replace(/\D/g,'').slice(-9)===ph;});
+  if(r)return{modulo:'Salud',nombre:r.nombre};
+  r=(SUP&&SUP.supers?SUP.supers:[]).find(function(t){return (t.telefono||'').replace(/\D/g,'').slice(-9)===ph;});
+  if(r)return{modulo:'Supermercados',nombre:r.nombre};
+  r=(ACC&&ACC.admins?ACC.admins:[]).find(function(a){return (a.telefono||'').replace(/\D/g,'').slice(-9)===ph;});
+  if(r)return{modulo:'Admins',nombre:r.nombre};
+  return null;
 }
 
 function showCampaignSummary(){
