@@ -1182,6 +1182,7 @@ function upStats(){
   var _sni5=document.getElementById('sni');if(_sni5)_sni5.textContent=parseInt(_sni5.textContent||0)+_denV4.filter(function(s){return s.estado==='noInteresa';}).length;
   var _sd5=document.getElementById('sduda');if(_sd5)_sd5.textContent=parseInt(_sd5.textContent||0)+_denV4.filter(function(s){return s.estado==='duda';}).length;
   document.getElementById('sllamadas').textContent=parseInt(document.getElementById('sllamadas').textContent||0)+_denV4.reduce(function(s,x){return s+(x.llamadas||0);},0);
+  _syncCampFloat();
 }
 function setFechaHoy(){
   var t=new Date().toISOString().split('T')[0];
