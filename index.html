@@ -72,6 +72,13 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .compact .acc-admin-item > div:last-child{display:none;}
 .ci:hover{background:var(--s1);}.ci.sel{background:var(--acl);}
 .ci-r1{display:flex;align-items:flex-start;justify-content:space-between;gap:4px;margin-bottom:2px;}
+.ci.est-visita,.ci.est-visitaOK{border-left:3px solid #16a34a;background:linear-gradient(90deg,rgba(22,163,74,.07),transparent);}
+.ci.est-rellamar{border-left:3px solid #d97706;background:linear-gradient(90deg,rgba(217,119,6,.07),transparent);}
+.ci.est-noInteresa{border-left:3px solid #6b7280;background:linear-gradient(90deg,rgba(107,114,128,.04),transparent);opacity:.65;}
+.ci.est-noContesta{border-left:3px solid #9ca3af;background:linear-gradient(90deg,rgba(156,163,175,.04),transparent);}
+.ci.est-duda{border-left:3px solid #7c3aed;background:linear-gradient(90deg,rgba(124,58,237,.06),transparent);}
+.ci.est-llamando{border-left:3px solid var(--ac);animation:pulsebdr .9s infinite alternate;}
+@keyframes pulsebdr{from{border-left-color:var(--ac)}to{border-left-color:#93c5fd}}
 .ci-name{font-size:12px;font-weight:500;line-height:1.3;flex:1;}
 .ci-badges{display:flex;gap:3px;flex-shrink:0;align-items:center;margin-top:1px;}
 .badge{font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;}
@@ -141,6 +148,14 @@ textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
 .toast{position:fixed;bottom:16px;right:16px;background:var(--s0);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--tx);z-index:999;transform:translateY(40px);opacity:0;transition:all .2s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.1);}
 .toast.show{transform:translateY(0);opacity:1;}.toast.ok{border-color:rgba(11,122,71,.3);color:var(--gr);}.toast.err{border-color:rgba(192,57,43,.3);color:var(--rd);}
 .hidden-cfg{display:none;}
+#camp-float{display:none;position:fixed;bottom:20px;right:20px;width:275px;background:var(--bg);border:1px solid var(--ac);border-radius:12px;box-shadow:0 8px 32px rgba(26,86,219,.2);padding:14px;z-index:9998;}
+#camp-float.on{display:block;}
+.cf-title{font-size:13px;font-weight:700;color:var(--ac);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cf-sub{font-size:11px;color:var(--mt);margin-bottom:8px;}
+.cf-track{height:5px;background:var(--s2);border-radius:3px;overflow:hidden;margin-bottom:8px;}
+.cf-fill{height:100%;background:var(--ac);border-radius:3px;transition:width .4s;}
+.cf-stats{display:flex;gap:5px;font-size:11px;flex-wrap:wrap;margin-bottom:8px;}
+.cf-stat{background:var(--s1);border-radius:6px;padding:2px 7px;}
 .camp-bar{display:none;background:linear-gradient(90deg,var(--acl),#f0f5ff);border-top:2px solid var(--ac);padding:10px 18px;align-items:center;gap:12px;flex-shrink:0;}
 .camp-bar.on{display:flex;}
 .camp-wave{display:flex;gap:3px;align-items:center;}
@@ -296,6 +311,8 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
     </div>
     <button onclick="showDashboard()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 9px;border-radius:5px;cursor:pointer;font-family:var(--fn);margin-left:6px;">📊</button>
     <button onclick="exportExcel()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 9px;border-radius:5px;cursor:pointer;font-family:var(--fn);">📥</button>
+    <div style="position:relative;display:flex;align-items:center;background:rgba(255,255,255,.12);border-radius:6px;padding:0 7px"><input id="gsq" type="text" placeholder="\U0001f50d Buscar..." oninput="showSearchGlobal(this.value)" onblur="setTimeout(function(){var b=document.getElementById('gsr');if(b)b.style.display='none';},250)" style="background:transparent;border:none;outline:none;color:#fff;font-size:11px;width:120px;padding:4px 4px"></div>
+    <div id="gsr" style="display:none;position:fixed;top:44px;right:50px;width:310px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:9999;max-height:380px;overflow-y:auto"></div>
     <button id="btn-dark" onclick="toggleDark()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:11px;padding:4px 9px;border-radius:5px;cursor:pointer;font-family:var(--fn);">🌙</button>
   </div>
   <div class="tb-row2">
@@ -573,6 +590,10 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
             <div id="last-call-summary" style="font-size:12px;color:var(--tx);line-height:1.6;margin-bottom:8px;white-space:pre-line;"></div>
             <audio id="last-call-audio" controls style="width:100%;height:36px;display:none;border-radius:6px;"></audio>
           </div>
+        </div>
+        <div id="hist-box" style="display:none;margin:0 14px 10px;background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:10px 12px">
+          <div style="font-size:11px;font-weight:700;color:var(--mt2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">&#128203; Historial de llamadas</div>
+          <div id="hist-list" style="max-height:180px;overflow-y:auto"></div>
         </div>
         <textarea class="nt" id="notas" placeholder="Notas: nombre del contacto, fecha visita, objeciones, observaciones..."></textarea>
         <div class="save-bar">
@@ -1374,6 +1395,16 @@ function sel(id){
   const rm={visitaOK:'r-ok',rellamar:'r-cb',noContesta:'r-nc',noInteresa:'r-ni'};
   if(c.estado!=='pendiente'&&rm[c.estado]) document.querySelectorAll('.'+rm[c.estado]).forEach(b=>b.classList.add('on'));
   document.getElementById('sb').innerHTML=buildUI(c);
+  var hbox=document.getElementById('hist-box');
+  if(hbox&&c.historial&&c.historial.length>0){
+    hbox.style.display='block';
+    var _ei={duda:'🟣',rellamar:'🟡',noContesta:'⚫',noInteresa:'🔴',visita:'🟢',visitaOK:'🟢',pendiente:'○'};
+    document.getElementById('hist-list').innerHTML=c.historial.map(function(h){
+      return '<div style="padding:5px 0;border-bottom:1px solid var(--bd);font-size:11px">'
+        +'<div style="font-weight:600">'+(_ei[h.r]||'○')+' '+h.f+'</div>'
+        +(h.n?'<div style="color:var(--mt);margin-top:2px;white-space:pre-wrap">'+h.n.slice(0,200)+'</div>':'')+'</div>';
+    }).join('');
+  }else if(hbox){hbox.style.display='none';}
   renderList();
 }
 
@@ -2327,6 +2358,9 @@ function applyCallResult(data,callId,contactId){
   if(data.nombreContacto&&!c.contactName&&!agentNamesArr.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
   if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
   if(data.emailContacto&&!c.email) c.email=data.emailContacto;
+  if(!c.historial)c.historial=[];
+  c.historial.unshift({f:c.ultimaLlamada||'',r:data.resultado||c.estado,n:(data.notas||'').slice(0,400),id:c._callId||''});
+  if(c.historial.length>15)c.historial=c.historial.slice(0,15);
   if(data.cuandoLlamar&&data.resultado==='rellamar'&&!c.fechaRellamar){c.fechaRellamar=data.cuandoLlamar;addCalendarEvent(c,data.cuandoLlamar);}
   save();upStats();renderList();
   if(curId===contactId) sel(contactId);
@@ -2360,6 +2394,36 @@ function addCalendarEvent(contacto,cuandoLlamar){
   var url='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+titulo+'&dates='+fmt(target)+'/'+fmt(end)+'&details='+det+'&add=carboalvaro%40gmail.com';
   window.open(url,'_blank');
   toast('📅 Añadido al calendario','ok');
+}
+function searchGlobal(q){
+  if(!q||q.length<2)return[];
+  var ql=q.toLowerCase(),res=[];
+  C.forEach(function(c){if((c.nombre||'').toLowerCase().includes(ql)||(c.telefono||'').includes(q)){res.push({mod:'CP',id:c.id,nombre:c.nombre,tlf:c.telefono,est:c.estado,icon:'🏢'});}});
+  if(TAL&&TAL.talleres)TAL.talleres.forEach(function(t){if((t.nombre||'').toLowerCase().includes(ql)||(t.telefono||'').includes(q)){var st=(JSON.parse(localStorage.getItem('fe_tal_v1')||'{}')[t.id]||{}).estado||'';res.push({mod:'Talleres',id:'TAL:'+t.id,nombre:t.nombre,tlf:t.telefono,est:st,icon:'🔧'});}});
+  if(DEN&&DEN.clinicas)DEN.clinicas.forEach(function(t){if((t.nombre||'').toLowerCase().includes(ql)||(t.telefono||'').includes(q)){var st=(JSON.parse(localStorage.getItem('fe_den_v1')||'{}')[t.id]||{}).estado||'';res.push({mod:'Salud',id:'DEN:'+t.id,nombre:t.nombre,tlf:t.telefono,est:st,icon:'🩺'});}});
+  if(SUP&&SUP.supers)SUP.supers.forEach(function(t){if((t.nombre||'').toLowerCase().includes(ql)||(t.telefono||'').includes(q)){var st=(JSON.parse(localStorage.getItem('fe_sup_v1')||'{}')[t.id]||{}).estado||'';res.push({mod:'Supermercados',id:'SUP:'+t.id,nombre:t.nombre,tlf:t.telefono,est:st,icon:'🛒'});}});
+  if(ACC&&ACC.admins)ACC.admins.forEach(function(a){if((a.nombre||'').toLowerCase().includes(ql)||(a.telefono||'').includes(q)){var st=(JSON.parse(localStorage.getItem('fe_acc_v1')||'{}')[a.id]||{}).estado||'';res.push({mod:'Admins',id:'ACC:'+a.id,nombre:a.nombre,tlf:a.telefono,est:st,icon:'📁'});}});
+  return res.slice(0,25);
+}
+function showSearchGlobal(q){
+  var box=document.getElementById('gsr');if(!box)return;
+  if(!q||q.length<2){box.style.display='none';return;}
+  var res=searchGlobal(q);
+  var ei={duda:'🟣',rellamar:'🟡',noContesta:'⚫',noInteresa:'🔴',visita:'🟢',visitaOK:'🟢'};
+  if(!res.length){box.innerHTML='<div style="padding:10px 14px;color:var(--mt);font-size:12px">Sin resultados</div>';box.style.display='block';return;}
+  box.innerHTML=res.map(function(r){
+    return '<div onclick="selectGSR(\''+r.id+'\',\''+r.mod+'\')" style="padding:7px 12px;cursor:pointer;border-bottom:1px solid var(--bd);display:flex;gap:8px;align-items:center;font-size:12px" onmouseover="this.style.background=\'var(--s1)\'" onmouseout="this.style.background=\'\'">'+'<span>'+r.icon+'</span><div style="flex:1;overflow:hidden"><div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+r.nombre+'</div><div style="font-size:10px;color:var(--mt)">'+r.mod+' · '+r.tlf+'</div></div><span>'+(ei[r.est]||'○')+'</span></div>';
+  }).join('');
+  box.style.display='block';
+}
+function selectGSR(id,mod){
+  var box=document.getElementById('gsr');if(box)box.style.display='none';
+  var gi=document.getElementById('gsq');if(gi)gi.value='';
+  if(mod==='CP'){var c=C.find(function(x){return x.id==id;});if(c){curId=c.id;sel(c.id);}}
+  else if(mod==='Talleres'&&typeof talOpen2==='function')talOpen2(id.replace('TAL:',''));
+  else if(mod==='Salud'&&typeof denOpen2==='function')denOpen2(id.replace('DEN:',''));
+  else if(mod==='Supermercados'&&typeof supOpen2==='function')supOpen2(id.replace('SUP:',''));
+  else if(mod==='Admins'&&typeof accOpen2==='function')accOpen2(id.replace('ACC:',''));
 }
 function checkDuplicate(telefono){
   if(!telefono)return null;
@@ -2552,6 +2616,26 @@ function showCampHistory(){
 }
 
 
+function _syncCampFloat(){
+  var cf=document.getElementById('camp-float');if(!cf)return;
+  if(typeof campaignRunning!=='undefined'&&campaignRunning){
+    cf.classList.add('on');
+    var t=document.getElementById('camp-title'),s=document.getElementById('camp-sub'),f=document.getElementById('camp-fill');
+    var cft=document.getElementById('cf-title'),cfs=document.getElementById('cf-sub'),cff=document.getElementById('cf-fill');
+    if(t&&cft)cft.textContent=t.textContent;
+    if(s&&cfs)cfs.textContent=s.textContent;
+    if(f&&cff)cff.style.width=f.style.width;
+    var _a=Object.assign({},JSON.parse(localStorage.getItem('fe_tal_v1')||'{}'),JSON.parse(localStorage.getItem('fe_den_v1')||'{}'),JSON.parse(localStorage.getItem('fe_sup_v1')||'{}'),JSON.parse(localStorage.getItem('fe_acc_v1')||'{}'));
+    var _ar=Object.values(_a);
+    var _vi=_ar.filter(function(s){return s.estado==='visita'||s.estado==='visitaOK';}).length+C.filter(function(c){return c.estado==='visitaOK';}).length;
+    var _rl=_ar.filter(function(s){return s.estado==='rellamar';}).length+C.filter(function(c){return c.estado==='rellamar';}).length;
+    var _nc=_ar.filter(function(s){return s.estado==='noContesta';}).length+C.filter(function(c){return c.estado==='noContesta';}).length;
+    var e;e=document.getElementById('cf-ll');if(e)e.textContent=typeof campaignIdx!=='undefined'?campaignIdx:0;
+    e=document.getElementById('cf-vi');if(e)e.textContent=_vi;
+    e=document.getElementById('cf-rl');if(e)e.textContent=_rl;
+    e=document.getElementById('cf-nc');if(e)e.textContent=_nc;
+  }else{cf.classList.remove('on');}
+}
 function updateCampLiveStats(){
   var accMode=campaignQueue.length>0&&typeof campaignQueue[0]==='string'&&campaignQueue[0].startsWith('ACC:');
   var talMode=campaignQueue.length>0&&typeof campaignQueue[0]==='string'&&campaignQueue[0].startsWith('TAL:');
@@ -3874,5 +3958,24 @@ window.selMob=function(id,el){
 (function dn(){var l=document.getElementById('den-list');if(l){denRenderList();}else{setTimeout(dn,300);}})();
 
 </script>
+<div id="camp-float">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <div style="display:flex;gap:3px;align-items:center"><span style="width:3px;height:8px;background:var(--ac);border-radius:2px;display:inline-block;animation:wv .8s infinite ease-in-out"></span><span style="width:3px;height:13px;background:var(--ac);border-radius:2px;display:inline-block;animation:wv .8s .12s infinite ease-in-out"></span><span style="width:3px;height:9px;background:var(--ac);border-radius:2px;display:inline-block;animation:wv .8s .24s infinite ease-in-out"></span></div>
+    <button onclick="document.getElementById('camp-float').classList.remove('on')" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--mt);padding:0">&#215;</button>
+  </div>
+  <div class="cf-title" id="cf-title">Campaña en curso</div>
+  <div class="cf-sub" id="cf-sub">Iniciando...</div>
+  <div class="cf-track"><div class="cf-fill" id="cf-fill" style="width:0%"></div></div>
+  <div class="cf-stats">
+    <div class="cf-stat">&#128222; <b id="cf-ll">0</b></div>
+    <div class="cf-stat" style="color:#16a34a">&#128994; <b id="cf-vi">0</b></div>
+    <div class="cf-stat" style="color:#d97706">&#128993; <b id="cf-rl">0</b></div>
+    <div class="cf-stat">&#9899; <b id="cf-nc">0</b></div>
+  </div>
+  <div style="display:flex;gap:6px">
+    <button onclick="toggleCampaignPause()" style="flex:1;font-size:11px;padding:5px;border:1px solid var(--bd);border-radius:6px;background:var(--s1);cursor:pointer">&#9208;</button>
+    <button onclick="stopCampaign()" style="flex:1;font-size:11px;padding:5px;border:1px solid #fca5a5;border-radius:6px;background:#fef2f2;color:#dc2626;cursor:pointer">&#9632; Parar</button>
+  </div>
+</div>
 </body>
 </html>
