@@ -2440,9 +2440,9 @@ async function fetchMissingRecordings(){
   toast('Buscando grabaciones en Vapi...','');
   try{
     // Llamar al backend que descarga la lista completa de Vapi
-    var url=BACKEND_URL+'?getRecordings=all';
+    var url=BACKEND_URL;
     console.log('fetchMissingRecordings URL:',url);
-    var resp=await fetch(url);
+    var resp=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({getRecordings:true})});
     console.log('Response status:',resp.status,resp.statusText);
     if(!resp.ok){
       var errTxt=await resp.text();
