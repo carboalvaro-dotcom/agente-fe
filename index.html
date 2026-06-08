@@ -1417,7 +1417,20 @@ function sel(id){
           summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();
         }
       }
-      document.getElementById('last-call-summary').textContent=summary.slice(0,600)+(summary.length>600?'...':'');
+      var _lsum=document.getElementById('last-call-summary');
+      if(_lsum){
+        var _raw=summary||'';
+        var _blks=_raw.split(/\n\n+/).filter(function(b){return b.trim();});
+        if(!_blks.length)_blks=['Sin datos'];
+        _lsum.innerHTML=_blks.map(function(blk,idx){
+          var txt=blk.replace(/https:\/\/\S+/g,'').trim();
+          if(!txt)return '';
+          var esc=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          return '<div style="font-size:11px;white-space:pre-wrap;line-height:1.6;'
+            +(idx>0?'border-top:1px solid var(--bd);margin-top:8px;padding-top:8px;':'')
+            +'">'+esc+'</div>';
+        }).filter(Boolean).join('');
+      };
       // Show audio player
       const audio=document.getElementById('last-call-audio');
       if(recUrl){
@@ -3357,7 +3370,20 @@ function talOpen2(id){
       var summary=st.notas||'';
       if(!summary){summary=(st.ultimaLlamada||'Llamada realizada')+(st.estado?' — '+st.estado:'');}
       if(summary){var si2=summary.indexOf('https://storage.vapi.ai/');if(si2>-1){var ei2=summary.indexOf('\n',si2);summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();}}
-      document.getElementById('last-call-summary').textContent=summary.slice(0,600)+(summary.length>600?'...':'')
+      var _lsum=document.getElementById('last-call-summary');
+      if(_lsum){
+        var _raw=summary||'';
+        var _blks=_raw.split(/\n\n+/).filter(function(b){return b.trim();});
+        if(!_blks.length)_blks=['Sin datos'];
+        _lsum.innerHTML=_blks.map(function(blk,idx){
+          var txt=blk.replace(/https:\/\/\S+/g,'').trim();
+          if(!txt)return '';
+          var esc=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          return '<div style="font-size:11px;white-space:pre-wrap;line-height:1.6;'
+            +(idx>0?'border-top:1px solid var(--bd);margin-top:8px;padding-top:8px;':'')
+            +'">'+esc+'</div>';
+        }).filter(Boolean).join('');
+      }
       var audio=document.getElementById('last-call-audio');
       if(recUrl){audio.src=recUrl;audio.style.display='block';}else{audio.style.display='none';audio.src='';}
     }else{lcp.style.display='none';}
@@ -3654,7 +3680,20 @@ function supOpen2(id){
       var summary=st.notas||'';
       if(!summary){summary=(st.ultimaLlamada||'Llamada realizada')+(st.estado?' — '+st.estado:'');}
       if(summary){var si2=summary.indexOf('https://storage.vapi.ai/');if(si2>-1){var ei2=summary.indexOf('\n',si2);summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();}}
-      document.getElementById('last-call-summary').textContent=summary.slice(0,600)+(summary.length>600?'...':'')
+      var _lsum=document.getElementById('last-call-summary');
+      if(_lsum){
+        var _raw=summary||'';
+        var _blks=_raw.split(/\n\n+/).filter(function(b){return b.trim();});
+        if(!_blks.length)_blks=['Sin datos'];
+        _lsum.innerHTML=_blks.map(function(blk,idx){
+          var txt=blk.replace(/https:\/\/\S+/g,'').trim();
+          if(!txt)return '';
+          var esc=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          return '<div style="font-size:11px;white-space:pre-wrap;line-height:1.6;'
+            +(idx>0?'border-top:1px solid var(--bd);margin-top:8px;padding-top:8px;':'')
+            +'">'+esc+'</div>';
+        }).filter(Boolean).join('');
+      }
       var audio=document.getElementById('last-call-audio');
       if(recUrl){audio.src=recUrl;audio.style.display='block';}else{audio.style.display='none';audio.src='';}
     }else{lcp.style.display='none';}
@@ -3940,7 +3979,20 @@ function denOpen2(id){
       var summary=st.notas||'';
       if(!summary){summary=(st.ultimaLlamada||'Llamada realizada')+(st.estado?' — '+st.estado:'');}
       if(summary){var si2=summary.indexOf('https://storage.vapi.ai/');if(si2>-1){var ei2=summary.indexOf('\n',si2);summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();}}
-      document.getElementById('last-call-summary').textContent=summary.slice(0,600)+(summary.length>600?'...':'')
+      var _lsum=document.getElementById('last-call-summary');
+      if(_lsum){
+        var _raw=summary||'';
+        var _blks=_raw.split(/\n\n+/).filter(function(b){return b.trim();});
+        if(!_blks.length)_blks=['Sin datos'];
+        _lsum.innerHTML=_blks.map(function(blk,idx){
+          var txt=blk.replace(/https:\/\/\S+/g,'').trim();
+          if(!txt)return '';
+          var esc=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          return '<div style="font-size:11px;white-space:pre-wrap;line-height:1.6;'
+            +(idx>0?'border-top:1px solid var(--bd);margin-top:8px;padding-top:8px;':'')
+            +'">'+esc+'</div>';
+        }).filter(Boolean).join('');
+      }
       var audio=document.getElementById('last-call-audio');
       if(recUrl){audio.src=recUrl;audio.style.display='block';}else{audio.style.display='none';audio.src='';}
     }else{lcp.style.display='none';}
