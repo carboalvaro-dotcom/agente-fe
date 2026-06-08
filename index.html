@@ -1434,7 +1434,7 @@ function sel(id){
   }
   // Llamadas badge
   const lbadge=document.getElementById('llamadas-badge');
-  if(lbadge) lbadge.textContent=c.llamadas>0?'📞 LLAMADAS: '+c.llamadas+(c.ultimaLlamada?' · Última: '+c.ultimaLlamada:''):'';
+  if(lbadge) lbadge.textContent=c.llamadas>0?'📞 '+c.llamadas+(c.llamadas===1?' llamada':' llamadas')+(c.ultimaLlamada?' · 📅 '+c.ultimaLlamada:''):'';
   // Call recording link
   const recDiv=document.getElementById('rec-link');
   if(recDiv){
@@ -3363,7 +3363,7 @@ function talOpen2(id){
     }else{lcp.style.display='none';}
   }
   var lb=document.getElementById('llamadas-badge');
-  if(lb)lb.textContent=st.llamadas>0?'📞 LLAMADAS: '+st.llamadas+(st.ultimaLlamada?' · Última: '+st.ultimaLlamada:''):''
+  if(lb)lb.textContent=st.llamadas>0?'📞 '+st.llamadas+(st.llamadas===1?' llamada':' llamadas')+(st.ultimaLlamada?' · 📅 '+st.ultimaLlamada:''):''
 }
 
 function talSetEstado(id,estado){
@@ -3660,7 +3660,7 @@ function supOpen2(id){
     }else{lcp.style.display='none';}
   }
   var lb=document.getElementById('llamadas-badge');
-  if(lb)lb.textContent=st.llamadas>0?'📞 LLAMADAS: '+st.llamadas+(st.ultimaLlamada?' · Última: '+st.ultimaLlamada:''):''
+  if(lb)lb.textContent=st.llamadas>0?'📞 '+st.llamadas+(st.llamadas===1?' llamada':' llamadas')+(st.ultimaLlamada?' · 📅 '+st.ultimaLlamada:''):''
 }
 
 function supSetEstado(id,estado){
@@ -3946,7 +3946,7 @@ function denOpen2(id){
     }else{lcp.style.display='none';}
   }
   var lb=document.getElementById('llamadas-badge');
-  if(lb)lb.textContent=st.llamadas>0?'📞 LLAMADAS: '+st.llamadas+(st.ultimaLlamada?' · Última: '+st.ultimaLlamada:''):''
+  if(lb)lb.textContent=st.llamadas>0?'📞 '+st.llamadas+(st.llamadas===1?' llamada':' llamadas')+(st.ultimaLlamada?' · 📅 '+st.ultimaLlamada:''):''
 }
 
 function denSetEstado(id,estado){
