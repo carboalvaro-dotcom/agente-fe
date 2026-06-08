@@ -2439,74 +2439,65 @@ function selectGSR(id,mod){
 async function fetchMissingRecordings(){
   toast('Buscando grabaciones en Vapi...','');
   try{
-    // Recopilar callIds sin recordingUrl de todos los módulos
-    var missing=[];
+    // Llamar al backend que descarga la lista completa de Vapi
+    var url=BACKEND_URL+'?getRecordings=all';
+    console.log('fetchMissingRecordings URL:',url);
+    var resp=await fetch(url);
+    console.log('Response status:',resp.status,resp.statusText);
+    if(!resp.ok){
+      var errTxt=await resp.text();
+      console.error('Backend error:',errTxt);
+      throw new Error('HTTP '+resp.status+': '+errTxt.slice(0,150));
+    }
+    var data=await resp.json();
+    console.log('Backend response:',data);
+    var recs=data.recordings||{};
+    var available=data.available||0;
+    // Recopilar fichas con _callId sin _recordingUrl
     var _dS=JSON.parse(localStorage.getItem('fe_den_v1')||'{}');
     var _tS=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
     var _sS=JSON.parse(localStorage.getItem('fe_sup_v1')||'{}');
     var _aS=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}');
-    var addMissing=function(st,mod){
+    var updated=0;
+    var applyRec=function(st,saveFn){
       Object.keys(st).forEach(function(id){
         var s=st[id];
-        if(s._callId&&!s._recordingUrl&&!(s.notas&&/https:\/\/\S+vapi\.ai\S*/i.test(s.notas))){
-          missing.push({mod:mod,id:id,callId:s._callId});
+        if(s._callId&&!s._recordingUrl&&recs[s._callId]){
+          s._recordingUrl=recs[s._callId];
+          if(s.notas&&s.notas.indexOf(s._recordingUrl)<0)
+            s.notas+='\n\uD83C\uDFA7 '+s._recordingUrl;
+          saveFn();updated++;
         }
       });
     };
-    addMissing(_dS,'DEN'); addMissing(_tS,'TAL'); addMissing(_sS,'SUP'); addMissing(_aS,'ACC');
+    applyRec(_dS,function(){localStorage.setItem('fe_den_v1',JSON.stringify(_dS));});
+    applyRec(_tS,function(){localStorage.setItem('fe_tal_v1',JSON.stringify(_tS));});
+    applyRec(_sS,function(){localStorage.setItem('fe_sup_v1',JSON.stringify(_sS));});
+    applyRec(_aS,function(){localStorage.setItem('fe_acc_v1',JSON.stringify(_aS));});
     C.forEach(function(c){
-      if(c._callId&&!c._recordingUrl&&!(c.notas&&/https:\/\/\S+vapi\.ai\S*/i.test(c.notas||''))){
-        missing.push({mod:'CP',id:c.id,callId:c._callId});
+      if(c._callId&&!c._recordingUrl&&recs[c._callId]){
+        c._recordingUrl=recs[c._callId];
+        if(c.notas&&c.notas.indexOf(c._recordingUrl)<0)
+          c.notas+='\n\uD83C\uDFA7 '+c._recordingUrl;
+        save();updated++;
       }
     });
-    if(!missing.length){toast('Todas las grabaciones ya están disponibles','ok');return;}
-    toast('Consultando '+missing.length+' llamadas en Vapi...','');
-    // Llamar en batches de 10
-    var updated=0;
-    var batches=[];
-    for(var i=0;i<missing.length;i+=10)batches.push(missing.slice(i,i+10));
-    for(var b=0;b<batches.length;b++){
-      var batch=batches[b];
-      var ids=batch.map(function(x){return x.callId;}).join(',');
-      var resp=await fetch(BACKEND_URL+'?getRecordings='+encodeURIComponent(ids));
-      if(!resp.ok){var errTxt=await resp.text();throw new Error('HTTP '+resp.status+': '+errTxt.slice(0,100));}
-      var data=await resp.json();
-      console.log('getRecordings response:',data);
-      var recs=data.recordings||{};
-      batch.forEach(function(item){
-        var rec=recs[item.callId]||'';
-        if(!rec)return;
-        if(item.mod==='DEN'){_dS[item.id]=_dS[item.id]||{};_dS[item.id]._recordingUrl=rec;if(_dS[item.id].notas)_dS[item.id].notas+=('\n\uD83C\uDFA7 '+rec);}
-        else if(item.mod==='TAL'){_tS[item.id]=_tS[item.id]||{};_tS[item.id]._recordingUrl=rec;if(_tS[item.id].notas)_tS[item.id].notas+=('\n\uD83C\uDFA7 '+rec);}
-        else if(item.mod==='SUP'){_sS[item.id]=_sS[item.id]||{};_sS[item.id]._recordingUrl=rec;if(_sS[item.id].notas)_sS[item.id].notas+=('\n\uD83C\uDFA7 '+rec);}
-        else if(item.mod==='ACC'){_aS[item.id]=_aS[item.id]||{};_aS[item.id]._recordingUrl=rec;if(_aS[item.id].notas)_aS[item.id].notas+=('\n\uD83C\uDFA7 '+rec);}
-        else if(item.mod==='CP'){var cc=C.find(function(x){return x.id==item.id;});if(cc){cc._recordingUrl=rec;if(cc.notas)cc.notas+=('\n\uD83C\uDFA7 '+rec);}}
-        updated++;
-      });
-    }
-    // Guardar en localStorage
-    localStorage.setItem('fe_den_v1',JSON.stringify(_dS));
-    localStorage.setItem('fe_tal_v1',JSON.stringify(_tS));
-    localStorage.setItem('fe_sup_v1',JSON.stringify(_sS));
-    localStorage.setItem('fe_acc_v1',JSON.stringify(_aS));
-    save();
     // Re-renderizar
     try{denRenderList();}catch(e){}
     try{talRenderList();}catch(e){}
     try{accRenderList();}catch(e){}
     renderList();
-    // Si hay un contacto abierto, re-renderizar su panel
     if(typeof denSel!=='undefined'&&denSel&&typeof denOpen2==='function')denOpen2(denSel);
     if(typeof talSel!=='undefined'&&talSel&&typeof talOpen2==='function')talOpen2(talSel);
     if(curId!==null&&typeof sel==='function')sel(curId);
     if(updated>0){
-      toast('\u2713 '+updated+' grabaciones recuperadas','ok');
-    } else {
-      toast('Vapi ya no tiene estas grabaciones (expiraron)','');
+      toast('\u2713 '+updated+' grabaciones recuperadas ('+available+' disponibles en Vapi)','ok');
+    }else{
+      toast('Vapi tiene '+available+' grabaciones pero ninguna coincide con tus fichas (pueden haber expirado)','');
     }
   }catch(err){
     console.error('fetchMissingRecordings error:',err);
-    toast('Error: '+err.message+' (ver consola)','err');
+    toast('Error: '+err.message,'err');
   }
 }
 async function syncVapiHoy(){
