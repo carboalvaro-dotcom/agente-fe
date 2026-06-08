@@ -1209,16 +1209,24 @@ function setFechaHoy(){
     if(el){if(s===_best)el.classList.add('open');else el.classList.remove('open');}
   });
   setTimeout(function(){
+    // Scroll lista interna al top
     var _map={'acc-section':'acc-list','tal-section':'tal-list','sup-section':'sup-list','den-section':'den-list'};
     var _li=document.getElementById(_map[_best]);if(_li)_li.scrollTop=0;
-    // Scroll del contenedor .lp hasta el sector abierto
+    // Mover el sector ganador al principio del DOM (dentro de .lp)
     var _se=document.getElementById(_best);
     var _lp=document.querySelector('.lp');
     if(_se&&_lp){
-      // Calcular posicion del sector relativa al .lp
-      var _el=_se,_top=0;
-      while(_el&&_el!==_lp){_top+=_el.offsetTop;_el=_el.offsetParent;}
-      _lp.scrollTop=Math.max(0,_top-8);
+      // Insertar antes del primer acc-section
+      var _first=_lp.querySelector('.acc-section');
+      if(_first&&_first!==_se)_lp.insertBefore(_se,_first);
+      // Scroll del .lp al top
+      _lp.scrollTop=0;
+      // Scroll de la pagina al top por si acaso
+      window.scrollTo(0,0);
+      // Highlight visual breve
+      _se.style.transition='box-shadow .3s';
+      _se.style.boxShadow='0 0 0 2px var(--ac)';
+      setTimeout(function(){_se.style.boxShadow='';},1200);
     }
   },150);
 }
