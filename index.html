@@ -2515,6 +2515,32 @@ async function syncVapiHoy(){
     toast('Error sync: '+err.message,'err');
   }
 }
+function renderCallsPanel(st,ultimaLlamada){
+  var lcp=document.getElementById('last-call-panel');
+  var lct=document.getElementById('last-call-time');
+  var lcs=document.getElementById('last-call-summary');
+  if(!lcp||!lcs){return;}
+  if(!(st.llamadas>0)){lcp.style.display='none';return;}
+  lcp.style.display='block';
+  if(lct)lct.textContent=ultimaLlamada||st.ultimaLlamada||'';
+  var notas=st.notas||'';
+  var bloques=notas.split(/\n\n+/).map(function(b){return b.trim();}).filter(Boolean);
+  if(!bloques.length)bloques=[notas||'Llamada realizada'];
+  lcs.innerHTML=bloques.map(function(blk,idx){
+    var um=blk.match(/https:\/\/\S+(?:vapi\.ai|googleapis\.com|cloudfront\.net)\S*/i)
+      ||blk.match(/https:\/\/\S+\.(?:mp3|wav|ogg|m4a|mp4|webm)/i);
+    var ru=um?um[0].trim():'';
+    if(!ru&&idx===0&&st._recordingUrl)ru=st._recordingUrl;
+    var txt=blk.replace(/https:\/\/\S+/g,'').replace(/^\s+|\s+$/gm,'').trim();
+    if(!txt&&!ru)return '';
+    var esc=(txt||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var sep=idx>0?'border-top:1px solid var(--bd);margin-top:10px;padding-top:10px;':'';
+    return '<div style="'+sep+'font-size:11px;line-height:1.6">'
+      +esc
+      +(ru?'<audio controls src="'+ru+'" style="width:100%;height:32px;margin-top:6px;border-radius:6px;display:block"></audio>':'')
+      +'</div>';
+  }).filter(Boolean).join('')||'<span style="color:var(--mt);font-size:11px">Sin resumen</span>';
+}
 function checkDuplicate(telefono){
   if(!telefono)return null;
   var ph=telefono.replace(/\D/g,'').slice(-9);
