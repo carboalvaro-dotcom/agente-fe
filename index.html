@@ -1185,7 +1185,10 @@ function upStats(){
   _syncCampFloat();
 }
 function setFechaHoy(){
-  var t=new Date().toISOString().split('T')[0];
+  var _now=new Date();
+  var _tStr=_now.toLocaleDateString('es-ES',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Europe/Madrid'});
+  var _parts=_tStr.split('/');
+  var t=_parts[2]+'-'+_parts[1]+'-'+_parts[0];  // yyyy-mm-dd
   document.getElementById('fecha-desde').value=t;
   document.getElementById('fecha-hasta').value=t;
   renderList();accRenderList();try{talRenderList();}catch(e){}try{supRenderList();}catch(e){}try{denRenderList();}catch(e){}
