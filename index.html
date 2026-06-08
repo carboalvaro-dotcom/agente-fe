@@ -2464,7 +2464,7 @@ async function fetchMissingRecordings(){
         var s=st[id];
         if(s._callId&&!s._recordingUrl&&recs[s._callId]){
           s._recordingUrl=recs[s._callId];
-          if(s.notas&&s.notas.indexOf(s._recordingUrl)<0)
+          if(s.notas&&s._recordingUrl&&s.notas.indexOf(s._recordingUrl)<0)
             s.notas+='\n\uD83C\uDFA7 '+s._recordingUrl;
           saveFn();updated++;
         }
@@ -2536,7 +2536,9 @@ async function syncVapiHoy(){
       if(ru)nt+='\uD83C\uDFA7 '+ru+'\n';
       nt+='\uD83D\uDD17 '+c.id;
       var ap=function(st,sv){
-        if(!st.notas)st.notas=nt;
+        // Solo añadir si no hay nota con ese callId ya
+        if(!st.notas){st.notas=nt;}
+        else if(c.id&&st.notas.indexOf(c.id)<0){st.notas=st.notas+'\n\n'+nt;}
         if(!st._recordingUrl&&ru)st._recordingUrl=ru;
         if(!st._callId)st._callId=c.id;
         if(!st.llamadas||st.llamadas<1)st.llamadas=1;
@@ -2569,7 +2571,15 @@ function renderCallsPanel(st,ultimaLlamada){
   lcp.style.display='block';
   if(lct)lct.textContent=ultimaLlamada||st.ultimaLlamada||'';
   var notas=st.notas||'';
-  var bloques=notas.split(/\n\n+/).map(function(b){return b.trim();}).filter(Boolean);
+  var _rawBloques=notas.split(/\n\n+/).map(function(b){return b.trim();}).filter(Boolean);
+  // Deduplicar: si dos bloques tienen el mismo callId (🔗), quedarse con el más reciente
+  var _seen={};
+  var bloques=_rawBloques.filter(function(b){
+    var idMatch=b.match(/\uD83D\uDD17\s*(\S+)/);
+    if(!idMatch)return true;
+    if(_seen[idMatch[1]])return false;
+    _seen[idMatch[1]]=true;return true;
+  });
   if(!bloques.length)bloques=[notas||'Llamada realizada'];
   lcs.innerHTML=bloques.map(function(blk,idx){
     var um=blk.match(/https:\/\/\S+(?:vapi\.ai|googleapis\.com|cloudfront\.net)\S*/i)
@@ -3096,14 +3106,7 @@ function accOpen2(id){
     +'<th style="text-align:left;padding:4px 6px;font-size:9px;color:var(--mt2);border-bottom:1px solid var(--bd);text-transform:uppercase">Ahorro/a&ntilde;o</th></tr>'
     +'</thead><tbody>'+rows+'</tbody></table></div>';
 
-  // Set audio src
-  var aEl=document.getElementById('acc-audio-'+id);
-  if(aEl){
-    var ru=st._recordingUrl||'';
-    if(!ru&&st.notas){var si=st.notas.indexOf('https://storage.vapi.ai/');if(si>=0){var ei=st.notas.indexOf('\n',si);var rawUrl=ei>=0?st.notas.slice(si,ei):st.notas.slice(si);ru=rawUrl.trim().split(/\s/)[0];}}
-    if(ru){aEl.src=ru;aEl.style.display='block';}
-    else{aEl.style.display='none';aEl.src='';}
-  }
+  renderCallsPanel(st,st.ultimaLlamada);
   document.querySelectorAll('.acc-admin-item').forEach(function(e){e.classList.remove('sel');});
   var it=document.getElementById('aci-'+id);if(it)it.classList.add('sel');
   accRenderList();
@@ -3347,10 +3350,13 @@ function selTal(id){
   talSel=id;window._talId=id;
   var fw=document.getElementById('acc-ficha-wrap');if(fw)fw.style.display='none';
   var _empty=document.getElementById('empty');if(_empty)_empty.style.display='none';
+  // Ocultar también el panel de ficha ACC si estuviera visible
+  var _accFicha=document.getElementById('acc-det-panel');if(_accFicha)_accFicha.style.display='none';
   var det=document.getElementById('det');
   if(!det)return;
   det.classList.add('vis');
   det.style.display='flex';
+  document.getElementById('sb')&&(document.getElementById('sb').style.display='none');
   if(typeof openMobileDet==='function')openMobileDet();
   talOpen2(id);
   // En mobile: mostrar el panel derecho
@@ -3643,6 +3649,7 @@ function supOpen2(id){
   window._supId=id;
   // Asegurar que el panel det está visible
   var _det=document.getElementById('det');if(_det){_det.classList.add('vis');_det.style.display='flex';}
+  var _fwx=document.getElementById('acc-ficha-wrap');if(_fwx)_fwx.style.display='none';
   var st=supSt[id]||{};
   var ec=st.estado||'sinLlamar';
   var SL2={sinLlamar:'Sin llamar',visita:'✓ Visita',rellamar:'↺ Rellamar',noContesta:'— No contesta',noInteresa:'× No interesa',pendiente:'● Pendiente',duda:'? Duda'};
@@ -3909,6 +3916,7 @@ function denOpen2(id){
   window._denId=id;
   // Asegurar que el panel det está visible
   var _det=document.getElementById('det');if(_det){_det.classList.add('vis');_det.style.display='flex';}
+  var _fwx=document.getElementById('acc-ficha-wrap');if(_fwx)_fwx.style.display='none';
   var st=denSt[id]||{};
   var ec=st.estado||'sinLlamar';
   var SL2={sinLlamar:'Sin llamar',visita:'✓ Visita',rellamar:'↺ Rellamar',noContesta:'— No contesta',noInteresa:'× No interesa',pendiente:'● Pendiente',duda:'? Duda'};
