@@ -5,6 +5,31 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   // GET ?listToday=1 — devuelve llamadas de hoy con recordingUrl
+  // GET ?getRecordings=id1,id2,... — devuelve recordingUrl para IDs específicos
+  if (req.method === 'GET' && req.query && req.query.getRecordings) {
+    try {
+      const VAPI_KEY = '96d7565b-f657-42e2-b144-670153ff65eb';
+      const ids = req.query.getRecordings.split(',').slice(0, 50);
+      const results = {};
+      await Promise.all(ids.map(async (id) => {
+        try {
+          const r = await fetch(`https://api.vapi.ai/call/${id.trim()}`, {
+            headers: { 'Authorization': `Bearer ${VAPI_KEY}` }
+          });
+          if (!r.ok) { results[id] = ''; return; }
+          const c = await r.json();
+          const rec = c.recordingUrl || c.stereoRecordingUrl
+            || (c.artifact && (c.artifact.recordingUrl || c.artifact.stereoRecordingUrl || c.artifact.videoRecordingUrl))
+            || '';
+          results[id.trim()] = rec;
+        } catch(e) { results[id] = ''; }
+      }));
+      return res.status(200).json({ recordings: results });
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
   if (req.method === 'GET' && req.query && req.query.listToday) {
     try {
       const VAPI_KEY = '96d7565b-f657-42e2-b144-670153ff65eb';
