@@ -1136,53 +1136,32 @@ function save(){
 }
 
 function upStats(){
-  document.getElementById('st').textContent=C.length;
-  document.getElementById('spr').textContent=C.filter(c=>isPRO(c)).length;
-  // Sumar también admins ACC
-  var _accSt2=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}');
-  var _accVisitas=Object.values(_accSt2).filter(s=>s.estado==='visita').length;
-  var _accRellamar=Object.values(_accSt2).filter(s=>s.estado==='rellamar').length;
-  var _accNI=Object.values(_accSt2).filter(s=>s.estado==='noInteresa').length;
-  var _accNC=Object.values(_accSt2).filter(s=>s.estado==='noContesta').length;
-  var _accDuda=Object.values(_accSt2).filter(s=>s.estado==='duda').length;
-  var _accCalls=Object.values(_accSt2).reduce(function(s,x){return s+(x.llamadas||0);},0);
-  var _cpV=C.filter(c=>c.estado==='visitaOK').length;
-  document.getElementById('sv').textContent=_cpV+_accVisitas;
-  document.getElementById('sr').textContent=C.filter(c=>c.estado==='rellamar').length+_accRellamar;
-  document.getElementById('sni').textContent=C.filter(c=>c.estado==='noInteresa').length+_accNI;
-  document.getElementById('snc').textContent=C.filter(c=>c.estado==='noContesta').length+_accNC;
-  const dudaEl=document.getElementById('sduda');if(dudaEl)dudaEl.textContent=C.filter(c=>c.estado==='duda').length+_accDuda;
-  const totalCalls=C.reduce((sum,c)=>sum+(c.llamadas||0),0)+_accCalls;
-  // Sumar talleres TAL
-  var _talSt3=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
-  var _talV=Object.values(_talSt3);
-  var _talVc=_talV.filter(function(s){return s.estado==='visita';}).length;
-  document.getElementById('sv').textContent=_cpV+_accVisitas+_talVc;
-  document.getElementById('sr').textContent=parseInt(document.getElementById('sr').textContent||0)+_talV.filter(function(s){return s.estado==='rellamar';}).length;
-  var _sni3=document.getElementById('sni');if(_sni3)_sni3.textContent=parseInt(_sni3.textContent||0)+_talV.filter(function(s){return s.estado==='noInteresa';}).length;
-  var _snc3=document.getElementById('snc');if(_snc3)_snc3.textContent=parseInt(_snc3.textContent||0)+_talV.filter(function(s){return s.estado==='noContesta';}).length;
-  var _sduda3=document.getElementById('sduda');if(_sduda3)_sduda3.textContent=parseInt(_sduda3.textContent||0)+_talV.filter(function(s){return s.estado==='duda';}).length;
-  document.getElementById('sllamadas').textContent=parseInt(document.getElementById('sllamadas').textContent||0)+_talV.reduce(function(s,x){return s+(x.llamadas||0);},0);
-  // SUP
-  var _supSt4=JSON.parse(localStorage.getItem('fe_sup_v1')||'{}');
-  var _supV4=Object.values(_supSt4);
-  var _supVc=_supV4.filter(function(s){return s.estado==='visita';}).length;
-  document.getElementById('sv').textContent=_cpV+_accVisitas+_talVc+_supVc;
-  document.getElementById('sr').textContent=parseInt(document.getElementById('sr').textContent||0)+_supV4.filter(function(s){return s.estado==='rellamar';}).length;
-  var _snc4=document.getElementById('snc');if(_snc4)_snc4.textContent=parseInt(_snc4.textContent||0)+_supV4.filter(function(s){return s.estado==='noContesta';}).length;
-  var _sni4=document.getElementById('sni');if(_sni4)_sni4.textContent=parseInt(_sni4.textContent||0)+_supV4.filter(function(s){return s.estado==='noInteresa';}).length;
-  var _sd4=document.getElementById('sduda');if(_sd4)_sd4.textContent=parseInt(_sd4.textContent||0)+_supV4.filter(function(s){return s.estado==='duda';}).length;
-  document.getElementById('sllamadas').textContent=parseInt(document.getElementById('sllamadas').textContent||0)+_supV4.reduce(function(s,x){return s+(x.llamadas||0);},0);
-  // DEN
-  var _denSt4=JSON.parse(localStorage.getItem('fe_den_v1')||'{}');
-  var _denV4=Object.values(_denSt4);
-  var _denVc=_denV4.filter(function(s){return s.estado==='visita';}).length;
-  document.getElementById('sv').textContent=_cpV+_accVisitas+_talVc+_supVc+_denVc;
-  document.getElementById('sr').textContent=parseInt(document.getElementById('sr').textContent||0)+_denV4.filter(function(s){return s.estado==='rellamar';}).length;
-  var _snc5=document.getElementById('snc');if(_snc5)_snc5.textContent=parseInt(_snc5.textContent||0)+_denV4.filter(function(s){return s.estado==='noContesta';}).length;
-  var _sni5=document.getElementById('sni');if(_sni5)_sni5.textContent=parseInt(_sni5.textContent||0)+_denV4.filter(function(s){return s.estado==='noInteresa';}).length;
-  var _sd5=document.getElementById('sduda');if(_sd5)_sd5.textContent=parseInt(_sd5.textContent||0)+_denV4.filter(function(s){return s.estado==='duda';}).length;
-  document.getElementById('sllamadas').textContent=parseInt(document.getElementById('sllamadas').textContent||0)+_denV4.reduce(function(s,x){return s+(x.llamadas||0);},0);
+  // Leer todos los estados de una vez
+  var _aS=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}');
+  var _tS=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
+  var _sS=JSON.parse(localStorage.getItem('fe_sup_v1')||'{}');
+  var _dS=JSON.parse(localStorage.getItem('fe_den_v1')||'{}');
+  var _aV=Object.values(_aS);
+  var _tV=Object.values(_tS);
+  var _sV=Object.values(_sS);
+  var _dV=Object.values(_dS);
+  // CP usa visitaOK, módulos sectoriales usan visita
+  var isV=function(s){return s.estado==='visita'||s.estado==='visitaOK';};
+  var isR=function(s){return s.estado==='rellamar';};
+  var isNI=function(s){return s.estado==='noInteresa';};
+  var isNC=function(s){return s.estado==='noContesta';};
+  var isD=function(s){return s.estado==='duda';};
+  var sv=C.filter(c=>c.estado==='visitaOK').length+_aV.filter(isV).length+_tV.filter(isV).length+_sV.filter(isV).length+_dV.filter(isV).length;
+  var sr=C.filter(c=>c.estado==='rellamar').length+_aV.filter(isR).length+_tV.filter(isR).length+_sV.filter(isR).length+_dV.filter(isR).length;
+  var sni=C.filter(c=>c.estado==='noInteresa').length+_aV.filter(isNI).length+_tV.filter(isNI).length+_sV.filter(isNI).length+_dV.filter(isNI).length;
+  var snc=C.filter(c=>c.estado==='noContesta').length+_aV.filter(isNC).length+_tV.filter(isNC).length+_sV.filter(isNC).length+_dV.filter(isNC).length;
+  var sd=C.filter(c=>c.estado==='duda').length+_aV.filter(isD).length+_tV.filter(isD).length+_sV.filter(isD).length+_dV.filter(isD).length;
+  var sl=C.reduce((s,c)=>s+(c.llamadas||0),0)+_aV.reduce((s,x)=>s+(x.llamadas||0),0)+_tV.reduce((s,x)=>s+(x.llamadas||0),0)+_sV.reduce((s,x)=>s+(x.llamadas||0),0)+_dV.reduce((s,x)=>s+(x.llamadas||0),0);
+  var el=function(id,val){var e=document.getElementById(id);if(e)e.textContent=val;};
+  el('sv',sv); el('sr',sr); el('sni',sni); el('snc',snc);
+  el('sllamadas',sl);
+  var sd2=document.getElementById('sduda');if(sd2)sd2.textContent=sd;
+  el('st',C.length); el('spr',C.filter(c=>isPRO(c)).length);
   _syncCampFloat();
 }
 function setFechaHoy(){
