@@ -1191,12 +1191,23 @@ function setFechaHoy(){
   var t=_parts[2]+'-'+_parts[1]+'-'+_parts[0];  // yyyy-mm-dd
   document.getElementById('fecha-desde').value=t;
   document.getElementById('fecha-hasta').value=t;
-  renderList();accRenderList();try{talRenderList();}catch(e){}try{supRenderList();}catch(e){}try{denRenderList();}catch(e){}
+  curF='llamadas';
+  renderList();accRenderList();
+  try{talRenderList();}catch(e){}
+  try{supRenderList();}catch(e){}
+  try{denRenderList();}catch(e){}
+  ['left-panel','acc-list','tal-list','sup-list','den-list'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.scrollTop=0;
+  });
 }
 function clearFechas(){
   document.getElementById('fecha-desde').value='';
   document.getElementById('fecha-hasta').value='';
-  renderList();accRenderList();try{talRenderList();}catch(e){}try{supRenderList();}catch(e){}try{denRenderList();}catch(e){}
+  curF='todos';
+  renderList();accRenderList();
+  try{talRenderList();}catch(e){}
+  try{supRenderList();}catch(e){}
+  try{denRenderList();}catch(e){}
 }
 var _compact=localStorage.getItem('fe_compact')==='1';
 // compact init via setTimeout after render
@@ -3662,7 +3673,7 @@ function denRenderList(){
   var dH=document.getElementById('fecha-hasta')?.value||'';
   var filtered=DEN.clinicas.filter(function(t){
     if(muniF&&t.municipio!==muniF)return false;
-    
+    if(tipoF&&t.tipo!==tipoF)return false;
     if(dD||dH){
       var ul=(denSt[t.id]||{}).ultimaLlamada||'';if(!ul)return false;
       var _pcd=typeof parseCallDate==='function'?parseCallDate(ul):null;
