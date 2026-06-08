@@ -2469,7 +2469,9 @@ async function fetchMissingRecordings(){
       var batch=batches[b];
       var ids=batch.map(function(x){return x.callId;}).join(',');
       var resp=await fetch(BACKEND_URL+'?getRecordings='+encodeURIComponent(ids));
+      if(!resp.ok){var errTxt=await resp.text();throw new Error('HTTP '+resp.status+': '+errTxt.slice(0,100));}
       var data=await resp.json();
+      console.log('getRecordings response:',data);
       var recs=data.recordings||{};
       batch.forEach(function(item){
         var rec=recs[item.callId]||'';
@@ -2499,8 +2501,8 @@ async function fetchMissingRecordings(){
     if(curId!==null&&typeof sel==='function')sel(curId);
     toast('\u2713 '+updated+' grabaciones recuperadas de Vapi','ok');
   }catch(err){
-    toast('Error: '+err.message,'err');
-    console.error(err);
+    console.error('fetchMissingRecordings error:',err);
+    toast('Error: '+err.message+' (ver consola)','err');
   }
 }
 async function syncVapiHoy(){
