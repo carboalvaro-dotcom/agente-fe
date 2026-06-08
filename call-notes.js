@@ -230,6 +230,11 @@ export default async function handler(req, res) {
         resultado = 'duda';
       }
 
+      // Detectar si el cliente colgó
+      const clienteCuelga = data.endedReason === 'customer-ended-call'
+        || data.endedReason === 'customer-ended'
+        || data.endedReason === 'hang-up';
+
       // ── RESUMEN INTELIGENTE DE LA LLAMADA ───────────────────────────────────
       // Extraer líneas del agente y del cliente para construir un resumen real
       const agentLines = lines
@@ -296,11 +301,12 @@ export default async function handler(req, res) {
       let notas = `📞 ${now}${duration ? ' · ' + duration + 's' : ''}\n`;
 
       // Resultado con color
-      if      (resultado === 'noContesta') notas += `⚫ No contestó\n`;
+      if      (resultado === 'noContesta') notas += `⚫ No contestó${clienteCuelga ? ' (cliente colgó)' : ''}\n`;
+      else if (clienteCuelga && resultado === 'duda') {} // ya marcado arriba
       else if (resultado === 'visitaOK')   notas += `🟢 VISITA CONCERTADA${fechaVisita ? ' — ' + fechaVisita : ''}\n`;
       else if (resultado === 'noInteresa') notas += `🔴 No interesa\n`;
       else if (resultado === 'rellamar')   notas += `🟡 Rellamar${cuandoLlamar ? ' — ' + cuandoLlamar : ''}\n`;
-      else if (resultado === 'duda')       notas += `🟣 Duda / sin decisión\n`;
+      else if (resultado === 'duda')       notas += `🟣 Duda / sin decisión${clienteCuelga ? ' — Cliente colgó' : ''}\n`;
 
       // Responsable
       if (esResponsable === true) {
