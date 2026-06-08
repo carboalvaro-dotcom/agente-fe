@@ -1,15 +1,19 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   // GET ?listToday=1 — devuelve llamadas de hoy con recordingUrl
   // GET ?getRecordings=id1,id2,... — devuelve recordingUrl para IDs específicos
-  if (req.method === 'GET' && req.query && req.query.getRecordings) {
+  // Parsear query string manualmente (compatible con Vercel)
+  const _url = new URL(req.url, 'https://x.x');
+  const _q = Object.fromEntries(_url.searchParams);
+
+  if (req.method === 'GET' && _q.getRecordings) {
     try {
       const VAPI_KEY = '96d7565b-f657-42e2-b144-670153ff65eb';
-      const ids = req.query.getRecordings.split(',').slice(0, 50);
+      const ids = _q.getRecordings.split(',').slice(0, 50);
       const results = {};
       await Promise.all(ids.map(async (id) => {
         try {
@@ -30,7 +34,7 @@ export default async function handler(req, res) {
     }
   }
 
-  if (req.method === 'GET' && req.query && req.query.listToday) {
+  if (req.method === 'GET' && _q.listToday) {
     try {
       const VAPI_KEY = '96d7565b-f657-42e2-b144-670153ff65eb';
       const vapiResp = await fetch('https://api.vapi.ai/call?limit=200', {
