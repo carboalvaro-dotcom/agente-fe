@@ -13,22 +13,25 @@ export default async function handler(req, res) {
   if (req.method === 'GET' && _q.getRecordings) {
     try {
       const VAPI_KEY = '96d7565b-f657-42e2-b144-670153ff65eb';
-      const ids = _q.getRecordings.split(',').slice(0, 50);
+      // Obtener las últimas 200 llamadas de Vapi (las que aún existen)
+      const listResp = await fetch('https://api.vapi.ai/call?limit=200', {
+        headers: { 'Authorization': `Bearer ${VAPI_KEY}` }
+      });
+      if (!listResp.ok) return res.status(500).json({ error: 'Vapi list failed' });
+      const allCalls = await listResp.json();
+      // Construir mapa callId -> recordingUrl
+      const recMap = {};
+      allCalls.forEach(c => {
+        const rec = c.recordingUrl || c.stereoRecordingUrl
+          || (c.artifact && (c.artifact.recordingUrl || c.artifact.stereoRecordingUrl || c.artifact.videoRecordingUrl))
+          || '';
+        if (rec) recMap[c.id] = rec;
+      });
+      // Cruzar con los IDs solicitados
+      const ids = _q.getRecordings.split(',').map(x => x.trim());
       const results = {};
-      await Promise.all(ids.map(async (id) => {
-        try {
-          const r = await fetch(`https://api.vapi.ai/call/${id.trim()}`, {
-            headers: { 'Authorization': `Bearer ${VAPI_KEY}` }
-          });
-          if (!r.ok) { results[id] = ''; return; }
-          const c = await r.json();
-          const rec = c.recordingUrl || c.stereoRecordingUrl
-            || (c.artifact && (c.artifact.recordingUrl || c.artifact.stereoRecordingUrl || c.artifact.videoRecordingUrl))
-            || '';
-          results[id.trim()] = rec;
-        } catch(e) { results[id] = ''; }
-      }));
-      return res.status(200).json({ recordings: results });
+      ids.forEach(id => { results[id] = recMap[id] || ''; });
+      return res.status(200).json({ recordings: results, available: Object.keys(recMap).length });
     } catch(e) {
       return res.status(500).json({ error: e.message });
     }
