@@ -3353,41 +3353,7 @@ function talOpen2(id){
     talSave();toast('Guardado','ok');
   };
   // Audio player y resumen llamada
-  var lcp=document.getElementById('last-call-panel');
-  if(lcp){
-    if(st.llamadas>0){
-      lcp.style.display='block';
-      document.getElementById('last-call-time').textContent=st.ultimaLlamada||'';
-      var recUrl=st._recordingUrl||'';
-      if(!recUrl&&st.notas){
-        var _urlMatch=st.notas.match(/https:\/\/[^\s\n]+(?:vapi\.ai|storage\.googleapis\.com|cloudfront\.net)[^\s\n]*/i);
-        if(_urlMatch)recUrl=_urlMatch[0].trim();
-      }
-      if(!recUrl&&st.notas){
-        var _gifMatch=st.notas.match(/https:\/\/\S+\.(?:mp3|wav|ogg|m4a|mp4|webm)/i);
-        if(_gifMatch)recUrl=_gifMatch[0].trim();
-      }
-      var summary=st.notas||'';
-      if(!summary){summary=(st.ultimaLlamada||'Llamada realizada')+(st.estado?' — '+st.estado:'');}
-      if(summary){var si2=summary.indexOf('https://storage.vapi.ai/');if(si2>-1){var ei2=summary.indexOf('\n',si2);summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();}}
-      var _lsum=document.getElementById('last-call-summary');
-      if(_lsum){
-        var _raw=summary||'';
-        var _blks=_raw.split(/\n\n+/).filter(function(b){return b.trim();});
-        if(!_blks.length)_blks=['Sin datos'];
-        _lsum.innerHTML=_blks.map(function(blk,idx){
-          var txt=blk.replace(/https:\/\/\S+/g,'').trim();
-          if(!txt)return '';
-          var esc=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-          return '<div style="font-size:11px;white-space:pre-wrap;line-height:1.6;'
-            +(idx>0?'border-top:1px solid var(--bd);margin-top:8px;padding-top:8px;':'')
-            +'">'+esc+'</div>';
-        }).filter(Boolean).join('');
-      }
-      var audio=document.getElementById('last-call-audio');
-      if(recUrl){audio.src=recUrl;audio.style.display='block';}else{audio.style.display='none';audio.src='';}
-    }else{lcp.style.display='none';}
-  }
+  renderCallsPanel(st,st.ultimaLlamada);
   var lb=document.getElementById('llamadas-badge');
   if(lb)lb.textContent=st.llamadas>0?'📞 '+st.llamadas+(st.llamadas===1?' llamada':' llamadas')+(st.ultimaLlamada?' · 📅 '+st.ultimaLlamada:''):''
 }
@@ -3663,41 +3629,7 @@ function supOpen2(id){
     };
   }catch(e){}
   // Audio player y resumen llamada
-  var lcp=document.getElementById('last-call-panel');
-  if(lcp){
-    if(st.llamadas>0){
-      lcp.style.display='block';
-      document.getElementById('last-call-time').textContent=st.ultimaLlamada||'';
-      var recUrl=st._recordingUrl||'';
-      if(!recUrl&&st.notas){
-        var _urlMatch=st.notas.match(/https:\/\/[^\s\n]+(?:vapi\.ai|storage\.googleapis\.com|cloudfront\.net)[^\s\n]*/i);
-        if(_urlMatch)recUrl=_urlMatch[0].trim();
-      }
-      if(!recUrl&&st.notas){
-        var _gifMatch=st.notas.match(/https:\/\/\S+\.(?:mp3|wav|ogg|m4a|mp4|webm)/i);
-        if(_gifMatch)recUrl=_gifMatch[0].trim();
-      }
-      var summary=st.notas||'';
-      if(!summary){summary=(st.ultimaLlamada||'Llamada realizada')+(st.estado?' — '+st.estado:'');}
-      if(summary){var si2=summary.indexOf('https://storage.vapi.ai/');if(si2>-1){var ei2=summary.indexOf('\n',si2);summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();}}
-      var _lsum=document.getElementById('last-call-summary');
-      if(_lsum){
-        var _raw=summary||'';
-        var _blks=_raw.split(/\n\n+/).filter(function(b){return b.trim();});
-        if(!_blks.length)_blks=['Sin datos'];
-        _lsum.innerHTML=_blks.map(function(blk,idx){
-          var txt=blk.replace(/https:\/\/\S+/g,'').trim();
-          if(!txt)return '';
-          var esc=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-          return '<div style="font-size:11px;white-space:pre-wrap;line-height:1.6;'
-            +(idx>0?'border-top:1px solid var(--bd);margin-top:8px;padding-top:8px;':'')
-            +'">'+esc+'</div>';
-        }).filter(Boolean).join('');
-      }
-      var audio=document.getElementById('last-call-audio');
-      if(recUrl){audio.src=recUrl;audio.style.display='block';}else{audio.style.display='none';audio.src='';}
-    }else{lcp.style.display='none';}
-  }
+  renderCallsPanel(st,st.ultimaLlamada);
   var lb=document.getElementById('llamadas-badge');
   if(lb)lb.textContent=st.llamadas>0?'📞 '+st.llamadas+(st.llamadas===1?' llamada':' llamadas')+(st.ultimaLlamada?' · 📅 '+st.ultimaLlamada:''):''
 }
@@ -3962,41 +3894,7 @@ function denOpen2(id){
     denSave();toast('Guardado','ok');
   };
   // Audio player y resumen llamada
-  var lcp=document.getElementById('last-call-panel');
-  if(lcp){
-    if(st.llamadas>0){
-      lcp.style.display='block';
-      document.getElementById('last-call-time').textContent=st.ultimaLlamada||'';
-      var recUrl=st._recordingUrl||'';
-      if(!recUrl&&st.notas){
-        var _urlMatch=st.notas.match(/https:\/\/[^\s\n]+(?:vapi\.ai|storage\.googleapis\.com|cloudfront\.net)[^\s\n]*/i);
-        if(_urlMatch)recUrl=_urlMatch[0].trim();
-      }
-      if(!recUrl&&st.notas){
-        var _gifMatch=st.notas.match(/https:\/\/\S+\.(?:mp3|wav|ogg|m4a|mp4|webm)/i);
-        if(_gifMatch)recUrl=_gifMatch[0].trim();
-      }
-      var summary=st.notas||'';
-      if(!summary){summary=(st.ultimaLlamada||'Llamada realizada')+(st.estado?' — '+st.estado:'');}
-      if(summary){var si2=summary.indexOf('https://storage.vapi.ai/');if(si2>-1){var ei2=summary.indexOf('\n',si2);summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();}}
-      var _lsum=document.getElementById('last-call-summary');
-      if(_lsum){
-        var _raw=summary||'';
-        var _blks=_raw.split(/\n\n+/).filter(function(b){return b.trim();});
-        if(!_blks.length)_blks=['Sin datos'];
-        _lsum.innerHTML=_blks.map(function(blk,idx){
-          var txt=blk.replace(/https:\/\/\S+/g,'').trim();
-          if(!txt)return '';
-          var esc=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-          return '<div style="font-size:11px;white-space:pre-wrap;line-height:1.6;'
-            +(idx>0?'border-top:1px solid var(--bd);margin-top:8px;padding-top:8px;':'')
-            +'">'+esc+'</div>';
-        }).filter(Boolean).join('');
-      }
-      var audio=document.getElementById('last-call-audio');
-      if(recUrl){audio.src=recUrl;audio.style.display='block';}else{audio.style.display='none';audio.src='';}
-    }else{lcp.style.display='none';}
-  }
+  renderCallsPanel(st,st.ultimaLlamada);
   var lb=document.getElementById('llamadas-badge');
   if(lb)lb.textContent=st.llamadas>0?'📞 '+st.llamadas+(st.llamadas===1?' llamada':' llamadas')+(st.ultimaLlamada?' · 📅 '+st.ultimaLlamada:''):''
 }
