@@ -208,9 +208,17 @@ export default async function handler(req, res) {
 
       if (emailContacto) notas += `📧 ${emailContacto}\n`;
 
+      if (recordingUrl) notas += `🎙 ${recordingUrl}\n`;
       notas += `🔗 ${callId}`;
 
-      const recordingUrl = data.recordingUrl || data.stereoRecordingUrl || (data.artifact ? (data.artifact.recordingUrl || data.artifact.videoRecordingUrl || '') : '') || '';
+      // Buscar grabación en todas las variantes posibles de Vapi
+      const recordingUrl = data.recordingUrl
+        || data.stereoRecordingUrl
+        || (data.artifact && data.artifact.recordingUrl)
+        || (data.artifact && data.artifact.videoRecordingUrl)
+        || (data.artifact && data.artifact.stereoRecordingUrl)
+        || (data.monitor && data.monitor.listenUrl)
+        || '';
       return res.status(200).json({
         notas, resultado, nombreContacto, fechaVisita, emailContacto,
         esResponsable, cuandoLlamar, duration, transcript, recordingUrl
