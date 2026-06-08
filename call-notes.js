@@ -74,20 +74,31 @@ export default async function handler(req, res) {
       let resultado = 'duda'; // ← DEFAULT siempre duda, nunca pendiente
 
       // 1. NO CONTESTA
+      // Buzón de voz → rellamar
+      const esBuzon = data.endedReason === 'voicemail'
+        || low.includes('deje su mensaje')
+        || low.includes('deja su mensaje')
+        || low.includes('deja un mensaje')
+        || low.includes('buzón de voz')
+        || low.includes('buzon de voz')
+        || low.includes('en este momento no podemos atenderle')
+        || low.includes('en este momento no puede atender')
+        || low.includes('en estos momentos no podemos atender')
+        || low.includes('no podemos atender su llamada')
+        || low.includes('mensaje después de la señal')
+        || low.includes('no está disponible en este momento');
+      if (esBuzon) { resultado = 'rellamar'; }
+
+      // No contesta real → noContesta
       const noContestaTriggers = [
         data.endedReason === 'customer-did-not-answer',
         data.endedReason === 'no-answer',
-        data.endedReason === 'voicemail',
-        low.includes('deje su mensaje'),
-        low.includes('no está disponible'),
-        low.includes('buzón de voz'),
         low.includes('fuera de cobertura'),
+        low.includes('apagado o fuera'),
         low.includes('número no existe'),
-        low.includes('en estos momentos no podemos atender'),
-        low.includes('deja un mensaje'),
-        (duration !== null && duration < 8 && !low.includes('user:')),
+        (duration !== null && duration < 5 && !low.includes('user:')),
       ];
-      if (noContestaTriggers.some(Boolean)) {
+      if (!esBuzon && noContestaTriggers.some(Boolean)) {
         resultado = 'noContesta';
       }
 
