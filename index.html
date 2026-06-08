@@ -1448,6 +1448,7 @@ function sel(id){
   // Llamadas badge
   const lbadge=document.getElementById('llamadas-badge');
   if(lbadge) lbadge.textContent=c.llamadas>0?'📞 '+c.llamadas+(c.llamadas===1?' llamada':' llamadas')+(c.ultimaLlamada?' · 📅 '+c.ultimaLlamada:''):'';
+  renderCallsPanel(c,c.ultimaLlamada);
   // Call recording link
   const recDiv=document.getElementById('rec-link');
   if(recDiv){
