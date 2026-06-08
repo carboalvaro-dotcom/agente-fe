@@ -405,6 +405,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
         <input type="date" id="fecha-desde" class="lp-date-input" onchange="renderList();accRenderList()">
         <span class="lp-date-label">Hasta</span>
         <input type="date" id="fecha-hasta" class="lp-date-input" onchange="renderList();accRenderList()">
+        <button class="lp-date-hoy" onclick="syncVapiHoy()" title="Recuperar llamadas Vapi hoy" style="background:var(--ac);color:#fff;border-color:var(--ac)">&#128257; Sync</button>
         <button class="lp-date-hoy" onclick="setFechaHoy()">&#128197; Hoy</button>
         <button class="lp-date-clear" onclick="clearFechas()">&#215;</button>
       </div>
