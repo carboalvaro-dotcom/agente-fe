@@ -405,6 +405,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
         <input type="date" id="fecha-desde" class="lp-date-input" onchange="renderList();accRenderList()">
         <span class="lp-date-label">Hasta</span>
         <input type="date" id="fecha-hasta" class="lp-date-input" onchange="renderList();accRenderList()">
+        <button class="lp-date-hoy" onclick="fetchMissingRecordings()" title="Buscar grabaciones en Vapi" style="background:#7c3aed;color:#fff;border-color:#7c3aed">&#127911; Grab</button>
         <button class="lp-date-hoy" onclick="syncVapiHoy()" title="Recuperar llamadas Vapi hoy" style="background:var(--ac);color:#fff;border-color:var(--ac)">&#128257; Sync</button>
         <button class="lp-date-hoy" onclick="setFechaHoy()">&#128197; Hoy</button>
         <button class="lp-date-clear" onclick="clearFechas()">&#215;</button>
@@ -2434,6 +2435,73 @@ function selectGSR(id,mod){
   else if(mod==='Salud'&&typeof denOpen2==='function')denOpen2(id.replace('DEN:',''));
   else if(mod==='Supermercados'&&typeof supOpen2==='function')supOpen2(id.replace('SUP:',''));
   else if(mod==='Admins'&&typeof accOpen2==='function')accOpen2(id.replace('ACC:',''));
+}
+async function fetchMissingRecordings(){
+  toast('Buscando grabaciones en Vapi...','');
+  try{
+    // Recopilar callIds sin recordingUrl de todos los módulos
+    var missing=[];
+    var _dS=JSON.parse(localStorage.getItem('fe_den_v1')||'{}');
+    var _tS=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
+    var _sS=JSON.parse(localStorage.getItem('fe_sup_v1')||'{}');
+    var _aS=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}');
+    var addMissing=function(st,mod){
+      Object.keys(st).forEach(function(id){
+        var s=st[id];
+        if(s._callId&&!s._recordingUrl&&!(s.notas&&/https:\/\/\S+vapi\.ai\S*/i.test(s.notas))){
+          missing.push({mod:mod,id:id,callId:s._callId});
+        }
+      });
+    };
+    addMissing(_dS,'DEN'); addMissing(_tS,'TAL'); addMissing(_sS,'SUP'); addMissing(_aS,'ACC');
+    C.forEach(function(c){
+      if(c._callId&&!c._recordingUrl&&!(c.notas&&/https:\/\/\S+vapi\.ai\S*/i.test(c.notas||''))){
+        missing.push({mod:'CP',id:c.id,callId:c._callId});
+      }
+    });
+    if(!missing.length){toast('Todas las grabaciones ya están disponibles','ok');return;}
+    toast('Consultando '+missing.length+' llamadas en Vapi...','');
+    // Llamar en batches de 10
+    var updated=0;
+    var batches=[];
+    for(var i=0;i<missing.length;i+=10)batches.push(missing.slice(i,i+10));
+    for(var b=0;b<batches.length;b++){
+      var batch=batches[b];
+      var ids=batch.map(function(x){return x.callId;}).join(',');
+      var resp=await fetch(BACKEND_URL+'?getRecordings='+encodeURIComponent(ids));
+      var data=await resp.json();
+      var recs=data.recordings||{};
+      batch.forEach(function(item){
+        var rec=recs[item.callId]||'';
+        if(!rec)return;
+        if(item.mod==='DEN'){_dS[item.id]=_dS[item.id]||{};_dS[item.id]._recordingUrl=rec;if(_dS[item.id].notas)_dS[item.id].notas+=('\n\uD83C\uDFA7 '+rec);}
+        else if(item.mod==='TAL'){_tS[item.id]=_tS[item.id]||{};_tS[item.id]._recordingUrl=rec;if(_tS[item.id].notas)_tS[item.id].notas+=('\n\uD83C\uDFA7 '+rec);}
+        else if(item.mod==='SUP'){_sS[item.id]=_sS[item.id]||{};_sS[item.id]._recordingUrl=rec;if(_sS[item.id].notas)_sS[item.id].notas+=('\n\uD83C\uDFA7 '+rec);}
+        else if(item.mod==='ACC'){_aS[item.id]=_aS[item.id]||{};_aS[item.id]._recordingUrl=rec;if(_aS[item.id].notas)_aS[item.id].notas+=('\n\uD83C\uDFA7 '+rec);}
+        else if(item.mod==='CP'){var cc=C.find(function(x){return x.id==item.id;});if(cc){cc._recordingUrl=rec;if(cc.notas)cc.notas+=('\n\uD83C\uDFA7 '+rec);}}
+        updated++;
+      });
+    }
+    // Guardar en localStorage
+    localStorage.setItem('fe_den_v1',JSON.stringify(_dS));
+    localStorage.setItem('fe_tal_v1',JSON.stringify(_tS));
+    localStorage.setItem('fe_sup_v1',JSON.stringify(_sS));
+    localStorage.setItem('fe_acc_v1',JSON.stringify(_aS));
+    save();
+    // Re-renderizar
+    try{denRenderList();}catch(e){}
+    try{talRenderList();}catch(e){}
+    try{accRenderList();}catch(e){}
+    renderList();
+    // Si hay un contacto abierto, re-renderizar su panel
+    if(typeof denSel!=='undefined'&&denSel&&typeof denOpen2==='function')denOpen2(denSel);
+    if(typeof talSel!=='undefined'&&talSel&&typeof talOpen2==='function')talOpen2(talSel);
+    if(curId!==null&&typeof sel==='function')sel(curId);
+    toast('\u2713 '+updated+' grabaciones recuperadas de Vapi','ok');
+  }catch(err){
+    toast('Error: '+err.message,'err');
+    console.error(err);
+  }
 }
 async function syncVapiHoy(){
   toast('Recuperando llamadas de Vapi...','');
