@@ -2442,6 +2442,66 @@ function selectGSR(id,mod){
   else if(mod==='Supermercados'&&typeof supOpen2==='function')supOpen2(id.replace('SUP:',''));
   else if(mod==='Admins'&&typeof accOpen2==='function')accOpen2(id.replace('ACC:',''));
 }
+async function syncVapiHoy(){
+  toast('Recuperando llamadas de Vapi...','');
+  try{
+    var resp=await fetch(BACKEND_URL+'?listToday=1');
+    var data=await resp.json();
+    if(!data.calls||!data.calls.length){toast('Sin llamadas hoy en Vapi','');return;}
+    var calls=data.calls;
+    var pm={};
+    C.forEach(function(c){var p=(c.telefono||'').replace(/\D/g,'').slice(-9);if(p)pm[p]={mod:'CP',id:c.id};});
+    if(TAL&&TAL.talleres)TAL.talleres.forEach(function(t){var p=(t.telefono||'').replace(/\D/g,'').slice(-9);if(p)pm[p]={mod:'TAL',id:t.id};});
+    if(DEN&&DEN.clinicas)DEN.clinicas.forEach(function(t){var p=(t.telefono||'').replace(/\D/g,'').slice(-9);if(p)pm[p]={mod:'DEN',id:t.id};});
+    if(SUP&&SUP.supers)SUP.supers.forEach(function(t){var p=(t.telefono||'').replace(/\D/g,'').slice(-9);if(p)pm[p]={mod:'SUP',id:t.id};});
+    if(ACC&&ACC.admins)ACC.admins.forEach(function(a){var p=(a.telefono||'').replace(/\D/g,'').slice(-9);if(p)pm[p]={mod:'ACC',id:a.id};});
+    var upd=0,sk=0;
+    calls.forEach(function(c){
+      var ph=(c.phone||'').replace(/\D/g,'').slice(-9);
+      var mx=pm[ph];if(!mx){sk++;return;}
+      var ru=c.recordingUrl||'';
+      var dur=c.duration||0;
+      var rea=c.endedReason||'';
+      var low=(c.transcript||'').toLowerCase();
+      var res='duda';
+      if(dur<5||rea==='customer-did-not-answer'||rea==='no-answer')res='noContesta';
+      else if(rea==='voicemail')res='rellamar';
+      else if(low.includes('no me interesa')||low.includes('no nos interesa'))res='noInteresa';
+      else if(low.includes('ahora no puedo'))res='rellamar';
+      var fd=new Date(c.createdAt).toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'});
+      var em={duda:'\uD83D\uDFE3',noContesta:'\u26AB',rellamar:'\uD83D\uDFE1',noInteresa:'\uD83D\uDD34',visitaOK:'\uD83D\uDFE2'};
+      var lm={duda:'Duda',noContesta:'No contest\u00F3',rellamar:'Rellamar',noInteresa:'No interesa',visitaOK:'VISITA'};
+      var nt='\uD83D\uDCDE '+fd+(dur?' \u00B7 '+dur+'s':'')+"\n";
+      nt+=(em[res]||'\uD83D\uDFE3')+' '+(lm[res]||res)+"\n";
+      var ul=(c.transcript||'').split('\n').filter(function(l){return l.toLowerCase().startsWith('user:')&&l.length>7;}).map(function(l){return l.replace(/^user:/i,'').trim();}).slice(0,3);
+      if(ul.length)nt+='\uD83D\uDCAC "'+ul.join(' / ').slice(0,200)+'"\n';
+      if(ru)nt+='\uD83C\uDFA7 '+ru+'\n';
+      nt+='\uD83D\uDD17 '+c.id;
+      var ap=function(st,sv){
+        if(!st.notas)st.notas=nt;
+        if(!st._recordingUrl&&ru)st._recordingUrl=ru;
+        if(!st._callId)st._callId=c.id;
+        if(!st.llamadas||st.llamadas<1)st.llamadas=1;
+        if(!st.ultimaLlamada)st.ultimaLlamada=fd;
+        if(!st.estado||st.estado==='sinLlamar')st.estado=res==='visitaOK'?'visita':res;
+        sv();upd++;
+      };
+      if(mx.mod==='DEN'){if(!denSt[mx.id])denSt[mx.id]={};ap(denSt[mx.id],denSave);}
+      else if(mx.mod==='TAL'){if(!talSt[mx.id])talSt[mx.id]={};ap(talSt[mx.id],talSave);}
+      else if(mx.mod==='ACC'){if(!accSt[mx.id])accSt[mx.id]={};ap(accSt[mx.id],accSave);}
+      else if(mx.mod==='CP'){var cc=C.find(function(x){return x.id===mx.id;});if(cc)ap(cc,save);else sk++;}
+      else sk++;
+    });
+    upStats();
+    try{denRenderList();}catch(e){}
+    try{talRenderList();}catch(e){}
+    try{accRenderList();}catch(e){}
+    renderList();
+    toast('\u2713 '+upd+' llamadas sync ('+sk+' sin match)','ok');
+  }catch(err){
+    toast('Error sync: '+err.message,'err');
+  }
+}
 function checkDuplicate(telefono){
   if(!telefono)return null;
   var ph=telefono.replace(/\D/g,'').slice(-9);
