@@ -1211,8 +1211,16 @@ function setFechaHoy(){
   setTimeout(function(){
     var _map={'acc-section':'acc-list','tal-section':'tal-list','sup-section':'sup-list','den-section':'den-list'};
     var _li=document.getElementById(_map[_best]);if(_li)_li.scrollTop=0;
-    var _se=document.getElementById(_best);if(_se)_se.scrollIntoView({behavior:'smooth',block:'start'});
-  },120);
+    // Scroll del contenedor .lp hasta el sector abierto
+    var _se=document.getElementById(_best);
+    var _lp=document.querySelector('.lp');
+    if(_se&&_lp){
+      // Calcular posicion del sector relativa al .lp
+      var _el=_se,_top=0;
+      while(_el&&_el!==_lp){_top+=_el.offsetTop;_el=_el.offsetParent;}
+      _lp.scrollTop=_top-10;
+    }
+  },150);
 }
 function clearFechas(){
   document.getElementById('fecha-desde').value='';
