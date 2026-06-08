@@ -1188,45 +1188,50 @@ function setFechaHoy(){
   var _now=new Date();
   var _tStr=_now.toLocaleDateString('es-ES',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:'Europe/Madrid'});
   var _parts=_tStr.split('/');
-  var t=_parts[2]+'-'+_parts[1]+'-'+_parts[0];  // yyyy-mm-dd
+  var t=_parts[2]+'-'+_parts[1]+'-'+_parts[0];
   document.getElementById('fecha-desde').value=t;
   document.getElementById('fecha-hasta').value=t;
   curF='llamadas';
-  renderList();accRenderList();
-  try{talRenderList();}catch(e){}
-  try{supRenderList();}catch(e){}
-  try{denRenderList();}catch(e){}
+  // Detectar sector con mas llamadas hoy
   var _dSt=JSON.parse(localStorage.getItem('fe_den_v1')||'{}');
   var _tSt=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
   var _aSt=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}');
-  var _filt=function(st){return Object.values(st).filter(function(s){if(!s.ultimaLlamada)return false;var p=s.ultimaLlamada.split(/[/,: ]/);return (p[2]+'-'+p[1]+'-'+p[0])===t;}).length;};
+  var _filt=function(st){return Object.values(st).filter(function(s){
+    if(!s.ultimaLlamada)return false;
+    var p=s.ultimaLlamada.split(/[/,: ]/);
+    return (p[2]+'-'+p[1]+'-'+p[0])===t;
+  }).length;};
   var _cD=_filt(_dSt),_cT=_filt(_tSt),_cA=_filt(_aSt);
   var _best='den-section';
   if(_cT>_cD&&_cT>=_cA)_best='tal-section';
   else if(_cA>_cD&&_cA>_cT)_best='acc-section';
+  // Paso 1: mover sector al primer lugar en el DOM
+  var _lp=document.querySelector('.lp');
+  var _se=document.getElementById(_best);
+  if(_lp&&_se){
+    var _first=_lp.querySelector('.acc-section');
+    if(_first&&_first!==_se)_lp.insertBefore(_se,_first);
+  }
+  // Paso 2: abrir el sector correcto, cerrar los demas
   ['acc-section','tal-section','sup-section','den-section'].forEach(function(s){
     var el=document.getElementById(s);
     if(el){if(s===_best)el.classList.add('open');else el.classList.remove('open');}
   });
-  setTimeout(function(){
-    var _map={'acc-section':'acc-list','tal-section':'tal-list','sup-section':'sup-list','den-section':'den-list'};
-    var _li=document.getElementById(_map[_best]);if(_li)_li.scrollTop=0;
-    var _se=document.getElementById(_best);
-    var _lp=document.querySelector('.lp');
-    if(_se&&_lp){
-      // 1. Mover el sector al primer lugar fisicamente
-      var _first=_lp.querySelector('.acc-section');
-      if(_first&&_first!==_se)_lp.insertBefore(_se,_first);
-      // 2. Scroll al top: usar .mob (contenedor raiz con scroll real)
-      var _mob=document.querySelector('.mob');
-      if(_mob)_mob.scrollTop=0;
-      document.documentElement.scrollTop=0;
-      document.body.scrollTop=0;
-      // 3. Highlight
-      _se.style.boxShadow='0 0 0 3px var(--ac)';
-      setTimeout(function(){_se.style.boxShadow='';},1500);
-    }
-  },150);
+  // Paso 3: renderizar con el sector ya abierto y en posicion
+  renderList();accRenderList();
+  try{talRenderList();}catch(e){}
+  try{supRenderList();}catch(e){}
+  try{denRenderList();}catch(e){}
+  // Paso 4: scroll al top
+  var _mob=document.querySelector('.mob');
+  if(_mob)_mob.scrollTop=0;
+  document.documentElement.scrollTop=0;
+  document.body.scrollTop=0;
+  // Paso 5: highlight visual
+  if(_se){
+    _se.style.boxShadow='0 0 0 3px var(--ac)';
+    setTimeout(function(){if(_se)_se.style.boxShadow='';},1500);
+  }
 }
 function clearFechas(){
   document.getElementById('fecha-desde').value='';
