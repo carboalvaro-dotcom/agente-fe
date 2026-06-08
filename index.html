@@ -1589,7 +1589,7 @@ async function launchCall(){
     const resultado=await callViaProxy(phone,c);
     toast('✓ Llamada lanzada al '+phone,'ok');
     const callId=resultado?.id||c._callId;
-    if(callId){fetchCallNotes(callId,curId);pollCallStatus(callId,curId);}
+    if(callId){pollCallStatus(callId,curId);}
   }catch(e){toast('Error: '+e.message,'err');stopCall();}
 }
 
@@ -1730,61 +1730,28 @@ function endCall(contactId, reason){
 }
 
 async function pollCallStatus(callId,contactId){
-  const POLL_BACKEND = BACKEND_URL.replace('/call-notes','/call-status');
-  for(let i=0;i<24;i++){
+  for(let i=0;i<30;i++){
     await new Promise(r=>setTimeout(r,5000));
     try{
-      // Try via backend to avoid CORS
       const r=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({callId,checkStatus:true})});
       if(!r.ok) continue;
       const data=await r.json();
-      // Backend returns status field when checkStatus=true
       const status=data.callStatus||data.status;
       const endedReason=data.callEndedReason||data.endedReason;
       if(status==='ended'||status==='failed'){
-        const reason=
-          endedReason==='customer-did-not-answer'||endedReason==='no-answer'?'noContesta':
-          endedReason?.includes('voicemail')?'noContesta':'duda';
-        // Handle ACC calls differently
-        endCall(contactId, reason);
-        // Now fetch notes
+        let reason='duda';
+        if(endedReason==='customer-did-not-answer'||endedReason==='no-answer')reason='noContesta';
+        else if(endedReason==='voicemail')reason='rellamar';
+        endCall(contactId,reason);
         await new Promise(r=>setTimeout(r,2000));
         fetchCallNotes(callId,contactId);
         return;
       }
-      // If backend returned notas it means call ended and was analyzed
-      if(data.notas){
-        endCall(contactId,'duda');
-        const c=C.find(x=>x.id===contactId);if(!c) return;
-        c._callId=callId;
-        if(data.recordingUrl) c._recordingUrl=data.recordingUrl;
-        if(data.notas) c._lastSummary=data.notas;
-        if(data.notas) c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
-        if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
-    // Auto-detect visit if notes mention it
-    if(c.estado!=='visitaOK'&&c.notas){
-      const n=c.notas.toLowerCase();
-      if((n.includes('visita') || n.includes('cita') || n.includes('nos vemos') || n.includes('quedamos')) && 
-         (n.includes('lunes')||n.includes('martes')||n.includes('miercoles')||n.includes('miércoles')||
-          n.includes('jueves')||n.includes('viernes')||n.includes('semana')||
-          /\d{1,2}[:/]\d{2}/.test(n)||/a las \d/.test(n))){
-        c.estado='visitaOK';
-      }
-    }
-        var agentNamesArr=['carla','carlos'];
-        if(data.nombreContacto&&!c.contactName&&!agentNamesArr.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
-        if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
-        save();upStats();renderList();
-        if(curId===contactId) sel(contactId);
-        toast('✓ Notas guardadas','ok');
-        return;
-      }
     }catch(e){}
   }
-  // Timeout - force end
-  endCall(contactId,'pendiente');
-  toast('Llamada finalizada','');
+  endCall(contactId,'duda');
+  fetchCallNotes(callId,contactId);
 }
 
 async function fetchCallNotes(callId,contactId,retries=12){
