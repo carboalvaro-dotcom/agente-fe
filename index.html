@@ -43,7 +43,7 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .tstat-dot{width:7px;height:7px;border-radius:50%;}
 .dot-gr{background:#4ade80;}.dot-am{background:#fbbf24;}.dot-rd{background:#f87171;}.dot-pu{background:#c4b5fd;}.dot-gray{background:#aaa;}
 .main{display:flex;flex:1;overflow:hidden;}
-.lp{width:280px;flex-shrink:0;border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;background:var(--s0);}
+.lp{width:280px;flex-shrink:0;border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow-y:auto;background:var(--s0);}
 .lp-top{padding:10px 12px;border-bottom:1px solid var(--bd);flex-shrink:0;background:var(--s1);}
 .lp-search{width:100%;background:var(--s0);border:1px solid var(--bd);border-radius:6px;padding:6px 10px;font-size:12px;font-family:var(--fn);color:var(--tx);outline:none;}
 .lp-search:focus{border-color:var(--ac);}
@@ -1218,7 +1218,7 @@ function setFechaHoy(){
       // Calcular posicion del sector relativa al .lp
       var _el=_se,_top=0;
       while(_el&&_el!==_lp){_top+=_el.offsetTop;_el=_el.offsetParent;}
-      _lp.scrollTop=_top-10;
+      _lp.scrollTop=Math.max(0,_top-8);
     }
   },150);
 }
