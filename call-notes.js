@@ -27,10 +27,14 @@ export default async function handler(req, res) {
           || '';
         if (rec) recMap[c.id] = rec;
       });
-      // Cruzar con los IDs solicitados
-      const ids = _q.getRecordings.split(',').map(x => x.trim());
-      const results = {};
-      ids.forEach(id => { results[id] = recMap[id] || ''; });
+      // Si getRecordings=all, devolver todo el mapa
+      let results = {};
+      if (_q.getRecordings === 'all') {
+        results = recMap;
+      } else {
+        const ids = _q.getRecordings.split(',').map(x => x.trim());
+        ids.forEach(id => { results[id] = recMap[id] || ''; });
+      }
       return res.status(200).json({ recordings: results, available: Object.keys(recMap).length });
     } catch(e) {
       return res.status(500).json({ error: e.message });
