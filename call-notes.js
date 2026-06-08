@@ -79,6 +79,29 @@ export default async function handler(req, res) {
   }
   if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
+  // POST {getRecordings: true} — devuelve mapa callId->recordingUrl
+  const _body = req.body || {};
+  if (_body.getRecordings) {
+    try {
+      const VAPI_KEY2 = '96d7565b-f657-42e2-b144-670153ff65eb';
+      const listResp2 = await fetch('https://api.vapi.ai/call?limit=200', {
+        headers: { 'Authorization': `Bearer ${VAPI_KEY2}` }
+      });
+      if (!listResp2.ok) return res.status(500).json({ error: 'Vapi list failed' });
+      const allCalls2 = await listResp2.json();
+      const recMap2 = {};
+      allCalls2.forEach(c => {
+        const rec = c.recordingUrl || c.stereoRecordingUrl
+          || (c.artifact && (c.artifact.recordingUrl || c.artifact.stereoRecordingUrl || c.artifact.videoRecordingUrl))
+          || '';
+        if (rec) recMap2[c.id] = rec;
+      });
+      return res.status(200).json({ recordings: recMap2, available: Object.keys(recMap2).length });
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
   const { callId, checkStatus } = req.body;
   if (!callId) return res.status(400).json({ error: 'callId required' });
 
