@@ -1209,24 +1209,22 @@ function setFechaHoy(){
     if(el){if(s===_best)el.classList.add('open');else el.classList.remove('open');}
   });
   setTimeout(function(){
-    // Scroll lista interna al top
     var _map={'acc-section':'acc-list','tal-section':'tal-list','sup-section':'sup-list','den-section':'den-list'};
     var _li=document.getElementById(_map[_best]);if(_li)_li.scrollTop=0;
-    // Mover el sector ganador al principio del DOM (dentro de .lp)
     var _se=document.getElementById(_best);
     var _lp=document.querySelector('.lp');
     if(_se&&_lp){
-      // Insertar antes del primer acc-section
+      // 1. Mover el sector al primer lugar fisicamente
       var _first=_lp.querySelector('.acc-section');
       if(_first&&_first!==_se)_lp.insertBefore(_se,_first);
-      // Scroll del .lp al top
-      _lp.scrollTop=0;
-      // Scroll de la pagina al top por si acaso
-      window.scrollTo(0,0);
-      // Highlight visual breve
-      _se.style.transition='box-shadow .3s';
-      _se.style.boxShadow='0 0 0 2px var(--ac)';
-      setTimeout(function(){_se.style.boxShadow='';},1200);
+      // 2. Scroll al top: usar .mob (contenedor raiz con scroll real)
+      var _mob=document.querySelector('.mob');
+      if(_mob)_mob.scrollTop=0;
+      document.documentElement.scrollTop=0;
+      document.body.scrollTop=0;
+      // 3. Highlight
+      _se.style.boxShadow='0 0 0 3px var(--ac)';
+      setTimeout(function(){_se.style.boxShadow='';},1500);
     }
   },150);
 }
