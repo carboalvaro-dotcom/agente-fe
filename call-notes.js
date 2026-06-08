@@ -3,6 +3,38 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  // GET ?listToday=1 — devuelve llamadas de hoy con recordingUrl
+  if (req.method === 'GET' && req.query && req.query.listToday) {
+    try {
+      const VAPI_KEY = '96d7565b-f657-42e2-b144-670153ff65eb';
+      const vapiResp = await fetch('https://api.vapi.ai/call?limit=200', {
+        headers: { 'Authorization': `Bearer ${VAPI_KEY}` }
+      });
+      const allCalls = await vapiResp.json();
+      const todayStr = new Date().toLocaleDateString('es-ES', {
+        year:'numeric', month:'2-digit', day:'2-digit', timeZone:'Europe/Madrid'
+      });
+      const [dd,mm,yyyy] = todayStr.split('/');
+      const todayISO = `${yyyy}-${mm}-${dd}`;
+      const today = allCalls.filter(c => (c.createdAt||'').startsWith(todayISO));
+      const result = today.map(c => ({
+        id: c.id,
+        createdAt: c.createdAt,
+        endedReason: c.endedReason || '',
+        phone: (c.customer && c.customer.number) || '',
+        recordingUrl: c.recordingUrl || c.stereoRecordingUrl
+          || (c.artifact && (c.artifact.recordingUrl || c.artifact.stereoRecordingUrl || c.artifact.videoRecordingUrl))
+          || '',
+        transcript: (c.transcript || '').slice(0, 800),
+        duration: c.startedAt && c.endedAt
+          ? Math.round((new Date(c.endedAt) - new Date(c.startedAt)) / 1000) : 0
+      }));
+      return res.status(200).json({ calls: result, today: todayISO, total: result.length });
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { callId, checkStatus } = req.body;
