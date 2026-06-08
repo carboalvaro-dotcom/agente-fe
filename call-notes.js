@@ -6,9 +6,15 @@ export default async function handler(req, res) {
 
   // GET ?listToday=1 — devuelve llamadas de hoy con recordingUrl
   // GET ?getRecordings=id1,id2,... — devuelve recordingUrl para IDs específicos
-  // Parsear query string manualmente (compatible con Vercel)
-  const _url = new URL(req.url, 'https://x.x');
-  const _q = Object.fromEntries(_url.searchParams);
+  // Parsear query — Vercel provee req.query, con fallback a URL parsing
+  const _q = req.query || (() => {
+    try {
+      const _rawUrl = req.headers && req.headers['x-forwarded-host']
+        ? `https://${req.headers['x-forwarded-host']}${req.url}`
+        : `https://x.x${req.url}`;
+      return Object.fromEntries(new URL(_rawUrl).searchParams);
+    } catch(e) { return {}; }
+  })();
 
   if (req.method === 'GET' && _q.getRecordings) {
     try {
