@@ -2499,7 +2499,11 @@ async function fetchMissingRecordings(){
     if(typeof denSel!=='undefined'&&denSel&&typeof denOpen2==='function')denOpen2(denSel);
     if(typeof talSel!=='undefined'&&talSel&&typeof talOpen2==='function')talOpen2(talSel);
     if(curId!==null&&typeof sel==='function')sel(curId);
-    toast('\u2713 '+updated+' grabaciones recuperadas de Vapi','ok');
+    if(updated>0){
+      toast('\u2713 '+updated+' grabaciones recuperadas','ok');
+    } else {
+      toast('Vapi ya no tiene estas grabaciones (expiraron)','');
+    }
   }catch(err){
     console.error('fetchMissingRecordings error:',err);
     toast('Error: '+err.message+' (ver consola)','err');
