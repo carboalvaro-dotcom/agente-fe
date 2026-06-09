@@ -3361,14 +3361,6 @@ function talRenderList(){
     return h;
   }).join('');
   // Event delegation con bubbling manual
-  el.onclick=null;
-  el.addEventListener('click',function(ev){
-    var node=ev.target;
-    while(node&&node!==el){
-      if(node.dataset&&node.dataset.talid){selTal(node.dataset.talid);return;}
-      node=node.parentElement;
-    }
-  });
 }
 
 function selTal(id){
@@ -3562,7 +3554,27 @@ window.selMob=function(id,el){
 
 
 
-(function t(){var l=document.getElementById('tal-list');if(l){talRenderList();}else{setTimeout(t,300);}})();
+(function t(){
+  var l=document.getElementById('tal-list');
+  if(l){
+    talRenderList();
+    var sec=document.getElementById('tal-section');
+    if(sec&&!sec._talInit){
+      sec._talInit=true;
+      sec.addEventListener('click',function(ev){
+        var node=ev.target;
+        while(node&&node!==sec){
+          if(node.dataset&&node.dataset.talid){
+            selTal(node.dataset.talid);
+            return;
+          }
+          node=node.parentElement;
+          if(!node)break;
+        }
+      });
+    }
+  }else{setTimeout(t,300);}
+})();
 
 </script>
 
