@@ -1438,6 +1438,7 @@ function sel(id){
   document.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('on'));
   const rm={visitaOK:'r-ok',rellamar:'r-cb',noContesta:'r-nc',noInteresa:'r-ni'};
   if(c.estado!=='pendiente'&&rm[c.estado]) document.querySelectorAll('.'+rm[c.estado]).forEach(b=>b.classList.add('on'));
+  scrollToPanel();
   document.getElementById('sb').innerHTML=buildUI(c);
   var hbox=document.getElementById('hist-box');
   if(hbox&&c.historial&&c.historial.length>0){
@@ -2562,6 +2563,21 @@ async function syncVapiHoy(){
     toast('Error sync: '+err.message,'err');
   }
 }
+function scrollToPanel(){
+  // Subir al top en todos los contenedores posibles
+  window.scrollTo(0,0);
+  document.documentElement.scrollTop=0;
+  document.body.scrollTop=0;
+  var _mob=document.querySelector('.mob');if(_mob)_mob.scrollTop=0;
+  var _lp=document.querySelector('.lp');if(_lp)_lp.scrollTop=0;
+  // En mobile: asegurar que el panel derecho es visible
+  var _rp=document.querySelector('.rp');
+  var _lp2=document.querySelector('.lp');
+  if(_rp&&window.innerWidth<=900){
+    _rp.style.display='flex';
+    if(_lp2)_lp2.style.display='none';
+  }
+}
 function renderCallsPanel(st,ultimaLlamada){
   var lcp=document.getElementById('last-call-panel');
   var lct=document.getElementById('last-call-time');
@@ -3109,7 +3125,7 @@ function accOpen2(id){
   renderCallsPanel(st,st.ultimaLlamada);
   document.querySelectorAll('.acc-admin-item').forEach(function(e){e.classList.remove('sel');});
   var it=document.getElementById('aci-'+id);if(it)it.classList.add('sel');
-  window.scrollTo(0,0);var _mob4=document.querySelector('.mob');if(_mob4)_mob4.scrollTop=0;
+  scrollToPanel();
   accRenderList();
 }
 
@@ -3368,9 +3384,7 @@ function selTal(id){
     rp.style.display='flex';
   }
   // Scroll al top para que la ficha sea visible
-  window.scrollTo(0,0);
-  var _mob=document.querySelector('.mob');if(_mob)_mob.scrollTop=0;
-  document.documentElement.scrollTop=0;
+  scrollToPanel();
   talRenderList();
 }
 
@@ -3639,7 +3653,7 @@ function selTal(id){
   det.style.display='flex';
   if(typeof openMobileDet==='function')openMobileDet();
   supOpen2(id);
-  window.scrollTo(0,0);var _mob3=document.querySelector('.mob');if(_mob3)_mob3.scrollTop=0;
+  scrollToPanel();
   // En mobile: mostrar el panel derecho
   var rp=document.querySelector('.rp');
   var lp2=document.querySelector('.lp');
@@ -3907,7 +3921,7 @@ function selTal(id){
   det.style.display='flex';
   if(typeof openMobileDet==='function')openMobileDet();
   denOpen2(id);
-  window.scrollTo(0,0);var _mob2=document.querySelector('.mob');if(_mob2)_mob2.scrollTop=0;
+  scrollToPanel();
   // En mobile: mostrar el panel derecho
   var rp=document.querySelector('.rp');
   var lp2=document.querySelector('.lp');
