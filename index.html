@@ -2564,19 +2564,16 @@ async function syncVapiHoy(){
   }
 }
 function scrollToPanel(){
-  // Subir al top en todos los contenedores posibles
   window.scrollTo(0,0);
   document.documentElement.scrollTop=0;
   document.body.scrollTop=0;
   var _mob=document.querySelector('.mob');if(_mob)_mob.scrollTop=0;
   var _lp=document.querySelector('.lp');if(_lp)_lp.scrollTop=0;
-  // En mobile: asegurar que el panel derecho es visible
-  var _rp=document.querySelector('.rp');
+  var _rp=document.querySelector('.rp');if(_rp)_rp.scrollTop=0;
+  var _det=document.getElementById('det');if(_det)_det.scrollTop=0;
+  var _rp2=document.querySelector('.rp');
   var _lp2=document.querySelector('.lp');
-  if(_rp&&window.innerWidth<=900){
-    _rp.style.display='flex';
-    if(_lp2)_lp2.style.display='none';
-  }
+  if(_rp2&&_lp2&&window.innerWidth<=900){_rp2.style.display='flex';_lp2.style.display='none';}
 }
 function renderCallsPanel(st,ultimaLlamada){
   var lcp=document.getElementById('last-call-panel');
