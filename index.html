@@ -3294,8 +3294,8 @@ function talRenderList(){
   var el=document.getElementById('tal-list');if(!el)return;
   var muniF=(document.getElementById('tal-muni-filter')||{}).value||'';
   var tipoF=(document.getElementById('tal-tipo-filter')||{}).value||'';
-  var dD=document.getElementById('fecha-desde')&&document.getElementById('fecha-desde').value||'';
-  var dH=document.getElementById('fecha-hasta')&&document.getElementById('fecha-hasta').value||'';
+  var dD=(document.getElementById('fecha-desde')||{}).value||'';
+  var dH=(document.getElementById('fecha-hasta')||{}).value||'';
   var filtered=TAL.talleres.filter(function(t){
     if(muniF&&t.municipio!==muniF)return false;
     if(tipoF&&!t.tipo.includes(tipoF))return false;
@@ -3315,7 +3315,7 @@ function talRenderList(){
     if(cf==='noInteresa'&&st2!=='noInteresa')return false;
     if(cf==='visita'&&st2!=='visita')return false;
     if(curF==='llamadas'&&!((talSt[t.id]||{}).llamadas>0))return false;
-    var q=(document.getElementById('sq')&&document.getElementById('sq').value||'').toLowerCase().trim();
+    var q=((document.getElementById('sq')||{}).value||'').toLowerCase().trim();
     if(q&&!(t.nombre+' '+t.municipio+' '+t.cp+' '+t.tipo).toLowerCase().includes(q))return false;
     return true;
   }).sort(function(a,b){
@@ -3328,44 +3328,30 @@ function talRenderList(){
   });
   var hdr=document.getElementById('tal-hdr-count');
   if(hdr){
-    var _talTotal=TAL.talleres.length;
-    var _talSt3=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
-    var _talLL=Object.values(_talSt3).filter(function(s){return (s.llamadas||0)>0;}).length;
-    var _talV=Object.values(_talSt3).filter(function(s){return s.estado==='visita';}).length;
-    hdr.innerHTML=filtered.length+' / '+_talTotal
-      +(_talLL>0?' <span style="color:var(--ac);font-size:9px">\u2022 '+_talLL+' llamados</span>':'')
-      +(_talV>0?' <span style="color:var(--gr);font-size:9px">\u2022 '+_talV+' \u2713</span>':'');
+    var _ts3=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
+    var _ll=Object.values(_ts3).filter(function(s){return(s.llamadas||0)>0;}).length;
+    var _vv=Object.values(_ts3).filter(function(s){return s.estado==='visita';}).length;
+    hdr.innerHTML=filtered.length+'/'+TAL.talleres.length
+      +(_ll>0?' <span style="color:var(--ac);font-size:9px">\u2022 '+_ll+' llamados</span>':'')
+      +(_vv>0?' <span style="color:var(--gr);font-size:9px">\u2022 '+_vv+' \u2713</span>':'');
   }
   var stLbl={sinLlamar:'Sin llamar',visita:'\u2713 Visita',rellamar:'\u21ba Rellamar',noContesta:'\u2014 No contesta',noInteresa:'\u00d7 No interesa',pendiente:'\u23f3 Pendiente'};
-  var tipoIcon={};tipoIcon['Mec\u00e1nico']='\uD83D\uDD29';tipoIcon['Chapa/Pintura']='\uD83C\uDFA8';tipoIcon['Neum\u00e1ticos']='\u26AB';tipoIcon['ITV']='\uD83D\uDCCB';tipoIcon['Lavado']='\uD83D\uDEBF';
+  var tIco={};tIco['Mec\u00e1nico']='\uD83D\uDD29';tIco['Chapa/Pintura']='\uD83C\uDFA8';tIco['Neum\u00e1ticos']='\u26AB';tIco['ITV']='\uD83D\uDCCB';tIco['Lavado']='\uD83D\uDEBF';
   el.innerHTML=filtered.map(function(t){
     var st=talSt[t.id]||{},ec=st.estado||'sinLlamar';
-    var ic=tipoIcon[t.tipo]||'\uD83D\uDD27';
+    var ic=tIco[t.tipo]||'\uD83D\uDD27';
     var ll=st.llamadas||0,ul=st.ultimaLlamada||'';
-    var sel_cls=talSel===t.id?' sel':'';
-    var h='<div class="acc-admin-item ci est-'+ec+sel_cls+' tal-item" data-talid="'+t.id+'">';
+    var h='<div class="acc-admin-item ci est-'+ec+(talSel===t.id?' sel':'')+' tal-item" data-talid="'+t.id+'">';
     h+='<div style="display:flex;justify-content:space-between;align-items:center;">';
     h+='<span style="font-size:11px;font-weight:600;color:var(--tx)">'+ic+' '+t.nombre+'</span>';
     h+='<span class="stag '+ec+'" style="font-size:9px">'+(stLbl[ec]||ec)+'</span>';
     h+='</div>';
     h+='<div style="font-size:10px;color:var(--mt);margin-top:2px;">';
-    h+=(t.telefono?'\uD83D\uDCDE '+t.telefono+'&nbsp;&nbsp;':'')+'\uD83D\uDCCD '+t.municipio;
-    if(ul){
-      h+='</div><div style="font-size:9px;color:var(--ac);margin-top:2px;font-family:var(--mo)">';
-      h+='\uD83D\uDCDE '+(ll>0?ll+'x &nbsp;':'')+ul.split(',')[0];
-    }
+    h+=(t.telefono?'\uD83D\uDCDE '+t.telefono+'  ':'')+'\uD83D\uDCCD '+t.municipio;
+    if(ul)h+='</div><div style="font-size:9px;color:var(--ac);margin-top:2px;font-family:var(--mo)">\uD83D\uDCDE '+(ll>0?ll+'x  ':'')+ul.split(',')[0];
     h+='</div></div>';
     return h;
   }).join('');
-  // Event delegation con bubbling manual
-  el.onclick=null;
-  el.addEventListener('click',function(ev){
-    var node=ev.target;
-    while(node&&node!==el){
-      if(node.dataset&&node.dataset.talid){selTal(node.dataset.talid);return;}
-      node=node.parentElement;
-    }
-  });
 }
 
 function selTal(id){
@@ -3559,7 +3545,23 @@ window.selMob=function(id,el){
 
 
 
-(function t(){var l=document.getElementById('tal-list');if(l){talRenderList();}else{setTimeout(t,300);}})();
+(function t(){
+  var l=document.getElementById('tal-list');
+  if(l){
+    talRenderList();
+    var sec=document.getElementById('tal-section');
+    if(sec&&!sec._tl){
+      sec._tl=true;
+      sec.addEventListener('click',function(ev){
+        var node=ev.target;
+        while(node&&node!==sec){
+          if(node.dataset&&node.dataset.talid){selTal(node.dataset.talid);return;}
+          node=node.parentElement;
+        }
+      });
+    }
+  }else{setTimeout(t,300);}
+})();
 
 </script>
 
