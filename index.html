@@ -449,7 +449,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
   </div>
 
   <!-- ===== SECCIÓN TALLERES ===== -->
-  <div class="acc-section" id="tal-section">
+  <div class="acc-section open" id="tal-section">
     <div class="acc-header" onclick="openSector('tal-section')">
       <span style="display:flex;align-items:center;gap:5px"><span class="acc-title">🔧 Talleres</span><span class="acc-count" id="tal-hdr-count"></span></span><span class="acc-header-arrow">&#9660;</span>
     </div>
@@ -2937,6 +2937,10 @@ function openSector(id){
     if(s===id){el.classList.toggle('open');}
     else{el.classList.remove('open');}
   });
+  if(id==='tal-section'&&typeof talRenderList==='function')talRenderList();
+  if(id==='acc-section'&&typeof accRenderList==='function')accRenderList();
+  if(id==='sup-section'&&typeof supRenderList==='function')supRenderList();
+  if(id==='den-section'&&typeof denRenderList==='function')denRenderList();
 }
 function accToggle(){openSector('acc-section');}
 
