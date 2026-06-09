@@ -2872,7 +2872,7 @@ async function syncToGitHub(data){
   _ghSaving=true;
   try{
     const ts=Date.now();
-    const r=await fetch(SYNC_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({saveData:{crm:data,acc:JSON.parse(localStorage.getItem('fe_acc_v1')||'{}'),tal:JSON.parse(localStorage.getItem('fe_tal_v1')||'{}'),sup:JSON.parse(localStorage.getItem('fe_sup_v1')||'{}'),den:JSON.parse(localStorage.getItem('fe_den_v1')||'{}'),_ts:ts}})});
+    const r=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({saveData:{crm:data,acc:JSON.parse(localStorage.getItem('fe_acc_v1')||'{}'),tal:JSON.parse(localStorage.getItem('fe_tal_v1')||'{}'),sup:JSON.parse(localStorage.getItem('fe_sup_v1')||'{}'),den:JSON.parse(localStorage.getItem('fe_den_v1')||'{}'),_ts:ts}})});
     if(r.ok){
       const result=await r.json();
       if(result.ok&&result.sha){_currentSha=result.sha;_lastGhSha=result.sha;}
@@ -2886,7 +2886,7 @@ async function syncToGitHub(data){
 
 async function loadFromGitHub(){
   try{
-    const r=await fetch(SYNC_URL,{cache:'no-store'});
+    const r=await fetch(BACKEND_URL+'?loadData=1',{cache:'no-store'});
     if(!r.ok) return null;
     const result=await r.json();
     if(result.sha) _currentSha=result.sha;
