@@ -3360,30 +3360,30 @@ function talRenderList(){
 }
 
 function selTal(id){
-  var t=TAL.talleres.find(function(x){return x.id===id;});if(!t)return;
-  talSel=id;window._talId=id;
-  var fw=document.getElementById('acc-ficha-wrap');if(fw)fw.style.display='none';
-  var _empty=document.getElementById('empty');if(_empty)_empty.style.display='none';
-  // Ocultar también el panel de ficha ACC si estuviera visible
-  var _accFicha=document.getElementById('acc-det-panel');if(_accFicha)_accFicha.style.display='none';
-  var det=document.getElementById('det');
-  if(!det)return;
-  det.classList.add('vis');
-  det.style.display='flex';
-  var _sbEl=document.getElementById('sb');
-  if(_sbEl)_sbEl.style.display='flex';
-  if(typeof openMobileDet==='function')openMobileDet();
-  talOpen2(id);
-  // En mobile: mostrar el panel derecho
-  var rp=document.querySelector('.rp');
-  var lp2=document.querySelector('.lp');
-  if(rp&&window.innerWidth<=768){
-    if(lp2)lp2.style.display='none';
-    rp.style.display='flex';
+  try {
+    var t=TAL.talleres.find(function(x){return x.id===id;});
+    if(!t){console.error('selTal: taller no encontrado:',id);return;}
+    talSel=id;
+    window._talId=id;
+    // Ocultar paneles alternativos
+    var fw=document.getElementById('acc-ficha-wrap');if(fw)fw.style.display='none';
+    var em=document.getElementById('empty');if(em)em.style.display='none';
+    // Mostrar #det
+    var det=document.getElementById('det');
+    if(!det){console.error('selTal: #det no existe');return;}
+    det.style.display='flex';
+    det.classList.add('vis');
+    // Mostrar #sb (talOpen2 escribe en elementos dentro de det directamente)
+    var sb=document.getElementById('sb');if(sb)sb.style.display='none';
+    // Abrir ficha
+    talOpen2(id);
+    // Scroll top
+    try{scrollToPanel();}catch(e){}
+    talRenderList();
+    console.log('selTal ok:', t.nombre, '| det display:', det.style.display);
+  } catch(e) {
+    console.error('selTal error:', e.message, e.stack);
   }
-  // Scroll al top para que la ficha sea visible
-  scrollToPanel();
-  talRenderList();
 }
 
 function talOpen2(id){
