@@ -78,10 +78,36 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: e.message });
     }
   }
+  if (req.method === 'GET' && _q.loadData) {
+    try {
+      const GT=process.env.GH_TOKEN||'',GR='carboalvaro-dotcom/agente-fe';
+      if(!GT)return res.status(500).json({error:'GH_TOKEN not set'});
+      const resp=await fetch('https://api.github.com/repos/'+GR+'/contents/crm-data.json',{headers:{'Authorization':'token '+GT}});
+      if(!resp.ok)return res.status(200).json({data:null});
+      const file=await resp.json();
+      const data=JSON.parse(Buffer.from(file.content.replace(/\n/g,''),'base64').toString('utf-8'));
+      return res.status(200).json({data,savedAt:data._savedAt});
+    }catch(e){return res.status(500).json({error:e.message});}
+  }
   if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   // POST {getRecordings: true} — devuelve mapa callId->recordingUrl
   const _body = req.body || {};
+  if (_body.saveData) {
+    try {
+      const GT=process.env.GH_TOKEN||'',GR='carboalvaro-dotcom/agente-fe';
+      if(!GT)return res.status(500).json({error:'GH_TOKEN not set'});
+      const ds={..._body.saveData,_savedAt:new Date().toISOString()};
+      const content=Buffer.from(JSON.stringify(ds)).toString('base64');
+      let sd=null;
+      const ck=await fetch('https://api.github.com/repos/'+GR+'/contents/crm-data.json',{headers:{'Authorization':'token '+GT}});
+      if(ck.ok){const f=await ck.json();sd=f.sha;}
+      const pl={message:'bk '+new Date().toISOString(),content};if(sd)pl.sha=sd;
+      const sr=await fetch('https://api.github.com/repos/'+GR+'/contents/crm-data.json',{method:'PUT',headers:{'Authorization':'token '+GT,'Content-Type':'application/json'},body:JSON.stringify(pl)});
+      const r2=await sr.json();
+      return res.status(200).json({ok:true,sha:r2.commit?.sha?.slice(0,8),savedAt:ds._savedAt});
+    }catch(e){return res.status(500).json({error:e.message});}
+  }
   if (_body.getRecordings) {
     try {
       const VAPI_KEY2 = '96d7565b-f657-42e2-b144-670153ff65eb';
