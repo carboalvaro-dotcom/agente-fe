@@ -3354,14 +3354,14 @@ function talRenderList(){
     var ll=st.llamadas||0,ul=st.ultimaLlamada||'';
     var sel_cls=talSel===t.id?' sel':'';
     var h='<div class="acc-admin-item ci est-'+ec+sel_cls+' tal-item" data-talid="'+t.id+'" onclick="selTal(this.dataset.talid)" style="cursor:pointer">';
-    h+='<div style="display:flex;justify-content:space-between;align-items:center;">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;pointer-events:none">';
     h+='<span style="font-size:11px;font-weight:600;color:var(--tx)">'+ic+' '+t.nombre+'</span>';
     h+='<span class="stag '+ec+'" style="font-size:9px">'+(stLbl[ec]||ec)+'</span>';
     h+='</div>';
-    h+='<div style="font-size:10px;color:var(--mt);margin-top:2px;">';
+    h+='<div style="font-size:10px;color:var(--mt);margin-top:2px;pointer-events:none">';
     h+=(t.telefono?'\uD83D\uDCDE '+t.telefono+'&nbsp;&nbsp;':'')+'\uD83D\uDCCD '+t.municipio;
     if(ul){
-      h+='</div><div style="font-size:9px;color:var(--ac);margin-top:2px;font-family:var(--mo)">';
+      h+='</div><div style="font-size:9px;color:var(--ac);margin-top:2px;font-family:var(--mo);pointer-events:none">';
       h+='\uD83D\uDCDE '+(ll>0?ll+'x &nbsp;':'')+ul.split(',')[0];
     }
     h+='</div></div>';
