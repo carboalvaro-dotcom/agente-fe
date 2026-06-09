@@ -3355,6 +3355,7 @@ function talRenderList(){
 }
 
 function selTal(id){
+  console.log('selTal llamado con id:',id);
   try {
     var t=TAL.talleres.find(function(x){return x.id===id;});
     if(!t){console.error('selTal: taller no encontrado:',id);return;}
@@ -3552,6 +3553,7 @@ window.selMob=function(id,el){
     var sec=document.getElementById('tal-section');
     if(sec&&!sec._tl){
       sec._tl=true;
+      console.log('TAL: listener activo en tal-section');
       sec.addEventListener('click',function(ev){
         var node=ev.target;
         while(node&&node!==sec){
