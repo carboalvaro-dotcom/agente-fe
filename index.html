@@ -3391,6 +3391,7 @@ function selTal(id){
     try{scrollToPanel();}catch(e){}
     talRenderList();
     console.log('selTal ok:', t.nombre, '| det display:', det.style.display);
+    if(typeof toast==='function')toast('Abriendo: '+t.nombre,'ok');
   } catch(e) {
     console.error('selTal error:', e.message, e.stack);
   }
