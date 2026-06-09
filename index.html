@@ -449,7 +449,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
   </div>
 
   <!-- ===== SECCIÓN TALLERES ===== -->
-  <div class="acc-section" id="tal-section">
+  <div class="acc-section open" id="tal-section">
     <div class="acc-header" onclick="openSector('tal-section')">
       <span style="display:flex;align-items:center;gap:5px"><span class="acc-title">🔧 Talleres</span><span class="acc-count" id="tal-hdr-count"></span></span><span class="acc-header-arrow">&#9660;</span>
     </div>
@@ -3391,7 +3391,6 @@ function selTal(id){
     try{scrollToPanel();}catch(e){}
     talRenderList();
     console.log('selTal ok:', t.nombre, '| det display:', det.style.display);
-    if(typeof toast==='function')toast('Abriendo: '+t.nombre,'ok');
   } catch(e) {
     console.error('selTal error:', e.message, e.stack);
   }
