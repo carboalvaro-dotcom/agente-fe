@@ -1291,7 +1291,7 @@ function renderList(){
     const name=CP_NAMES[cp]||cp;
     const isOpen=localStorage.getItem('cpg_'+cp)!=='0';
     html+=`<div><div class="cp-header" onclick="toggleCP('${cp}')">
-      <span class="cp-name">📍 ${name}</span>
+      <span class="cp-name">\uD83D\uDCCD ${name}</span>
       <span class="cp-count">${groups[cp].length}</span>
       <span class="cp-arrow ${isOpen?'open':''}" id="arr_${cp}">▶</span>
     </div><div id="cpg_${cp}" style="${isOpen?'':'display:none'}">`;
@@ -1305,13 +1305,13 @@ function renderList(){
         <div class="ci-r1"><div class="ci-name">${c.nombre}</div>
           <div class="ci-badges">${pro?'<span class="badge b-pro">PRO</span>':''}${c.prioritario&&!pro?'<span class="badge b-prio">⚡</span>':''}<span class="sdot ${c.estado}"></span></div>
         </div>
-        <div class="ci-r2"><span class="ci-tel">${c.telefono}</span>${c.llamadas>0?'<span class="ci-kw" style="background:var(--acl);color:var(--ac)">'+(c.llamadas)+'x</span>':''}</div>${c.llamadas>0&&c.ultimaLlamada?'<div style="font-size:9px;color:var(--ac);margin-top:1px;font-family:var(--mo)">📞 '+c.llamadas+'x  '+c.ultimaLlamada.split(',')[0]+'</div>':''}
+        <div class="ci-r2"><span class="ci-tel">${c.telefono}</span>${c.llamadas>0?'<span class="ci-kw" style="background:var(--acl);color:var(--ac)">'+(c.llamadas)+'x</span>':''}</div>${c.llamadas>0&&c.ultimaLlamada?'<div style="font-size:9px;color:var(--ac);margin-top:1px;font-family:var(--mo)">\uD83D\uDCDE '+c.llamadas+'x  '+c.ultimaLlamada.split(',')[0]+'</div>':''}
       </div>${isMob?`
       <div class="ci-accordion${isOpen?' open':''}" id="acc_${c.id}">
         <div class="ci-accordion-inner">
           <div style="display:flex;align-items:center;gap:10px;padding:2px 0 8px;">
             <a href="tel:${c.telefono}" style="font-size:16px;font-weight:700;color:var(--ac);text-decoration:none;flex:1;">${c.telefono||'—'}</a>
-            ${c.llamadas>0?`<span style="font-size:11px;color:var(--mt);background:var(--acl);padding:2px 7px;border-radius:10px;">📞 ${c.llamadas}x${c.ultimaLlamada?' · '+c.ultimaLlamada:''}</span>`:''}
+            ${c.llamadas>0?`<span style="font-size:11px;color:var(--mt);background:var(--acl);padding:2px 7px;border-radius:10px;">\uD83D\uDCDE ${c.llamadas}x${c.ultimaLlamada?' · '+c.ultimaLlamada:''}</span>`:''}
           </div>
           <div class="acc-results">
             <div class="acc-rbtn r-ok${c.estado==='visitaOK'?' active':''}" onclick="setResMob(${c.id},'visitaOK')">✓ Visita</div>
@@ -1320,7 +1320,7 @@ function renderList(){
             <div class="acc-rbtn r-ni${c.estado==='noInteresa'?' active':''}" onclick="setResMob(${c.id},'noInteresa')">✗ No interesa</div>
             <div class="acc-rbtn r-du full${c.estado==='duda'?' active':''}" onclick="setResMob(${c.id},'duda')">? Duda</div>
           </div>
-          <button class="acc-call" onclick="selAndCall(${c.id})">📞 Llamar con IA</button>
+          <button class="acc-call" onclick="selAndCall(${c.id})">\uD83D\uDCDE Llamar con IA</button>
         </div>
       </div>`:''}`;
     });
@@ -1427,7 +1427,7 @@ function sel(id){
   }
   // Llamadas badge
   const lbadge=document.getElementById('llamadas-badge');
-  if(lbadge) lbadge.textContent=c.llamadas>0?'📞 '+c.llamadas+(c.llamadas===1?' llamada':' llamadas')+(c.ultimaLlamada?' · 📅 '+c.ultimaLlamada:''):'';
+  if(lbadge) lbadge.textContent=c.llamadas>0?'\uD83D\uDCDE '+c.llamadas+(c.llamadas===1?' llamada':' llamadas')+(c.ultimaLlamada?' · \uD83D\uDCC5 '+c.ultimaLlamada:''):'';
   renderCallsPanel(c,c.ultimaLlamada);
   // Call recording link
   const recDiv=document.getElementById('rec-link');
@@ -1443,7 +1443,7 @@ function sel(id){
   var hbox=document.getElementById('hist-box');
   if(hbox&&c.historial&&c.historial.length>0){
     hbox.style.display='block';
-    var _ei={duda:'🟣',rellamar:'🟡',noContesta:'⚫',noInteresa:'🔴',visita:'🟢',visitaOK:'🟢',pendiente:'○'};
+    var _ei={duda:'\uD83D\uDFE3',rellamar:'\uD83D\uDFE1',noContesta:'⚫',noInteresa:'\uD83D\uDD34',visita:'\uD83D\uDFE2',visitaOK:'\uD83D\uDFE2',pendiente:'○'};
     document.getElementById('hist-list').innerHTML=c.historial.map(function(h){
       return '<div style="padding:5px 0;border-bottom:1px solid var(--bd);font-size:11px">'
         +'<div style="font-weight:600">'+(_ei[h.r]||'○')+' '+h.f+'</div>'
@@ -1465,7 +1465,7 @@ function saveField(id,field,value){
 
 function buildUI(c){
   if(c.nif==='AMIGO'){
-    return '<div class="phase"><div class="ph-head"><div class="ph-num" style="background:var(--aml);color:var(--am)">🎯</div><div class="ph-title" style="color:var(--am)">Script especial — FRANCISCO</div></div><div class="ph-body op" style="color:var(--am)">"Hola Francisco, pórtate bien que te estoy vigilando. Tengo un dron japonés encima tuyo."\n\nEsperar respuesta y seguir con humor.</div></div>';
+    return '<div class="phase"><div class="ph-head"><div class="ph-num" style="background:var(--aml);color:var(--am)">\uD83C\uDFAF</div><div class="ph-title" style="color:var(--am)">Script especial — FRANCISCO</div></div><div class="ph-body op" style="color:var(--am)">"Hola Francisco, pórtate bien que te estoy vigilando. Tengo un dron japonés encima tuyo."\n\nEsperar respuesta y seguir con humor.</div></div>';
   }
   const phases=[
     {n:'1',t:'Apertura',tag:'al descolgar',op:true,txt:'"Buenos días, le llamo porque detectamos que [empresa] podría tener una potencia contratada que genera sobrecoste en su factura de luz. ¿Es usted quien gestiona ese tema?"'},
@@ -1959,14 +1959,14 @@ function renderDashboard(){
     +[{l:'Tasa respuesta',v:respuesta+'%',d:'Contestaron'},{l:'Tasa conversión',v:conversion+'%',d:'Llamadas → Visita'},{l:'Sin llamar',v:C.filter(c=>(c.llamadas||0)===0&&c.estado==='pendiente').length,d:'Contactos nuevos'}]
     .map(mm=>'<div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--bd)"><div style="display:flex;justify-content:space-between"><div style="font-size:11px;color:var(--mt)">'+mm.l+'</div><div style="font-size:18px;font-weight:700;color:var(--ac)">'+mm.v+'</div></div><div style="font-size:10px;color:var(--mt2)">'+mm.d+'</div></div>').join('')
     +'</div></div>'
-    +(visitas>0?'<div style="background:var(--grl);border:1px solid rgba(11,122,71,.15);border-radius:10px;padding:16px;margin-bottom:16px;"><div style="font-size:11px;font-weight:600;color:var(--gr);margin-bottom:10px">🟢 Visitas concertadas ('+visitas+')</div><table style="width:100%;border-collapse:collapse">'+visitasList+'</table></div>':'')
+    +(visitas>0?'<div style="background:var(--grl);border:1px solid rgba(11,122,71,.15);border-radius:10px;padding:16px;margin-bottom:16px;"><div style="font-size:11px;font-weight:600;color:var(--gr);margin-bottom:10px">\uD83D\uDFE2 Visitas concertadas ('+visitas+')</div><table style="width:100%;border-collapse:collapse">'+visitasList+'</table></div>':'')
     +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">'
     +'<div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center"><div style="font-size:11px;color:var(--mt);margin-bottom:4px">PRO con visita</div><div style="font-size:22px;font-weight:700;color:#7c3aed">'+proVisitas+'</div></div>'
     +'<div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center"><div style="font-size:11px;color:var(--mt);margin-bottom:4px">Llamadas/Visita</div><div style="font-size:22px;font-weight:700;color:var(--ac)">'+mediaLlamadasVisita+'</div></div>'
     +'<div style="background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center"><div style="font-size:11px;color:var(--mt);margin-bottom:4px">Top CP visitas</div><div style="font-size:13px;font-weight:700;color:var(--gr);margin-top:4px">'+topCPstr+'</div></div>'
     +'</div>'
     +_sTbl
-    +(rellamar>0?'<div style="background:var(--aml);border:1px solid rgba(180,83,9,.15);border-radius:10px;padding:16px;"><div style="font-size:11px;font-weight:600;color:var(--am);margin-bottom:10px">🟡 Rellamar ('+rellamar+')</div><table style="width:100%;border-collapse:collapse">'+rellamarList+'</table></div>':'');
+    +(rellamar>0?'<div style="background:var(--aml);border:1px solid rgba(180,83,9,.15);border-radius:10px;padding:16px;"><div style="font-size:11px;font-weight:600;color:var(--am);margin-bottom:10px">\uD83D\uDFE1 Rellamar ('+rellamar+')</div><table style="width:100%;border-collapse:collapse">'+rellamarList+'</table></div>':'');
 }
 
 let campaignQueue=[],campaignIdx=0,campaignRunning=false,campaignPaused=false,campaignTimer=null,_campStartTime=0,_campMaxMs=0;
@@ -2216,9 +2216,9 @@ async function runNextCampaignCall(){
     c.ultimaLlamada=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'});
     save();upStats();renderList();
     const cbanName=document.getElementById('cban-name');
-    if(cbanName){const cx=C.find(x=>x.id===curId);cbanName.textContent=cx?'📞 '+cx.nombre:'Llamada en curso';}
+    if(cbanName){const cx=C.find(x=>x.id===curId);cbanName.textContent=cx?'\uD83D\uDCDE '+cx.nombre:'Llamada en curso';}
     const cbanNameC=document.getElementById('cban-name');
-    if(cbanNameC) cbanNameC.textContent='📞 '+c.nombre;
+    if(cbanNameC) cbanNameC.textContent='\uD83D\uDCDE '+c.nombre;
     document.getElementById('cban').classList.add('on');
     sec=0;clearInterval(iv);iv=setInterval(()=>{sec++;const mm=Math.floor(sec/60),ss=sec%60;document.getElementById('ctm').textContent=mm+':'+(ss<10?'0':'')+ss;},1000);
     const resultado=await callViaProxy(phone,c);
@@ -2405,23 +2405,23 @@ function addCalendarEvent(contacto,cuandoLlamar){
   var det=encodeURIComponent('CRM Factor Energia - '+nombre+' Tel: '+telefono+' Rellamar: '+cuandoLlamar);
   var url='https://calendar.google.com/calendar/render?action=TEMPLATE&text='+titulo+'&dates='+fmt(target)+'/'+fmt(end)+'&details='+det+'&add=carboalvaro%40gmail.com';
   window.open(url,'_blank');
-  toast('📅 Añadido al calendario','ok');
+  toast('\uD83D\uDCC5 Añadido al calendario','ok');
 }
 function searchGlobal(q){
   if(!q||q.length<2)return[];
   var ql=q.toLowerCase(),res=[];
-  C.forEach(function(c){if((c.nombre||'').toLowerCase().includes(ql)||(c.telefono||'').includes(q)){res.push({mod:'CP',id:c.id,nombre:c.nombre,tlf:c.telefono,est:c.estado,icon:'🏢'});}});
-  if(TAL&&TAL.talleres)TAL.talleres.forEach(function(t){if((t.nombre||'').toLowerCase().includes(ql)||(t.telefono||'').includes(q)){var st=(JSON.parse(localStorage.getItem('fe_tal_v1')||'{}')[t.id]||{}).estado||'';res.push({mod:'Talleres',id:'TAL:'+t.id,nombre:t.nombre,tlf:t.telefono,est:st,icon:'🔧'});}});
-  if(DEN&&DEN.clinicas)DEN.clinicas.forEach(function(t){if((t.nombre||'').toLowerCase().includes(ql)||(t.telefono||'').includes(q)){var st=(JSON.parse(localStorage.getItem('fe_den_v1')||'{}')[t.id]||{}).estado||'';res.push({mod:'Salud',id:'DEN:'+t.id,nombre:t.nombre,tlf:t.telefono,est:st,icon:'🩺'});}});
-  if(SUP&&SUP.supers)SUP.supers.forEach(function(t){if((t.nombre||'').toLowerCase().includes(ql)||(t.telefono||'').includes(q)){var st=(JSON.parse(localStorage.getItem('fe_sup_v1')||'{}')[t.id]||{}).estado||'';res.push({mod:'Supermercados',id:'SUP:'+t.id,nombre:t.nombre,tlf:t.telefono,est:st,icon:'🛒'});}});
-  if(ACC&&ACC.admins)ACC.admins.forEach(function(a){if((a.nombre||'').toLowerCase().includes(ql)||(a.telefono||'').includes(q)){var st=(JSON.parse(localStorage.getItem('fe_acc_v1')||'{}')[a.id]||{}).estado||'';res.push({mod:'Admins',id:'ACC:'+a.id,nombre:a.nombre,tlf:a.telefono,est:st,icon:'📁'});}});
+  C.forEach(function(c){if((c.nombre||'').toLowerCase().includes(ql)||(c.telefono||'').includes(q)){res.push({mod:'CP',id:c.id,nombre:c.nombre,tlf:c.telefono,est:c.estado,icon:'\uD83C\uDFE2'});}});
+  if(TAL&&TAL.talleres)TAL.talleres.forEach(function(t){if((t.nombre||'').toLowerCase().includes(ql)||(t.telefono||'').includes(q)){var st=(JSON.parse(localStorage.getItem('fe_tal_v1')||'{}')[t.id]||{}).estado||'';res.push({mod:'Talleres',id:'TAL:'+t.id,nombre:t.nombre,tlf:t.telefono,est:st,icon:'\uD83D\uDD27'});}});
+  if(DEN&&DEN.clinicas)DEN.clinicas.forEach(function(t){if((t.nombre||'').toLowerCase().includes(ql)||(t.telefono||'').includes(q)){var st=(JSON.parse(localStorage.getItem('fe_den_v1')||'{}')[t.id]||{}).estado||'';res.push({mod:'Salud',id:'DEN:'+t.id,nombre:t.nombre,tlf:t.telefono,est:st,icon:'\uD83E\uDE7A'});}});
+  if(SUP&&SUP.supers)SUP.supers.forEach(function(t){if((t.nombre||'').toLowerCase().includes(ql)||(t.telefono||'').includes(q)){var st=(JSON.parse(localStorage.getItem('fe_sup_v1')||'{}')[t.id]||{}).estado||'';res.push({mod:'Supermercados',id:'SUP:'+t.id,nombre:t.nombre,tlf:t.telefono,est:st,icon:'\uD83D\uDED2'});}});
+  if(ACC&&ACC.admins)ACC.admins.forEach(function(a){if((a.nombre||'').toLowerCase().includes(ql)||(a.telefono||'').includes(q)){var st=(JSON.parse(localStorage.getItem('fe_acc_v1')||'{}')[a.id]||{}).estado||'';res.push({mod:'Admins',id:'ACC:'+a.id,nombre:a.nombre,tlf:a.telefono,est:st,icon:'\uD83D\uDCC1'});}});
   return res.slice(0,25);
 }
 function showSearchGlobal(q){
   var box=document.getElementById('gsr');if(!box)return;
   if(!q||q.length<2){box.style.display='none';return;}
   var res=searchGlobal(q);
-  var ei={duda:'🟣',rellamar:'🟡',noContesta:'⚫',noInteresa:'🔴',visita:'🟢',visitaOK:'🟢'};
+  var ei={duda:'\uD83D\uDFE3',rellamar:'\uD83D\uDFE1',noContesta:'⚫',noInteresa:'\uD83D\uDD34',visita:'\uD83D\uDFE2',visitaOK:'\uD83D\uDFE2'};
   if(!res.length){box.innerHTML='<div style="padding:10px 14px;color:var(--mt);font-size:12px">Sin resultados</div>';box.style.display='block';return;}
   box.innerHTML=res.map(function(r){
     return '<div onclick="selectGSR(\''+r.id+'\',\''+r.mod+'\')" style="padding:7px 12px;cursor:pointer;border-bottom:1px solid var(--bd);display:flex;gap:8px;align-items:center;font-size:12px" onmouseover="this.style.background=\'var(--s1)\'" onmouseout="this.style.background=\'\'">'+'<span>'+r.icon+'</span><div style="flex:1;overflow:hidden"><div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+r.nombre+'</div><div style="font-size:10px;color:var(--mt)">'+r.mod+' · '+r.tlf+'</div></div><span>'+(ei[r.est]||'○')+'</span></div>';
@@ -2585,7 +2585,7 @@ function renderCallsPanel(st,ultimaLlamada){
   if(lct)lct.textContent=ultimaLlamada||st.ultimaLlamada||'';
   var notas=st.notas||'';
   var _rawBloques=notas.split(/\n\n+/).map(function(b){return b.trim();}).filter(Boolean);
-  // Deduplicar: si dos bloques tienen el mismo callId (🔗), quedarse con el más reciente
+  // Deduplicar: si dos bloques tienen el mismo callId (\uD83D\uDD17), quedarse con el más reciente
   var _seen={};
   var bloques=_rawBloques.filter(function(b){
     var idMatch=b.match(/\uD83D\uDD17\s*(\S+)/);
@@ -2735,7 +2735,7 @@ function closeMobileDet(){
 function toggleDark(){
   const isDark=document.body.classList.toggle('dark');
   localStorage.setItem('fe_dark', isDark?'1':'0');
-  document.getElementById('btn-dark').textContent=isDark?'☀️':'🌙';
+  document.getElementById('btn-dark').textContent=isDark?'☀️':'\uD83C\uDF19';
 }
 function initDark(){
   if(localStorage.getItem('fe_dark')==='1'){
@@ -2786,10 +2786,10 @@ function showCampHistory(){
   const modal=document.getElementById('dash-modal');
   const content=document.getElementById('dash-content');
   if(!modal||!content) return;
-  content.innerHTML='<div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:14px;">📋 Historial de campañas</div>'
+  content.innerHTML='<div style="font-size:13px;font-weight:600;color:var(--tx);margin-bottom:14px;">\uD83D\uDCCB Historial de campañas</div>'
     +hist.map(h=>'<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--s2);border-radius:8px;margin-bottom:6px;">'
       +'<div style="flex:1;font-size:11px;color:var(--mt)">'+h.date+'</div>'
-      +'<div style="font-size:11px;font-weight:600">📞 '+h.total+'</div>'
+      +'<div style="font-size:11px;font-weight:600">\uD83D\uDCDE '+h.total+'</div>'
       +'<div style="font-size:11px;color:var(--gr)">✓ '+h.visitas+'</div>'
       +'<div style="font-size:11px;color:var(--am)">↺ '+h.rellamar+'</div>'
       +'<div style="font-size:11px;color:var(--mt)">— '+h.noContesta+'</div>'
