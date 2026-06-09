@@ -3291,6 +3291,7 @@ document.addEventListener('click',function(ev){
   var node=ev.target;
   while(node&&node!==document.body){
     if(node.classList&&node.classList.contains('tal-item')&&node.dataset&&node.dataset.talid){
+      if(typeof window!=='undefined')window._talLastClick=node.dataset.talid;
       selTal(node.dataset.talid);
       return;
     }
@@ -3372,6 +3373,7 @@ function talRenderList(){
 }
 
 function selTal(id){
+  if(typeof window!=='undefined')window._seltalId=id;
   try {
     var t=TAL.talleres.find(function(x){return x.id===id;});
     if(!t){console.error('selTal: taller no encontrado:',id);return;}
