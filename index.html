@@ -3373,7 +3373,8 @@ function selTal(id){
   if(!det)return;
   det.classList.add('vis');
   det.style.display='flex';
-  document.getElementById('sb')&&(document.getElementById('sb').style.display='none');
+  var _sbEl=document.getElementById('sb');
+  if(_sbEl)_sbEl.style.display='flex';
   if(typeof openMobileDet==='function')openMobileDet();
   talOpen2(id);
   // En mobile: mostrar el panel derecho
