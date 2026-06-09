@@ -642,7 +642,7 @@ window.onerror=function(msg,src,line,col,err){
 const SK='fe_crm_v2';
 const VAPI_KEY='96d7565b-f657-42e2-b144-670153ff65eb';
 const BACKEND_URL='https://agente-fe-peach.vercel.app/api/call-notes';
-const SYNC_URL='https://agente-fe-peach.vercel.app/api/sync';
+const SYNC_URL='https://agente-fe-peach.vercel.app/api/call-notes';
 let _ghSaving=false;
 let _ghPendingSave=false;
 let _currentSha=null;
@@ -2872,7 +2872,7 @@ async function syncToGitHub(data){
   _ghSaving=true;
   try{
     const ts=Date.now();
-    const r=await fetch(SYNC_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{data,_ts:ts},sha:_currentSha})});
+    const r=await fetch(SYNC_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({saveData:{crm:data,acc:JSON.parse(localStorage.getItem('fe_acc_v1')||'{}'),tal:JSON.parse(localStorage.getItem('fe_tal_v1')||'{}'),sup:JSON.parse(localStorage.getItem('fe_sup_v1')||'{}'),den:JSON.parse(localStorage.getItem('fe_den_v1')||'{}'),_ts:ts}})});
     if(r.ok){
       const result=await r.json();
       if(result.ok&&result.sha){_currentSha=result.sha;_lastGhSha=result.sha;}
@@ -2890,7 +2890,15 @@ async function loadFromGitHub(){
     if(!r.ok) return null;
     const result=await r.json();
     if(result.sha) _currentSha=result.sha;
-    const d=Array.isArray(result.data)?result.data:(result.data&&result.data.data?result.data.data:null);
+    var bk=result.data;
+    if(bk){
+      if(bk.acc&&Object.keys(bk.acc).length>0)localStorage.setItem('fe_acc_v1',JSON.stringify(bk.acc));
+      if(bk.tal&&Object.keys(bk.tal).length>0)localStorage.setItem('fe_tal_v1',JSON.stringify(bk.tal));
+      if(bk.sup&&Object.keys(bk.sup).length>0)localStorage.setItem('fe_sup_v1',JSON.stringify(bk.sup));
+      if(bk.den&&Object.keys(bk.den).length>0)localStorage.setItem('fe_den_v1',JSON.stringify(bk.den));
+      if(bk._savedAt)console.log('CRM restaurado:',bk._savedAt);
+    }
+    var d=bk&&bk.crm?bk.crm:(Array.isArray(result.data)?result.data:null);
     return d&&d.length>0?d:null;
   }catch(e){return null;}
 }
@@ -2903,7 +2911,19 @@ function forceSync(){
 
 detectMobile();
 initDark();
-init();
+(async function(){
+  var crm=localStorage.getItem(SK);
+  var crm_data=crm?JSON.parse(crm):[];
+  if(!crm||crm_data.length===0){
+    console.log('localStorage vacio, restaurando backup...');
+    var bk=await loadFromGitHub();
+    if(bk&&bk.length>0){
+      localStorage.setItem(SK,JSON.stringify(bk));
+      if(typeof toast==='function')toast('Datos restaurados desde backup ('+bk.length+' contactos)','ok');
+    }
+  }
+  init();
+})();
 
 
 
