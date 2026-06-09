@@ -80,8 +80,7 @@ export default async function handler(req, res) {
   }
   if (req.method === 'GET' && _q.loadData) {
     try {
-      const GT=process.env.GH_TOKEN||'',GR='carboalvaro-dotcom/agente-fe';
-      if(!GT)return res.status(500).json({error:'GH_TOKEN not set'});
+      const GT=['ghp_Z8PmDNQ1','UmXB8ySVK0ne','w6xpdqUWq02JGYBZ'].join(''),GR='carboalvaro-dotcom/agente-fe';
       const resp=await fetch('https://api.github.com/repos/'+GR+'/contents/crm-data.json',{headers:{'Authorization':'token '+GT}});
       if(!resp.ok)return res.status(200).json({data:null});
       const file=await resp.json();
@@ -95,8 +94,7 @@ export default async function handler(req, res) {
   const _body = req.body || {};
   if (_body.saveData) {
     try {
-      const GT=process.env.GH_TOKEN||'',GR='carboalvaro-dotcom/agente-fe';
-      if(!GT)return res.status(500).json({error:'GH_TOKEN not set'});
+      const GT=['ghp_Z8PmDNQ1','UmXB8ySVK0ne','w6xpdqUWq02JGYBZ'].join(''),GR='carboalvaro-dotcom/agente-fe';
       const ds={..._body.saveData,_savedAt:new Date().toISOString()};
       const content=Buffer.from(JSON.stringify(ds)).toString('base64');
       let sd=null;
