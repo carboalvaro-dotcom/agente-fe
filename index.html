@@ -3109,6 +3109,7 @@ function accOpen2(id){
   renderCallsPanel(st,st.ultimaLlamada);
   document.querySelectorAll('.acc-admin-item').forEach(function(e){e.classList.remove('sel');});
   var it=document.getElementById('aci-'+id);if(it)it.classList.add('sel');
+  window.scrollTo(0,0);var _mob4=document.querySelector('.mob');if(_mob4)_mob4.scrollTop=0;
   accRenderList();
 }
 
@@ -3366,6 +3367,10 @@ function selTal(id){
     if(lp2)lp2.style.display='none';
     rp.style.display='flex';
   }
+  // Scroll al top para que la ficha sea visible
+  window.scrollTo(0,0);
+  var _mob=document.querySelector('.mob');if(_mob)_mob.scrollTop=0;
+  document.documentElement.scrollTop=0;
   talRenderList();
 }
 
@@ -3634,6 +3639,7 @@ function selTal(id){
   det.style.display='flex';
   if(typeof openMobileDet==='function')openMobileDet();
   supOpen2(id);
+  window.scrollTo(0,0);var _mob3=document.querySelector('.mob');if(_mob3)_mob3.scrollTop=0;
   // En mobile: mostrar el panel derecho
   var rp=document.querySelector('.rp');
   var lp2=document.querySelector('.lp');
@@ -3901,6 +3907,7 @@ function selTal(id){
   det.style.display='flex';
   if(typeof openMobileDet==='function')openMobileDet();
   denOpen2(id);
+  window.scrollTo(0,0);var _mob2=document.querySelector('.mob');if(_mob2)_mob2.scrollTop=0;
   // En mobile: mostrar el panel derecho
   var rp=document.querySelector('.rp');
   var lp2=document.querySelector('.lp');
