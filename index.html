@@ -2564,19 +2564,16 @@ async function syncVapiHoy(){
   }
 }
 function scrollToPanel(){
-  // Subir al top en todos los contenedores posibles
   window.scrollTo(0,0);
   document.documentElement.scrollTop=0;
   document.body.scrollTop=0;
   var _mob=document.querySelector('.mob');if(_mob)_mob.scrollTop=0;
   var _lp=document.querySelector('.lp');if(_lp)_lp.scrollTop=0;
-  // En mobile: asegurar que el panel derecho es visible
-  var _rp=document.querySelector('.rp');
+  var _rp=document.querySelector('.rp');if(_rp)_rp.scrollTop=0;
+  var _det=document.getElementById('det');if(_det)_det.scrollTop=0;
+  var _rp2=document.querySelector('.rp');
   var _lp2=document.querySelector('.lp');
-  if(_rp&&window.innerWidth<=900){
-    _rp.style.display='flex';
-    if(_lp2)_lp2.style.display='none';
-  }
+  if(_rp2&&_lp2&&window.innerWidth<=900){_rp2.style.display='flex';_lp2.style.display='none';}
 }
 function renderCallsPanel(st,ultimaLlamada){
   var lcp=document.getElementById('last-call-panel');
@@ -3297,8 +3294,8 @@ function talRenderList(){
   var el=document.getElementById('tal-list');if(!el)return;
   var muniF=(document.getElementById('tal-muni-filter')||{}).value||'';
   var tipoF=(document.getElementById('tal-tipo-filter')||{}).value||'';
-  var dD=document.getElementById('fecha-desde')?.value||'';
-  var dH=document.getElementById('fecha-hasta')?.value||'';
+  var dD=document.getElementById('fecha-desde')&&document.getElementById('fecha-desde').value||'';
+  var dH=document.getElementById('fecha-hasta')&&document.getElementById('fecha-hasta').value||'';
   var filtered=TAL.talleres.filter(function(t){
     if(muniF&&t.municipio!==muniF)return false;
     if(tipoF&&!t.tipo.includes(tipoF))return false;
@@ -3318,7 +3315,7 @@ function talRenderList(){
     if(cf==='noInteresa'&&st2!=='noInteresa')return false;
     if(cf==='visita'&&st2!=='visita')return false;
     if(curF==='llamadas'&&!((talSt[t.id]||{}).llamadas>0))return false;
-    var q=(document.getElementById('sq')?.value||'').toLowerCase().trim();
+    var q=(document.getElementById('sq')&&document.getElementById('sq').value||'').toLowerCase().trim();
     if(q&&!(t.nombre+' '+t.municipio+' '+t.cp+' '+t.tipo).toLowerCase().includes(q))return false;
     return true;
   }).sort(function(a,b){
@@ -3333,59 +3330,69 @@ function talRenderList(){
   if(hdr){
     var _talTotal=TAL.talleres.length;
     var _talSt3=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
-    var _talLL=Object.values(_talSt3).filter(function(s){return s.llamadas>0;}).length;
+    var _talLL=Object.values(_talSt3).filter(function(s){return (s.llamadas||0)>0;}).length;
     var _talV=Object.values(_talSt3).filter(function(s){return s.estado==='visita';}).length;
-    var _talNC=Object.values(_talSt3).filter(function(s){return s.estado==='noContesta';}).length;
-    hdr.innerHTML=filtered.length+' <span style="color:var(--mt);font-weight:400">/ '+_talTotal+'</span>'
-      +(_talLL>0?' <span style="color:var(--ac);font-size:9px">• '+_talLL+' llamados</span>':'')
-      +(_talV>0?' <span style="color:var(--gr);font-size:9px">• '+_talV+' ✓</span>':'');
+    hdr.innerHTML=filtered.length+' / '+_talTotal
+      +(_talLL>0?' <span style="color:var(--ac);font-size:9px">\u2022 '+_talLL+' llamados</span>':'')
+      +(_talV>0?' <span style="color:var(--gr);font-size:9px">\u2022 '+_talV+' \u2713</span>':'');
   }
-  var stLbl={sinLlamar:'Sin llamar',visita:'\u2713 Visita',rellamar:'\u21ba Rellamar',noContesta:'\u2014 No contesta',noInteresa:'\u00d7 No interesa',pendiente:'\u25cf Pendiente',duda:'? Duda'};
-  var tipoIcon={'Mec\u00e1nico':'\uD83D\uDD29','Chapa/Pintura':'\uD83C\uDFA8','Neum\u00e1ticos':'\u26AB','ITV':'\uD83D\uDCCB','Lavado':'\uD83D\uDEBF'};
+  var stLbl={sinLlamar:'Sin llamar',visita:'\u2713 Visita',rellamar:'\u21ba Rellamar',noContesta:'\u2014 No contesta',noInteresa:'\u00d7 No interesa',pendiente:'\u23f3 Pendiente'};
+  var tipoIcon={};tipoIcon['Mec\u00e1nico']='\uD83D\uDD29';tipoIcon['Chapa/Pintura']='\uD83C\uDFA8';tipoIcon['Neum\u00e1ticos']='\u26AB';tipoIcon['ITV']='\uD83D\uDCCB';tipoIcon['Lavado']='\uD83D\uDEBF';
   el.innerHTML=filtered.map(function(t){
     var st=talSt[t.id]||{},ec=st.estado||'sinLlamar';
     var ic=tipoIcon[t.tipo]||'\uD83D\uDD27';
     var ll=st.llamadas||0,ul=st.ultimaLlamada||'';
-    return '<div class="acc-admin-item ci est-'+ec+(talSel===t.id?' sel':'')+' tal-item" data-talid="'+t.id+'">'
-      +'<div style="display:flex;justify-content:space-between;align-items:center;">'
-      +'<span style="font-size:11px;font-weight:600;color:var(--tx)">'+ic+' '+t.nombre+'</span>'
-      +'<span class="stag '+ec+'" style="font-size:9px">'+(stLbl[ec]||ec)+'</span>'
-      +'</div>'
-      +'<div style="font-size:10px;color:var(--mt);margin-top:2px;">'
-      +(t.telefono?'\uD83D\uDCDE '+t.telefono+'  ':'')+'\uD83D\uDCCD '+t.municipio
-      +(ul?'</div><div style="font-size:9px;color:var(--ac);margin-top:2px;font-family:var(--mo)">\uD83D\uDCDE '+(ll>0?ll+'x  ':'')+ul.split(',')[0]+'</div></div>':'</div></div>');
+    var sel_cls=talSel===t.id?' sel':'';
+    var h='<div class="acc-admin-item ci est-'+ec+sel_cls+' tal-item" data-talid="'+t.id+'">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;">';
+    h+='<span style="font-size:11px;font-weight:600;color:var(--tx)">'+ic+' '+t.nombre+'</span>';
+    h+='<span class="stag '+ec+'" style="font-size:9px">'+(stLbl[ec]||ec)+'</span>';
+    h+='</div>';
+    h+='<div style="font-size:10px;color:var(--mt);margin-top:2px;">';
+    h+=(t.telefono?'\uD83D\uDCDE '+t.telefono+'&nbsp;&nbsp;':'')+'\uD83D\uDCCD '+t.municipio;
+    if(ul){
+      h+='</div><div style="font-size:9px;color:var(--ac);margin-top:2px;font-family:var(--mo)">';
+      h+='\uD83D\uDCDE '+(ll>0?ll+'x &nbsp;':'')+ul.split(',')[0];
+    }
+    h+='</div></div>';
+    return h;
   }).join('');
-  // Event delegation en el contenedor (más robusto)
-  el.onclick=function(ev){
-    var item=ev.target.closest('.tal-item');
-    if(item&&item.dataset.talid)selTal(item.dataset.talid);
-  };
+  // Event delegation con bubbling manual
+  el.onclick=null;
+  el.addEventListener('click',function(ev){
+    var node=ev.target;
+    while(node&&node!==el){
+      if(node.dataset&&node.dataset.talid){selTal(node.dataset.talid);return;}
+      node=node.parentElement;
+    }
+  });
 }
 
 function selTal(id){
-  var t=TAL.talleres.find(function(x){return x.id===id;});if(!t)return;
-  talSel=id;window._talId=id;
-  var fw=document.getElementById('acc-ficha-wrap');if(fw)fw.style.display='none';
-  var _empty=document.getElementById('empty');if(_empty)_empty.style.display='none';
-  // Ocultar también el panel de ficha ACC si estuviera visible
-  var _accFicha=document.getElementById('acc-det-panel');if(_accFicha)_accFicha.style.display='none';
-  var det=document.getElementById('det');
-  if(!det)return;
-  det.classList.add('vis');
-  det.style.display='flex';
-  document.getElementById('sb')&&(document.getElementById('sb').style.display='none');
-  if(typeof openMobileDet==='function')openMobileDet();
-  talOpen2(id);
-  // En mobile: mostrar el panel derecho
-  var rp=document.querySelector('.rp');
-  var lp2=document.querySelector('.lp');
-  if(rp&&window.innerWidth<=768){
-    if(lp2)lp2.style.display='none';
-    rp.style.display='flex';
+  try {
+    var t=TAL.talleres.find(function(x){return x.id===id;});
+    if(!t){console.error('selTal: taller no encontrado:',id);return;}
+    talSel=id;
+    window._talId=id;
+    // Ocultar paneles alternativos
+    var fw=document.getElementById('acc-ficha-wrap');if(fw)fw.style.display='none';
+    var em=document.getElementById('empty');if(em)em.style.display='none';
+    // Mostrar #det
+    var det=document.getElementById('det');
+    if(!det){console.error('selTal: #det no existe');return;}
+    det.style.display='flex';
+    det.classList.add('vis');
+    // Mostrar #sb (talOpen2 escribe en elementos dentro de det directamente)
+    var sb=document.getElementById('sb');if(sb)sb.style.display='none';
+    // Abrir ficha
+    talOpen2(id);
+    // Scroll top
+    try{scrollToPanel();}catch(e){}
+    talRenderList();
+    console.log('selTal ok:', t.nombre, '| det display:', det.style.display);
+  } catch(e) {
+    console.error('selTal error:', e.message, e.stack);
   }
-  // Scroll al top para que la ficha sea visible
-  scrollToPanel();
-  talRenderList();
 }
 
 function talOpen2(id){
