@@ -3353,7 +3353,7 @@ function talRenderList(){
     var ic=tipoIcon[t.tipo]||'\uD83D\uDD27';
     var ll=st.llamadas||0,ul=st.ultimaLlamada||'';
     var sel_cls=talSel===t.id?' sel':'';
-    var h='<div class="acc-admin-item ci est-'+ec+sel_cls+' tal-item" data-talid="'+t.id+'">';
+    var h='<div class="acc-admin-item ci est-'+ec+sel_cls+' tal-item" data-talid="'+t.id+'" onclick="selTal(this.dataset.talid)" style="cursor:pointer">';
     h+='<div style="display:flex;justify-content:space-between;align-items:center;">';
     h+='<span style="font-size:11px;font-weight:600;color:var(--tx)">'+ic+' '+t.nombre+'</span>';
     h+='<span class="stag '+ec+'" style="font-size:9px">'+(stLbl[ec]||ec)+'</span>';
