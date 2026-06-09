@@ -3343,7 +3343,7 @@ function talRenderList(){
     var st=talSt[t.id]||{},ec=st.estado||'sinLlamar';
     var ic=tipoIcon[t.tipo]||'\uD83D\uDD27';
     var ll=st.llamadas||0,ul=st.ultimaLlamada||'';
-    return '<div class="acc-admin-item ci est-'+ec+(talSel===t.id?' sel':'')+' tal-item" data-talid="'+t.id+'">'
+    return '<div class="acc-admin-item ci est-'+ec+(talSel===t.id?' sel':'')+' tal-item" data-talid="'+t.id+'" onclick="(function(){selTal(\"'+t.id+'\");})()" style="cursor:pointer">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;">'
       +'<span style="font-size:11px;font-weight:600;color:var(--tx)">'+ic+' '+t.nombre+'</span>'
       +'<span class="stag '+ec+'" style="font-size:9px">'+(stLbl[ec]||ec)+'</span>'
@@ -3352,11 +3352,7 @@ function talRenderList(){
       +(t.telefono?'\uD83D\uDCDE '+t.telefono+'  ':'')+'\uD83D\uDCCD '+t.municipio
       +(ul?'</div><div style="font-size:9px;color:var(--ac);margin-top:2px;font-family:var(--mo)">\uD83D\uDCDE '+(ll>0?ll+'x  ':'')+ul.split(',')[0]+'</div></div>':'</div></div>');
   }).join('');
-  // Event delegation en el contenedor (más robusto)
-  el.onclick=function(ev){
-    var item=ev.target.closest('.tal-item');
-    if(item&&item.dataset.talid)selTal(item.dataset.talid);
-  };
+  // onclick inline
 }
 
 function selTal(id){
