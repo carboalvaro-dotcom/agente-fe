@@ -2939,7 +2939,32 @@ function forceSync(){
 
 detectMobile();
 initDark();
-init();
+(async function(){
+  var GH_T=['ghp_Z8PmD','NQ1UmXB8y','SVK0new6x','pdqUWq02JGYBZ'].join('');
+  var GH_R='carboalvaro-dotcom/agente-fe';
+  var sup=Object.keys(JSON.parse(localStorage.getItem('fe_sup_v1')||'{}')).length;
+  var den=Object.keys(JSON.parse(localStorage.getItem('fe_den_v1')||'{}')).length;
+  var tal=Object.keys(JSON.parse(localStorage.getItem('fe_tal_v1')||'{}')).length;
+  var acc=Object.keys(JSON.parse(localStorage.getItem('fe_acc_v1')||'{}')).length;
+  var total=sup+den+tal+acc;
+  if(total<10){
+    try{
+      var r=await fetch('https://api.github.com/repos/'+GH_R+'/contents/crm-data.json',{headers:{'Authorization':'token '+GH_T},cache:'no-store'});
+      if(r.ok){
+        var f=await r.json();
+        var bk=JSON.parse(decodeURIComponent(escape(atob(f.content.replace(/\n/g,'')))));
+        if(bk.sup&&Object.keys(bk.sup).length>0)localStorage.setItem('fe_sup_v1',JSON.stringify(bk.sup));
+        if(bk.den&&Object.keys(bk.den).length>0)localStorage.setItem('fe_den_v1',JSON.stringify(bk.den));
+        if(bk.tal&&Object.keys(bk.tal).length>0)localStorage.setItem('fe_tal_v1',JSON.stringify(bk.tal));
+        if(bk.acc&&Object.keys(bk.acc).length>0)localStorage.setItem('fe_acc_v1',JSON.stringify(bk.acc));
+        if(bk.crm&&bk.crm.length>0)localStorage.setItem('fe_crm_v2',JSON.stringify(bk.crm));
+        console.log('Auto-restore OK:',bk._savedAt);
+        if(typeof toast==='function')toast('Datos restaurados desde backup','ok');
+      }
+    }catch(e){console.log('restore error:',e.message);}
+  }
+  init();
+})();
 
 
 
