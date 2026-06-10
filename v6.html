@@ -3112,6 +3112,18 @@ function accOpen2(id){
     +'</thead><tbody>'+rows+'</tbody></table></div>';
 
   renderCallsPanel(st,st.ultimaLlamada);
+  // Rellenar el player de audio propio de ACC
+  var _accAudio=document.getElementById('acc-audio-'+id);
+  if(_accAudio){
+    var _accUrl=st._recordingUrl||'';
+    if(!_accUrl){
+      var _accNotas=st.notas||'';
+      var _accM=_accNotas.match(/https:\/\/storage\.vapi\.ai\/\S+/i)||_accNotas.match(/https:\/\/\S+\.(?:mp3|wav|ogg|m4a|mp4|webm)/i);
+      if(_accM)_accUrl=_accM[0].trim();
+    }
+    if(_accUrl){_accAudio.src=_accUrl;_accAudio.style.display='block';}
+    else{_accAudio.style.display='none';}
+  }
   document.querySelectorAll('.acc-admin-item').forEach(function(e){e.classList.remove('sel');});
   var it=document.getElementById('aci-'+id);if(it)it.classList.add('sel');
   accRenderList();
