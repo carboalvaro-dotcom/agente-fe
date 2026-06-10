@@ -2896,6 +2896,21 @@ async function syncToGitHub(data){
   }catch(e){console.error('sync:',e);}
   finally{_ghSaving=false;if(_ghPendingSave){_ghPendingSave=false;}}
 }
+function autoBackupAll(){
+  // Backup silencioso de todos los modulos a GitHub
+  if(typeof C!=='undefined'&&C.length>0){syncToGitHub(C);}
+  else{
+    // Backup directo sin CP
+    var GH_T=['ghp_Z8PmD','NQ1UmXB8y','SVK0new6x','pdqUWq02JGYBZ'].join('');
+    var GH_R='carboalvaro-dotcom/agente-fe';
+    var d={crm:[],acc:JSON.parse(localStorage.getItem('fe_acc_v1')||'{}'),tal:JSON.parse(localStorage.getItem('fe_tal_v1')||'{}'),sup:JSON.parse(localStorage.getItem('fe_sup_v1')||'{}'),den:JSON.parse(localStorage.getItem('fe_den_v1')||'{}'),_savedAt:new Date().toISOString()};
+    var c=btoa(unescape(encodeURIComponent(JSON.stringify(d))));
+    fetch('https://api.github.com/repos/'+GH_R+'/contents/crm-data.json',{headers:{'Authorization':'token '+GH_T}})
+    .then(function(r){return r.ok?r.json():null;})
+    .then(function(f){var pl={message:'auto-backup '+new Date().toISOString().slice(0,16),content:c};if(f&&f.sha)pl.sha=f.sha;return fetch('https://api.github.com/repos/'+GH_R+'/contents/crm-data.json',{method:'PUT',headers:{'Authorization':'token '+GH_T,'Content-Type':'application/json'},body:JSON.stringify(pl)});})
+    .catch(function(e){console.log('autoBackup:',e.message);});
+  }
+}
 async function loadFromGitHub(){
   try{
     var GH_T=['ghp_Z8PmD','NQ1UmXB8y','SVK0new6x','pdqUWq02JGYBZ'].join('');
@@ -3473,7 +3488,7 @@ function talOpen2(id){
 
 function talSetEstado(id,estado){
   if(!talSt[id])talSt[id]={};
-  talSt[id].estado=estado;talSave();talOpen2(id);talRenderList();upStats();
+  talSt[id].estado=estado;talSave();talOpen2(id);talRenderList();upStats();autoBackupAll();
   toast('Estado actualizado','ok');
 }
 function talSaveNotas(id,val){if(!talSt[id])talSt[id]={};talSt[id].notas=val;talSave();}
@@ -3752,7 +3767,7 @@ function supOpen2(id){
 
 function supSetEstado(id,estado){
   if(!supSt[id])supSt[id]={};
-  supSt[id].estado=estado;supSave();supOpen2(id);supRenderList();upStats();
+  supSt[id].estado=estado;supSave();supOpen2(id);supRenderList();upStats();autoBackupAll();
   toast('Estado actualizado','ok');
 }
 function supSaveNotas(id,val){if(!supSt[id])supSt[id]={};supSt[id].notas=val;supSave();}
@@ -4018,7 +4033,7 @@ function denOpen2(id){
 
 function denSetEstado(id,estado){
   if(!denSt[id])denSt[id]={};
-  denSt[id].estado=estado;denSave();denOpen2(id);denRenderList();upStats();
+  denSt[id].estado=estado;denSave();denOpen2(id);denRenderList();upStats();autoBackupAll();
   toast('Estado actualizado','ok');
 }
 function denSaveNotas(id,val){if(!denSt[id])denSt[id]={};denSt[id].notas=val;denSave();}
