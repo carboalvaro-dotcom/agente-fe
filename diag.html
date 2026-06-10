@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<title>CRM Diagnostico</title>
+<style>body{font-family:monospace;padding:20px;background:#111;color:#eee;}
+.ok{color:#4ade80;} .err{color:#f87171;} .warn{color:#fbbf24;}
+h2{color:#60a5fa;} pre{background:#222;padding:10px;border-radius:6px;overflow:auto;}
+button{background:#3b82f6;color:#fff;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;margin:4px;}
+</style></head>
+<body>
+<h2>CRM Factor Energia - Diagnostico</h2>
+<div id="out"></div>
+<button onclick="runDiag()">Ejecutar diagnostico</button>
+<button onclick="fixNow()">Cargar CRM correcto</button>
+<script>
+var log = function(msg, cls) {
+  document.getElementById('out').innerHTML += '<div class="'+(cls||'')+'">' + msg + '</div>';
+};
+
+async function runDiag() {
+  document.getElementById('out').innerHTML = '';
+  
+  // 1. Verificar version del CRM
+  log('Verificando version del CRM...');
+  try {
+    var r = await fetch('https://carboalvaro-dotcom.github.io/agente-fe/index.html', {cache:'no-store'});
+    var html = await r.text();
+    var scriptMatch = html.match(/<script>([\s\S]*?)<\/script>/g);
+    var mainScript = scriptMatch ? scriptMatch[1] : '';
+    var len = mainScript ? mainScript.length : 0;
+    var surr = 0;
+    for(var i=0;i<mainScript.length;i++){var c=mainScript.charCodeAt(i);if(c>=55296&&c<=57343)surr++;}
+    if(surr > 0) {
+      log('ERROR: Script tiene ' + surr + ' surrogates - version ROTA', 'err');
+    } else {
+      log('OK: Script limpio (' + len + ' chars)', 'ok');
+    }
+  } catch(e) { log('Error: ' + e.message, 'err'); }
+  
+  // 2. LocalStorage
+  log('LocalStorage:');
+  var crm = JSON.parse(localStorage.getItem('fe_crm_v2') || '[]');
+  var den = Object.keys(JSON.parse(localStorage.getItem('fe_den_v1') || '{}')).length;
+  var tal = Object.keys(JSON.parse(localStorage.getItem('fe_tal_v1') || '{}')).length;
+  var acc = Object.keys(JSON.parse(localStorage.getItem('fe_acc_v1') || '{}')).length;
+  var sup = Object.keys(JSON.parse(localStorage.getItem('fe_sup_v1') || '{}')).length;
+  
+  var visitas = crm.filter(c=>c.estado==='visitaOK'||c.estado==='visita').length;
+  log('  CP contactos: ' + crm.length + ' | visitas: ' + visitas, crm.length>0?'ok':'err');
+  log('  DEN: ' + den + ' | TAL: ' + tal + ' | ACC: ' + acc + ' | SUP: ' + sup, 'ok');
+  
+  // 3. Backup en GitHub
+  log('Verificando backup en GitHub...');
+  try {
+    var r2 = await fetch('https://agente-fe-peach.vercel.app/api/call-notes?loadData=1');
+    var bk = await r2.json();
+    if(bk.data) {
+      var bkCrm = bk.data.crm ? bk.data.crm.length : 0;
+      var bkVis = bk.data.crm ? bk.data.crm.filter(c=>c.estado==='visitaOK'||c.estado==='visita').length : 0;
+      log('BACKUP encontrado: ' + bkCrm + ' contactos, ' + bkVis + ' visitas | guardado: ' + (bk.savedAt||'?'), 'ok');
+      window._backupData = bk.data;
+    } else {
+      log('Sin backup guardado todavia', 'warn');
+    }
+  } catch(e) { log('Backup error: ' + e.message, 'warn'); }
+  
+  // 4. Vapi
+  log('Llamadas Vapi hoy...');
+  try {
+    var r3 = await fetch('https://api.vapi.ai/call?limit=500', {headers:{'Authorization':'Bearer 96d7565b-f657-42e2-b144-670153ff65eb'}});
+    var calls = await r3.json();
+    var today = calls.filter(c=>c.createdAt&&c.createdAt.includes('2026-06-09'));
+    log('Llamadas hoy: ' + today.length, today.length>0?'ok':'warn');
+    window._vapiToday = today;
+  } catch(e) { log('Vapi error: ' + e.message, 'warn'); }
+}
+
+async function fixNow() {
+  log('Cargando CRM correcto desde el servidor...', 'warn');
+  
+  // Si hay backup, restaurarlo primero
+  if(window._backupData) {
+    var bk = window._backupData;
+    if(bk.crm && bk.crm.length > 0) {
+      localStorage.setItem('fe_crm_v2', JSON.stringify(bk.crm));
+      log('Restaurados ' + bk.crm.length + ' contactos CP desde backup', 'ok');
+    }
+    if(bk.den && Object.keys(bk.den).length > 0) {
+      localStorage.setItem('fe_den_v1', JSON.stringify(bk.den));
+      log('DEN restaurado', 'ok');
+    }
+    if(bk.tal && Object.keys(bk.tal).length > 0) {
+      localStorage.setItem('fe_tal_v1', JSON.stringify(bk.tal));
+      log('TAL restaurado', 'ok');
+    }
+    if(bk.acc && Object.keys(bk.acc).length > 0) {
+      localStorage.setItem('fe_acc_v1', JSON.stringify(bk.acc));
+      log('ACC restaurado', 'ok');
+    }
+    if(bk.sup && Object.keys(bk.sup).length > 0) {
+      localStorage.setItem('fe_sup_v1', JSON.stringify(bk.sup));
+      log('SUP restaurado', 'ok');
+    }
+  }
+  
+  // Redirigir al CRM
+  setTimeout(function(){
+    window.location.href = 'https://carboalvaro-dotcom.github.io/agente-fe/';
+  }, 2000);
+}
+
+// Auto-ejecutar
+window.onload = runDiag;
+</script>
+</body></html>
