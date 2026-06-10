@@ -2582,10 +2582,11 @@ function renderCallsPanel(st,ultimaLlamada){
   });
   if(!bloques.length)bloques=[notas||'Llamada realizada'];
   lcs.innerHTML=bloques.map(function(blk,idx){
-    var um=blk.match(/https:\/\/\S+(?:vapi\.ai|googleapis\.com|cloudfront\.net)\S*/i)
-      ||blk.match(/https:\/\/\S+\.(?:mp3|wav|ogg|m4a|mp4|webm)/i);
+    var um=blk.match(/https:\/\/\S+\.(?:mp3|wav|ogg|m4a|mp4|webm)(?:\?\S*)?/i)
+      ||blk.match(/https:\/\/storage\.vapi\.ai\/\S+/i)
+      ||blk.match(/https:\/\/\S+(?:vapi\.ai|googleapis\.com|cloudfront\.net)\/\S+/i);
     var ru=um?um[0].trim():'';
-    if(!ru&&idx===0&&st._recordingUrl)ru=st._recordingUrl;
+    if(!ru&&st._recordingUrl)ru=st._recordingUrl;
     var txt=blk.replace(/https:\/\/\S+/g,'').replace(/^\s+|\s+$/gm,'').trim();
     if(!txt&&!ru)return '';
     var esc=(txt||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
