@@ -4104,7 +4104,7 @@ function hotOpen2(id){
   stEl.className='stag '+ec;stEl.textContent=SL2[ec]||ec;
   document.getElementById('d-meta').innerHTML=
     '<span class="stag '+ec+' ch-badge">'+(SL2[ec]||ec)+'</span>'
-    +'<span class="ch-badge" style="background:#f0f4ff;color:#2563eb;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:500">&#129463; Clínica Dental</span>'
+    +'<span class="ch-badge" style="background:#f0f4ff;color:#2563eb;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:500">&#127976; '+t.tipo+'</span>'
     +'<span class="ch-badge" style="background:var(--s2);color:var(--mt);padding:2px 9px;border-radius:20px;font-size:10px">&#128205; '+t.municipio+'</span>';
   var bcall=document.getElementById('bcall');
   if(bcall){bcall.onclick=function(){hotLlamar(window._hotId);};bcall.style.display=t.telefono?'':' none';}
