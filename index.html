@@ -2614,17 +2614,50 @@ function checkDuplicate(telefono){
 }
 
 function showCampaignSummary(){
-  var _accMode2=campaignQueue.length>0&&typeof campaignQueue[0]==='string'&&campaignQueue[0].startsWith('ACC:');
+  var q0=campaignQueue.length>0&&typeof campaignQueue[0]==='string'?campaignQueue[0]:'';
+  var isAcc=q0.startsWith('ACC:');
+  var isSup=q0.startsWith('SUP:');
+  var isDen=q0.startsWith('DEN:');
+  var isTal=q0.startsWith('TAL:');
   var done;
-  if(_accMode2){var _st2=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}');done=campaignQueue.slice(0,campaignIdx).map(function(id){return _st2[id.substring(4)]||{estado:'sinLlamar'};});}
-  else{done=campaignQueue.slice(0,campaignIdx).map(id=>C.find(x=>x.id===id)).filter(Boolean);}
-  const v=done.filter(c=>c.estado==='visitaOK').length;
-  const r=done.filter(c=>c.estado==='rellamar').length;
-  const ni=done.filter(c=>c.estado==='noInteresa').length;
-  const nc=done.filter(c=>c.estado==='noContesta').length;
-  const d=done.filter(c=>c.estado==='duda').length;
-  saveCampHistory(done.length,{visitas:v,rellamar:r,noContesta:nc,noInteresa:ni,duda:d});
-  alert('Campaña completada: '+done.length+' llamadas | Visitas: '+v+' | Rellamar: '+r+' | No interesa: '+ni+' | No contesta: '+nc+' | Duda: '+d);
+  if(isAcc){
+    var _st=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}');
+    done=campaignQueue.slice(0,campaignIdx).map(function(id){return _st[id.substring(4)]||{estado:'sinLlamar'};});
+  } else if(isSup){
+    var _st=JSON.parse(localStorage.getItem('fe_sup_v1')||'{}');
+    done=campaignQueue.slice(0,campaignIdx).map(function(id){return _st[id.substring(4)]||{estado:'sinLlamar'};});
+  } else if(isDen){
+    var _st=JSON.parse(localStorage.getItem('fe_den_v1')||'{}');
+    done=campaignQueue.slice(0,campaignIdx).map(function(id){return _st[id.substring(4)]||{estado:'sinLlamar'};});
+  } else if(isTal){
+    var _st=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
+    done=campaignQueue.slice(0,campaignIdx).map(function(id){return _st[id.substring(4)]||{estado:'sinLlamar'};});
+  } else {
+    done=campaignQueue.slice(0,campaignIdx).map(function(id){return C.find(function(x){return x.id===id;});}).filter(Boolean);
+  }
+  var v=done.filter(function(c){return c.estado==='visita'||c.estado==='visitaOK';}).length;
+  var r=done.filter(function(c){return c.estado==='rellamar';}).length;
+  var ni=done.filter(function(c){return c.estado==='noInteresa';}).length;
+  var nc=done.filter(function(c){return c.estado==='noContesta';}).length;
+  var du=done.filter(function(c){return c.estado==='duda';}).length;
+  saveCampHistory(done.length,{visitas:v,rellamar:r,noContesta:nc,noInteresa:ni,duda:du});
+  // Modal visual en lugar de alert
+  var msg='<div style="font-size:15px;font-weight:700;margin-bottom:14px;">\uD83C\uDFC1 Campa\u00f1a completada</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">'
+    +'<div style="background:rgba(22,163,74,.15);border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:700;color:#16a34a">'+v+'</div><div style="color:var(--mt)">\u2713 Visitas</div></div>'
+    +'<div style="background:rgba(217,119,6,.15);border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:700;color:#d97706">'+r+'</div><div style="color:var(--mt)">\u21ba Rellamar</div></div>'
+    +'<div style="background:rgba(220,38,38,.12);border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:700;color:#dc2626">'+ni+'</div><div style="color:var(--mt)">&times; No interesa</div></div>'
+    +'<div style="background:rgba(156,163,175,.15);border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:700;color:#9ca3af">'+nc+'</div><div style="color:var(--mt)">&mdash; No contesta</div></div>'
+    +'<div style="background:rgba(124,58,237,.12);border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:700;color:#7c3aed">'+du+'</div><div style="color:var(--mt)">? Duda</div></div>'
+    +'<div style="background:var(--s2);border-radius:8px;padding:10px;text-align:center"><div style="font-size:22px;font-weight:700;color:var(--tx)">'+done.length+'</div><div style="color:var(--mt)">Total</div></div>'
+    +'</div>';
+  var overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  var box=document.createElement('div');
+  box.style.cssText='background:var(--s0);border:1px solid var(--bd);border-radius:14px;padding:24px;min-width:280px;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.3);';
+  box.innerHTML=msg+'<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="margin-top:16px;width:100%;padding:10px;background:var(--ac);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Cerrar</button>';
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
 }
 
 function toggleCampaignPause(){
