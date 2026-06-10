@@ -2925,6 +2925,10 @@ function openSector(id){
     if(s===id){el.classList.toggle('open');}
     else{el.classList.remove('open');}
   });
+  if(id==='tal-section'&&typeof talRenderList==='function')talRenderList();
+  if(id==='den-section'&&typeof denRenderList==='function')denRenderList();
+  if(id==='acc-section'&&typeof accRenderList==='function')accRenderList();
+  if(id==='sup-section'&&typeof supRenderList==='function')supRenderList();
 }
 function accToggle(){openSector('acc-section');}
 
@@ -3320,10 +3324,8 @@ function talRenderList(){
       +(ul?'</div><div style="font-size:9px;color:var(--ac);margin-top:2px;font-family:var(--mo)">\uD83D\uDCDE '+(ll>0?ll+'x  ':'')+ul.split(',')[0]:'')
       +'</div></div>';
   }).join('');
-  el.onclick=function(ev){
-    var item=ev.target.closest('.tal-item');
-    if(item&&item.dataset.talid)selTal(item.dataset.talid);
-  };
+  // listener en el contenedor — registrado una vez en init
+  // (no en onclick para evitar que se pierda)
 }
 
 function selTal(id){
@@ -3406,7 +3408,20 @@ function talLlamar(id){
 
 async function talFetchResult(){/* handled by syncVapiHoy */}
 
-(function t(){var l=document.getElementById('tal-list');if(l){talRenderList();}else{setTimeout(t,300);}})();
+(function t(){
+  var sec=document.getElementById('tal-section');
+  var l=document.getElementById('tal-list');
+  if(sec&&l){
+    talRenderList();
+    if(!sec._talListenerSet){
+      sec._talListenerSet=true;
+      sec.addEventListener('click',function(ev){
+        var item=ev.target.closest('.tal-item');
+        if(item&&item.dataset.talid)selTal(item.dataset.talid);
+      });
+    }
+  }else{setTimeout(t,200);}
+})();
 </script>
 
 <script id="sup-module">
