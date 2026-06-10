@@ -3534,7 +3534,7 @@ async function talFetchResult(){/* deprecated — flujo unificado via pollCallSt
 var _smTal26=window.selMob;
 window.selMob=function(id,el){
   if(talSel){var fw=document.getElementById('acc-ficha-wrap');if(fw)fw.style.display='none';talSel=null;}
-  if(_smTal26)_smTal(id,el);
+  if(_smTal26)_smTal26(id,el);
 };
 
 
@@ -4079,7 +4079,7 @@ async function denFetchResult(){/* deprecated — flujo unificado via pollCallSt
 var _smDen=window.selMob;
 window.selMob=function(id,el){
   if(denSel){var fw=document.getElementById('acc-ficha-wrap');if(fw)fw.style.display='none';denSel=null;}
-  if(_smDen)_smTal(id,el);
+  if(_smDen)_smDen(id,el);
 };
 
 
