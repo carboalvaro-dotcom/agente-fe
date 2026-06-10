@@ -1800,6 +1800,7 @@ async function pollCallStatus(callId,contactId){
         // Si hay grabación pero quedó como noContesta → corregir a duda
         if(reason==='noContesta'&&hasDuration) reason='duda';
         endCall(contactId,reason);
+        window._lastEndedReason=endedReason;
         await new Promise(function(r){setTimeout(r,2000);});
         fetchCallNotes(callId,contactId);
         return;
@@ -2272,6 +2273,17 @@ async function waitForCallEnd(callId,contactId){
   endCall(contactId,'duda');
 }
 
+function getHungUpLine(endedReason){
+  if(!endedReason) return '';
+  if(endedReason==='customer-did-not-answer'||endedReason==='no-answer') return '';
+  if(endedReason==='voicemail') return '\uD83D\uDCE9 Buz\u00f3n de voz';
+  if(endedReason==='customer-ended-call') return '\uD83D\uDCF4 Cort\u00f3 el cliente';
+  if(endedReason==='assistant-ended-call') return '\uD83E\uDD16 Cort\u00f3 Carla';
+  if(endedReason==='busy') return '\uD83D\uDD34 L\u00ednea ocupada';
+  if(endedReason==='exceeded-max-duration') return '\u23F1 Llamada larga — cort\u00f3 Carla';
+  if(endedReason==='pipeline-error'||endedReason==='assistant-error') return '\u26A0\uFE0F Error t\u00e9cnico';
+  return '';
+}
 function applyCallResult(data,callId,contactId){
   // Handle TAL taller results
   if(typeof contactId==='string'&&contactId.startsWith('TAL:')){
@@ -2281,10 +2293,12 @@ function applyCallResult(data,callId,contactId){
     if(!talSt[talId2].llamadas||talSt[talId2].llamadas<1)talSt[talId2].llamadas=1;
     if(data.recordingUrl)talSt[talId2]._recordingUrl=data.recordingUrl;
     if(data.notas){
+      var _talHung=getHungUpLine(window._lastEndedReason||'');
+      var _talNotas=data.notas+(_talHung?'\n'+_talHung:'');
       var talEx=talSt[talId2].notas||'';
       var talEntries=talEx?talEx.split(/\n(?=\uD83D\uDCDE)/):[]; 
       var talFiltered=talEntries.filter(function(e){return !e.includes(callId.substring(0,18));});
-      talFiltered.push(data.notas);
+      talFiltered.push(_talNotas);
       talSt[talId2].notas=talFiltered.join('\n\n');
     }
     var talResultMap={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
@@ -2292,7 +2306,7 @@ function applyCallResult(data,callId,contactId){
     var _agN=['carla','carlos'];
     if(data.nombreContacto&&!talSt[talId2].contacto&&!_agN.includes((data.nombreContacto||'').toLowerCase()))talSt[talId2].contacto=data.nombreContacto;
     if(data.cuandoLlamar&&data.resultado==='rellamar'&&!talSt[talId2].fechaRellamar){talSt[talId2].fechaRellamar=data.cuandoLlamar;addCalendarEvent(TAL.talleres.find(function(x){return x.id===talId2;}),data.cuandoLlamar);}
-    if(!talSt[talId2].notas){talSt[talId2].notas=new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+' - '+(talSt[talId2].estado||'duda')+' - Pendiente de analisis';}
+    if(!talSt[talId2].notas){talSt[talId2].notas=new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'})+' - '+(talSt[talId2].estado||'duda')+' - Pendiente de analisis';}
     talSave();
     clearInterval(iv);
     document.getElementById('cban').classList.remove('on');
@@ -2308,13 +2322,15 @@ function applyCallResult(data,callId,contactId){
     denSt[denId2]._callId=callId;
     if(!denSt[denId2].llamadas||denSt[denId2].llamadas<1)denSt[denId2].llamadas=1;
     if(data.recordingUrl)denSt[denId2]._recordingUrl=data.recordingUrl;
-    if(data.notas){var denEx=denSt[denId2].notas||'';denSt[denId2].notas=denEx?denEx+'\n\n'+data.notas:data.notas;}
+    var _denHung=getHungUpLine(window._lastEndedReason||'');
+    var _denNotas=data.notas?data.notas+(_denHung?'\n'+_denHung:''):(_denHung||'');
+    if(_denNotas){var denEx=denSt[denId2].notas||'';denSt[denId2].notas=denEx?denEx+'\n\n'+_denNotas:_denNotas;}
     var denRM={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
     if(data.resultado&&denRM[data.resultado])denSt[denId2].estado=denRM[data.resultado];
     var _agND=['carla','carlos'];
     if(data.nombreContacto&&!denSt[denId2].contacto&&!_agND.includes((data.nombreContacto||'').toLowerCase()))denSt[denId2].contacto=data.nombreContacto;
     if(data.cuandoLlamar&&data.resultado==='rellamar'&&!denSt[denId2].fechaRellamar){denSt[denId2].fechaRellamar=data.cuandoLlamar;addCalendarEvent(DEN.clinicas.find(function(x){return x.id===denId2;}),data.cuandoLlamar);}
-    if(!denSt[denId2].notas){denSt[denId2].notas=new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+' - '+( denSt[denId2].estado||'duda')+' - Pendiente de analisis';}
+    if(!denSt[denId2].notas){denSt[denId2].notas=new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'})+' - '+( denSt[denId2].estado||'duda')+' - Pendiente de analisis';}
     denSave();clearInterval(iv);document.getElementById('cban').classList.remove('on');
     denRenderList();if(denSel===denId2)denOpen2(denId2);
     upStats();updateCampLiveStats();return;
@@ -2326,13 +2342,15 @@ function applyCallResult(data,callId,contactId){
     supSt[supId2]._callId=callId;
     if(!supSt[supId2].llamadas||supSt[supId2].llamadas<1)supSt[supId2].llamadas=1;
     if(data.recordingUrl)supSt[supId2]._recordingUrl=data.recordingUrl;
-    if(data.notas){var supEx=supSt[supId2].notas||'';supSt[supId2].notas=supEx?supEx+'\n\n'+data.notas:data.notas;}
+    var _supHung=getHungUpLine(window._lastEndedReason||'');
+    var _supNotas=data.notas?data.notas+(_supHung?'\n'+_supHung:''):(_supHung||'');
+    if(_supNotas){var supEx=supSt[supId2].notas||'';supSt[supId2].notas=supEx?supEx+'\n\n'+_supNotas:_supNotas;}
     var supRM={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
     if(data.resultado&&supRM[data.resultado])supSt[supId2].estado=supRM[data.resultado];
     var _agNS=['carla','carlos'];
     if(data.nombreContacto&&!supSt[supId2].contacto&&!_agNS.includes((data.nombreContacto||'').toLowerCase()))supSt[supId2].contacto=data.nombreContacto;
     if(data.cuandoLlamar&&data.resultado==='rellamar'&&!supSt[supId2].fechaRellamar){supSt[supId2].fechaRellamar=data.cuandoLlamar;addCalendarEvent(SUP.supers.find(function(x){return x.id===supId2;}),data.cuandoLlamar);}
-    if(!supSt[supId2].notas){supSt[supId2].notas=new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})+' - '+(supSt[supId2].estado||'duda')+' - Pendiente de analisis';}
+    if(!supSt[supId2].notas){supSt[supId2].notas=new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'})+' - '+(supSt[supId2].estado||'duda')+' - Pendiente de analisis';}
     supSave();clearInterval(iv);document.getElementById('cban').classList.remove('on');
     supRenderList();if(supSel===supId2)supOpen2(supId2);
     upStats();return;
@@ -2344,12 +2362,12 @@ function applyCallResult(data,callId,contactId){
     accSt[accId]._callId=callId;
     if(data.recordingUrl)accSt[accId]._recordingUrl=data.recordingUrl;
     if(data.notas){
-      // Replace raw Vapi entry for this callId with backend analysis
+      var _accHung=getHungUpLine(window._lastEndedReason||'');
+      var _accNotasFin=data.notas+(_accHung?'\n'+_accHung:'');
       var existing=accSt[accId].notas||'';
       var entries=existing?existing.split(/\n(?=\uD83D\uDCDE)/):[]; 
-      // Remove any raw entry that has same callId (recordingUrl contains callId)
       var filtered=entries.filter(function(e){return !e.includes(callId.substring(0,18));});
-      filtered.push(data.notas);
+      filtered.push(_accNotasFin);
       accSt[accId].notas=filtered.join('\n\n');
     }
     var resultMap={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
