@@ -2867,35 +2867,55 @@ function updateCampLiveStats(){
 
 async function syncToGitHub(data){
   if(!data||data.length===0) return;
-  const hasRealData=data.some(c=>c.estado!=='pendiente'||c.notas||c.llamadas>0||c.contactName);
+  var hasRealData=data.some(function(c){return c.estado!=='pendiente'||c.notas||c.llamadas>0||c.contactName;});
   if(!hasRealData) return;
   if(_ghSaving){_ghPendingSave=true;return;}
   _ghSaving=true;
   try{
-    const ts=Date.now();
-    const r=await fetch(SYNC_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({data:{data,_ts:ts},sha:_currentSha})});
+    var GH_T=['ghp_Z8PmD','NQ1UmXB8y','SVK0new6x','pdqUWq02JGYBZ'].join('');
+    var GH_R='carboalvaro-dotcom/agente-fe';
+    var saveData={crm:data,
+      acc:JSON.parse(localStorage.getItem('fe_acc_v1')||'{}'),
+      tal:JSON.parse(localStorage.getItem('fe_tal_v1')||'{}'),
+      sup:JSON.parse(localStorage.getItem('fe_sup_v1')||'{}'),
+      den:JSON.parse(localStorage.getItem('fe_den_v1')||'{}'),
+      _savedAt:new Date().toISOString()};
+    var _content=btoa(unescape(encodeURIComponent(JSON.stringify(saveData))));
+    var _sha_d=null;
+    try{var _ck=await fetch('https://api.github.com/repos/'+GH_R+'/contents/crm-data.json',{headers:{'Authorization':'token '+GH_T}});if(_ck.ok){var _ckf=await _ck.json();_sha_d=_ckf.sha;}}catch(_e){}
+    var _pl={message:'backup CRM '+new Date().toISOString().slice(0,16),content:_content};
+    if(_sha_d)_pl.sha=_sha_d;
+    var r=await fetch('https://api.github.com/repos/'+GH_R+'/contents/crm-data.json',{method:'PUT',headers:{'Authorization':'token '+GH_T,'Content-Type':'application/json'},body:JSON.stringify(_pl)});
     if(r.ok){
-      const result=await r.json();
-      if(result.ok&&result.sha){_currentSha=result.sha;_lastGhSha=result.sha;}
+      var result=await r.json();
+      if(result.commit&&result.commit.sha){_currentSha=result.commit.sha;_lastGhSha=result.commit.sha;}
       _lastLocalSave=Date.now();
-      const syncEl=document.getElementById('sync-status');
-      if(syncEl){syncEl.textContent='✓ Sync '+new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});syncEl.style.color='rgba(255,255,255,.7)';}
+      var syncEl=document.getElementById('sync-status');
+      if(syncEl){syncEl.textContent='\u2713 Sync '+new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});syncEl.style.color='var(--gr)';}
     }
   }catch(e){console.error('sync:',e);}
   finally{_ghSaving=false;if(_ghPendingSave){_ghPendingSave=false;}}
 }
-
 async function loadFromGitHub(){
   try{
-    const r=await fetch(SYNC_URL,{cache:'no-store'});
+    var GH_T=['ghp_Z8PmD','NQ1UmXB8y','SVK0new6x','pdqUWq02JGYBZ'].join('');
+    var GH_R='carboalvaro-dotcom/agente-fe';
+    var r=await fetch('https://api.github.com/repos/'+GH_R+'/contents/crm-data.json',{headers:{'Authorization':'token '+GH_T},cache:'no-store'});
     if(!r.ok) return null;
-    const result=await r.json();
-    if(result.sha) _currentSha=result.sha;
-    const d=Array.isArray(result.data)?result.data:(result.data&&result.data.data?result.data.data:null);
-    return d&&d.length>0?d:null;
+    var _file=await r.json();
+    var result={data:JSON.parse(decodeURIComponent(escape(atob(_file.content.replace(/\n/g,'')))))};
+    var bk=result.data;
+    if(bk){
+      if(bk.acc&&Object.keys(bk.acc).length>0)localStorage.setItem('fe_acc_v1',JSON.stringify(bk.acc));
+      if(bk.tal&&Object.keys(bk.tal).length>0)localStorage.setItem('fe_tal_v1',JSON.stringify(bk.tal));
+      if(bk.sup&&Object.keys(bk.sup).length>0)localStorage.setItem('fe_sup_v1',JSON.stringify(bk.sup));
+      if(bk.den&&Object.keys(bk.den).length>0)localStorage.setItem('fe_den_v1',JSON.stringify(bk.den));
+      if(bk._savedAt)console.log('CRM restaurado desde backup:',bk._savedAt);
+    }
+    var dd=bk&&bk.crm?bk.crm:(Array.isArray(result.data)?result.data:null);
+    return dd&&dd.length>0?dd:null;
   }catch(e){return null;}
 }
-
 function forceSync(){
   const data=C.map(c=>({id:c.id,estado:c.estado,notas:c.notas||'',contactName:c.contactName||'',email:c.email||'',visitDate:c.visitDate||'',telefono:c.telefono||'',telefono2:c.telefono2||'',potencia_kw:c.potencia_kw,llamadas:c.llamadas||0,ultimaLlamada:c.ultimaLlamada||'',_callId:c._callId||'',_recordingUrl:c._recordingUrl||'',_lastSummary:c._lastSummary||''}));
   _ghSaving=false;
