@@ -1773,21 +1773,34 @@ function endCall(contactId, reason){
 }
 
 async function pollCallStatus(callId,contactId){
-  for(let i=0;i<30;i++){
-    await new Promise(r=>setTimeout(r,5000));
+  for(var _i=0;_i<30;_i++){
+    await new Promise(function(r){setTimeout(r,5000);});
     try{
-      const r=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({callId,checkStatus:true})});
-      if(!r.ok) continue;
-      const data=await r.json();
-      const status=data.callStatus||data.status;
-      const endedReason=data.callEndedReason||data.endedReason;
+      var _r=await fetch('https://api.vapi.ai/call/'+callId,{headers:{'Authorization':'Bearer '+VAPI_KEY}});
+      if(!_r.ok) continue;
+      var data=await _r.json();
+      var status=data.status;
+      var endedReason=data.endedReason;
+      var hasDuration=(data.costs&&data.costs.length>0)||(data.artifact&&(data.artifact.recordingUrl||data.artifact.stereoRecordingUrl));
       if(status==='ended'||status==='failed'){
-        let reason='duda';
-        if(endedReason==='customer-did-not-answer'||endedReason==='no-answer')reason='noContesta';
-        else if(endedReason==='voicemail')reason='rellamar';
+        var reason='duda';
+        // Nadie cogió el teléfono
+        if(endedReason==='customer-did-not-answer'||endedReason==='no-answer'||endedReason==='busy'){
+          reason='noContesta';
+        }
+        // Buzón de voz
+        else if(endedReason==='voicemail'){
+          reason='rellamar';
+        }
+        // Cualquier otra razón (cliente colgó, Carla acabó, error...) → duda
+        // Si hay grabación/duración siempre es duda (hubo conversación)
+        else{
+          reason='duda';
+        }
+        // Si hay grabación pero quedó como noContesta → corregir a duda
+        if(reason==='noContesta'&&hasDuration) reason='duda';
         endCall(contactId,reason);
-        await new Promise(r=>setTimeout(r,2000));
+        await new Promise(function(r){setTimeout(r,2000);});
         fetchCallNotes(callId,contactId);
         return;
       }
@@ -3849,14 +3862,14 @@ async function supLlamar(id){
   document.getElementById('cban').classList.add('on');
   sec=0;clearInterval(iv);
   iv=setInterval(function(){sec++;var m=Math.floor(sec/60),s=sec%60;document.getElementById('ctm').textContent=m+':'+(s<10?'0':'')+s;},1000);
-  var systemPrompt='Eres CARLA, comercial de una asesor\u00eda energ\u00e9tica.\n\n'
+  var systemPrompt='Eres CARLA, llamando de parte de la distribuidora el\u00e9ctrica de la zona.\n\n'
     +'ESTABLECIMIENTO: '+t.nombre+' ('+t.cadena+', '+t.municipio+')\n\n'
     +'FLUJO DE LA LLAMADA:\n'
     +'1. El sistema ya ha preguntado si habla con el establecimiento. Si confirman, preséntate:\n'
-    +'   Hola, soy Carla, de una asesor\u00eda energ\u00e9tica.\n'
+    +'   Hola, soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n'
     +'2. Motivo SIN mencionar el nombre del establecimiento:\n'
-    +'   Le llamo porque establecimientos con camaras frigorificas de su zona pagan de m\u00e1s en la factura de luz\n'
-    +'   por la potencia contratada. Diez minutos de revisi\u00f3n, \u00bfle encaja esta semana?\n'
+    +'   Le llamamos porque hemos detectado que su suministro puede estar afectado por desajustes de potencia.\n'
+    +'   Nosotros nos encargamos de solucionarlo sin coste. Diez minutos de revisi\u00f3n, \u00bfle encaja esta semana?\n'
     +'3. Si no has conseguido el nombre, pregunta de forma natural: \u00bfY c\u00f3mo se llama usted?\n'
     +'4. Si el responsable de luz no est\u00e1, pregunta su nombre y cu\u00e1ndo llamarle.\n\n'
     +'REGLAS ESTRICTAS:\n'
