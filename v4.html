@@ -3346,7 +3346,7 @@ function talRenderList(){
   // Event delegation en el contenedor (más robusto)
   el.onclick=function(ev){
     var item=ev.target.closest('.tal-item');
-    if(item&&item.dataset.talid)selTal26(item.dataset.denid);
+    if(item&&item.dataset.talid)selTal26(item.dataset.talid);
   };
 }
 
