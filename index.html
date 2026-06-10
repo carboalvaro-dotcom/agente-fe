@@ -1210,7 +1210,7 @@ function setFechaHoy(){
     if(_first&&_first!==_se)_lp.insertBefore(_se,_first);
   }
   // Paso 2: abrir el sector correcto, cerrar los demas
-  ['acc-section','tal-section','sup-section','den-section'].forEach(function(s){
+  ['acc-section','hot-section','tal-section','sup-section','den-section'].forEach(function(s){
     var el=document.getElementById(s);
     if(el){if(s===_best)el.classList.add('open');else el.classList.remove('open');}
   });
@@ -3067,7 +3067,7 @@ try{updateStats();}catch(e){}
 try{setTimeout(applyCompact,100);}catch(e){}
 function accSave(){localStorage.setItem('fe_acc_v1',JSON.stringify(accSt));}
 function openSector(id){
-  ['acc-section','tal-section','sup-section','den-section'].forEach(function(s){
+  ['acc-section','hot-section','tal-section','sup-section','den-section'].forEach(function(s){
     var el=document.getElementById(s);
     if(!el)return;
     if(s===id){el.classList.toggle('open');}
