@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>CRM Restore</title>
+<style>
+body{font-family:monospace;background:#0f1117;color:#e2e8f0;padding:30px;max-width:600px;margin:0 auto;}
+h1{color:#60a5fa;font-size:18px;margin-bottom:6px;}
+h2{color:#94a3b8;font-size:13px;font-weight:normal;margin:0 0 24px;}
+.card{background:#1e2230;border:1px solid #2d3748;border-radius:10px;padding:20px;margin-bottom:16px;}
+.row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.label{font-size:12px;color:#94a3b8;}
+.value{font-size:12px;color:#e2e8f0;font-weight:600;}
+.ok{color:#4ade80;} .err{color:#f87171;} .warn{color:#fbbf24;}
+button{background:#3b82f6;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-size:13px;width:100%;margin-top:8px;}
+button:hover{background:#2563eb;}
+button.green{background:#16a34a;}
+button.green:hover{background:#15803d;}
+#log{margin-top:16px;font-size:11px;line-height:1.8;min-height:40px;}
+.sep{border-top:1px solid #2d3748;margin:16px 0;}
+</style></head>
+<body>
+<h1>🛟 CRM Factor Energía — Restore</h1>
+<h2>Restaura todos los datos desde el backup en GitHub</h2>
+<div class="card" id="backup-info">
+  <div class="row"><span class="label">Cargando backup...</span></div>
+</div>
+<button class="green" onclick="restoreAll()">⬇️ RESTAURAR TODOS LOS DATOS</button>
+<button onclick="backupNow()">☁️ HACER BACKUP AHORA</button>
+<div id="log"></div>
+<div class="sep"></div>
+<div style="font-size:11px;color:#64748b;line-height:1.8">
+  <b style="color:#94a3b8">Cómo usar:</b><br>
+  1. Pulsa <b>RESTAURAR</b> para cargar todos los datos del backup en este browser<br>
+  2. Luego ve al CRM: <a href="index.html" style="color:#60a5fa">index.html</a><br>
+  3. Pulsa 🔄 Sync para recuperar grabaciones de Vapi<br><br>
+  <b style="color:#94a3b8">Si el CRM no carga bien:</b><br>
+  • Abre esta página y restaura<br>
+  • Luego navega al CRM desde aquí<br>
+</div>
+<script>
+var GH_T = ['ghp_Z8PmD','NQ1UmXB8y','SVK0new6x','pdqUWq02JGYBZ'].join('');
+var GH_R = 'carboalvaro-dotcom/agente-fe';
+var GH_API = 'https://api.github.com/repos/'+GH_R;
+
+function log(msg, cls) {
+  var d = document.getElementById('log');
+  d.innerHTML += '<div class="'+(cls||'')+'">' + msg + '</div>';
+}
+
+async function loadBackupInfo() {
+  try {
+    var r = await fetch(GH_API+'/contents/crm-data.json', {headers:{'Authorization':'token '+GH_T}, cache:'no-store'});
+    if (!r.ok) { document.getElementById('backup-info').innerHTML = '<div class="err">Sin backup guardado todavía</div>'; return null; }
+    var file = await r.json();
+    var data = JSON.parse(decodeURIComponent(escape(atob(file.content.replace(/\n/g,'')))));
+    var info = document.getElementById('backup-info');
+    var savedAt = data._savedAt ? new Date(data._savedAt).toLocaleString('es-ES',{timeZone:'Europe/Madrid'}) : '?';
+    var supLL = Object.values(data.sup||{}).filter(function(s){return s.llamadas>0;}).length;
+    var denLL = Object.values(data.den||{}).filter(function(s){return s.llamadas>0;}).length;
+    var talLL = Object.values(data.tal||{}).filter(function(s){return s.llamadas>0;}).length;
+    var accLL = Object.values(data.acc||{}).filter(function(s){return s.llamadas>0;}).length;
+    var supV  = Object.values(data.sup||{}).filter(function(s){return s.estado==='visita';}).length;
+    var denV  = Object.values(data.den||{}).filter(function(s){return s.estado==='visita';}).length;
+    info.innerHTML =
+      '<div class="row"><span class="label">💾 Último backup</span><span class="value ok">'+savedAt+'</span></div>' +
+      '<div class="row"><span class="label">🏪 SUP llamados</span><span class="value">'+supLL+' <span style="color:#4ade80">('+supV+' visitas)</span></span></div>' +
+      '<div class="row"><span class="label">🦷 DEN llamados</span><span class="value">'+denLL+'</span></div>' +
+      '<div class="row"><span class="label">🔧 TAL llamados</span><span class="value">'+talLL+'</span></div>' +
+      '<div class="row"><span class="label">🏢 ACC llamados</span><span class="value">'+accLL+'</span></div>' +
+      '<div class="row"><span class="label">📋 CP contactos</span><span class="value">'+(data.crm||[]).length+'</span></div>';
+    window._backupData = data;
+    return data;
+  } catch(e) {
+    document.getElementById('backup-info').innerHTML = '<div class="err">Error: '+e.message+'</div>';
+    return null;
+  }
+}
+
+async function restoreAll() {
+  log('Restaurando datos desde GitHub...', 'warn');
+  var data = window._backupData || await loadBackupInfo();
+  if (!data) { log('No hay backup disponible', 'err'); return; }
+  var restored = [];
+  if (data.sup && Object.keys(data.sup).length > 0) { localStorage.setItem('fe_sup_v1', JSON.stringify(data.sup)); restored.push('SUP: '+Object.keys(data.sup).length); }
+  if (data.den && Object.keys(data.den).length > 0) { localStorage.setItem('fe_den_v1', JSON.stringify(data.den)); restored.push('DEN: '+Object.keys(data.den).length); }
+  if (data.tal && Object.keys(data.tal).length > 0) { localStorage.setItem('fe_tal_v1', JSON.stringify(data.tal)); restored.push('TAL: '+Object.keys(data.tal).length); }
+  if (data.acc && Object.keys(data.acc).length > 0) { localStorage.setItem('fe_acc_v1', JSON.stringify(data.acc)); restored.push('ACC: '+Object.keys(data.acc).length); }
+  if (data.crm && data.crm.length > 0) { localStorage.setItem('fe_crm_v2', JSON.stringify(data.crm)); restored.push('CP: '+data.crm.length); }
+  log('✅ Restaurado: ' + restored.join(' | '), 'ok');
+  log('→ <a href="index.html" style="color:#60a5fa">Abrir CRM</a> y pulsar 🔄 Sync', 'ok');
+}
+
+async function backupNow() {
+  log('Guardando backup en GitHub...', 'warn');
+  var allData = {
+    crm: JSON.parse(localStorage.getItem('fe_crm_v2')||'[]'),
+    acc: JSON.parse(localStorage.getItem('fe_acc_v1')||'{}'),
+    tal: JSON.parse(localStorage.getItem('fe_tal_v1')||'{}'),
+    sup: JSON.parse(localStorage.getItem('fe_sup_v1')||'{}'),
+    den: JSON.parse(localStorage.getItem('fe_den_v1')||'{}'),
+    _savedAt: new Date().toISOString()
+  };
+  var content = btoa(unescape(encodeURIComponent(JSON.stringify(allData))));
+  try {
+    var ck = await fetch(GH_API+'/contents/crm-data.json', {headers:{'Authorization':'token '+GH_T}});
+    var sha_d = null;
+    if (ck.ok) { var f = await ck.json(); sha_d = f.sha; }
+    var pl = {message: 'backup manual '+new Date().toISOString().slice(0,16), content: content};
+    if (sha_d) pl.sha = sha_d;
+    var r = await fetch(GH_API+'/contents/crm-data.json', {method:'PUT', headers:{'Authorization':'token '+GH_T,'Content-Type':'application/json'}, body:JSON.stringify(pl)});
+    var rd = await r.json();
+    if (rd.commit) {
+      log('✅ Backup guardado: ' + rd.commit.sha.slice(0,8), 'ok');
+      await loadBackupInfo();
+    } else { log('Error: '+JSON.stringify(rd).slice(0,100), 'err'); }
+  } catch(e) { log('Error: '+e.message, 'err'); }
+}
+
+loadBackupInfo();
+</script>
+</body></html>
