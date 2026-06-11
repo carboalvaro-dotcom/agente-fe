@@ -4205,9 +4205,9 @@ function hotOpen2(id){
   if(bcall){bcall.onclick=function(){hotLlamar(window._hotId);};bcall.style.display=t.telefono?'':' none';}
   document.getElementById('ficha-grid').innerHTML=
     '<div class="fg-item span4"><div class="fg-label">Nombre contacto</div>'
-    +'<input class="fg-input" id="tal-contacto-cur" value="'+(st.contacto||'')+'" placeholder="Responsable/recepcionista" onchange="hotSaveContacto(window._denId,this.value)"></div>'
+    +'<input class="fg-input" id="tal-contacto-cur" value="'+(st.contacto||'')+'" placeholder="Responsable/recepcionista" onchange="hotSaveContacto(window._hotId,this.value)"></div>'
     +'<div class="fg-item span2"><div class="fg-label">Tel&eacute;fono</div>'
-    +'<input class="fg-input" value="'+(t.telefono||'')+'" onchange="hotUpdateField(window._denId,\'telefono\',this.value)" placeholder="Sin tel&eacute;fono"></div>'
+    +'<input class="fg-input" value="'+(t.telefono||'')+'" onchange="hotUpdateField(window._hotId,\'telefono\',this.value)" placeholder="Sin tel&eacute;fono"></div>'
     +'<div class="fg-item span2"><div class="fg-label">Direcci&oacute;n</div>'
     +'<input class="fg-input" value="'+(t.direccion||'')+'" readonly></div>'
     +'<div class="fg-item"><div class="fg-label">Municipio</div>'
@@ -4231,18 +4231,18 @@ function hotOpen2(id){
       btn.onclick=(function(est){
         return function(){
           var talEst=est==='visitaOK'?'visita':est;
-          hotSetEstado(window._denId,talEst);
+          hotSetEstado(window._hotId,talEst);
           btns.forEach(function(b){b.style.opacity='1';});
         };
       })(estados[idx]);
     }
   });
   var clearBtn=document.querySelector('.save-bar .btn-gh');
-  if(clearBtn)clearBtn.onclick=function(){hotSetEstado(window._denId,'sinLlamar');};
+  if(clearBtn)clearBtn.onclick=function(){hotSetEstado(window._hotId,'sinLlamar');};
   var saveBtn=document.querySelector('.save-bar .btn-pr');
   if(saveBtn)saveBtn.onclick=function(){
-    if(!hotSt[window._denId])hotSt[window._denId]={};
-    hotSt[window._denId].notas=document.getElementById('notas').value;
+    if(!hotSt[window._hotId])hotSt[window._hotId]={};
+    hotSt[window._hotId].notas=document.getElementById('notas').value;
     hotSave();toast('Guardado','ok');
   };
   // Audio player y resumen llamada
