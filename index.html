@@ -2985,6 +2985,7 @@ function updateCampLiveStats(){
   var talMode=campaignQueue.length>0&&typeof campaignQueue[0]==='string'&&campaignQueue[0].startsWith('TAL:');
   var denMode=campaignQueue.length>0&&typeof campaignQueue[0]==='string'&&campaignQueue[0].startsWith('DEN:');
   var supMode=campaignQueue.length>0&&typeof campaignQueue[0]==='string'&&campaignQueue[0].startsWith('SUP:');
+  var hotMode=campaignQueue.length>0&&typeof campaignQueue[0]==='string'&&campaignQueue[0].startsWith('HOT:');
   var done;
   if(accMode){
     var stData=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}');
@@ -3004,10 +3005,16 @@ function updateCampLiveStats(){
       var sId=id.substring(4);
       return supStData[sId]||{estado:'sinLlamar'};
     });
+  } else if(hotMode){
+    var hotStData=JSON.parse(localStorage.getItem('fe_hot_v1')||'{}');
+    done=campaignQueue.slice(0,campaignIdx).map(function(id){
+      var hId=id.substring(4);
+      return hotStData[hId]||{estado:'sinLlamar'};
+    });
   } else {
     done=campaignQueue.slice(0,campaignIdx).map(function(id){return C.find(function(x){return x.id===id;});}).filter(Boolean);
   }
-  var visitaKey=(accMode||talMode||supMode||denMode)?'visita':'visitaOK';
+  var visitaKey=(accMode||talMode||supMode||hotMode||denMode)?'visita':'visitaOK';
   const v=document.getElementById('cls-v');
   const r=document.getElementById('cls-r');
   const nc=document.getElementById('cls-nc');
@@ -3015,11 +3022,11 @@ function updateCampLiveStats(){
   const du=document.getElementById('cls-du');
   const tot=document.getElementById('cls-tot');
   // Contar desde localStorage todos los IDs de la campaña que ya tienen estado
-  var _storeKey=accMode?'fe_acc_v1':talMode?'fe_tal_v1':supMode?'fe_sup_v1':denMode?'fe_den_v1':null;
+  var _storeKey=accMode?'fe_acc_v1':talMode?'fe_tal_v1':supMode?'fe_sup_v1':hotMode?'fe_hot_v1':denMode?'fe_den_v1':null;
   var _storeData=_storeKey?JSON.parse(localStorage.getItem(_storeKey)||'{}'):null;
   // Todos los IDs de la campaña
   var _allIds=campaignQueue.map(function(id){
-    return (accMode||talMode||supMode||denMode)?id.substring(4):id;
+    return (accMode||talMode||supMode||hotMode||denMode)?id.substring(4):id;
   });
   // Los que ya tienen llamadas (han sido procesados)
   var _called;
