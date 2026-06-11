@@ -374,6 +374,19 @@ El módulo `acc-module` define su propia función `openSector` con un array de s
 
 Si no se hace: el acordeón del nuevo sector NO abre al hacer click.
 
+### 11.0 LAS 4 FUNCIONES CRÍTICAS — Ninguna puede faltar
+
+Al añadir un sector nuevo, estas 4 funciones del **script principal** necesitan un bloque `{XXX}`:
+
+| Función | Si falta... |
+|---------|------------|
+| `runNextCampaignCall` | Campaña muestra "Completada" sin hacer ninguna llamada |
+| `endCall` | Al acabar la llamada no actualiza estado, no renderiza |
+| `applyCallResult` | No guarda notas, resultado, player, contacto |
+| `openSector` (array acc-module) | El acordeón no abre al hacer click |
+
+Patrón de cada bloque: copiar el bloque `SUP` y sustituir `SUP→{XXX}`, `supSt→{xxx}St`, `supSave→{xxx}Save`, `supRenderList→{xxx}RenderList`, `supOpen2→{xxx}Open2`, `supSel→{xxx}Sel`.
+
 ### 11.1b runNextCampaignCall — CRÍTICO
 **EL MÁS IMPORTANTE Y EL MÁS FÁCIL DE OLVIDAR.**
 
