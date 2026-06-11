@@ -3736,10 +3736,14 @@ async function talLlamar(id){
   iv=setInterval(function(){sec++;var m=Math.floor(sec/60),s=sec%60;document.getElementById('ctm').textContent=m+':'+(s<10?'0':'')+s;},1000);
   var systemPrompt='Eres CARLA, comercial de la empresa colaboradora de la distribuidora el\u00e9ctrica de la zona.\n\n'
     +'NEGOCIO: '+t.nombre+' ('+t.municipio+', CP '+t.cp+')\n'
-    +'SECTOR: '+t.tipo+'\n\n'
+    +'SECTOR: '+t.tipo+'\n'
+    +(st.contacto?'CONTACTO CONOCIDO: '+st.contacto+'\n':'')+'\n'
     +'FLUJO DE LA LLAMADA:\n'
-    +'1. El sistema ya ha preguntado si habla con el negocio. Si confirman, preséntate:\n'
-    +'   Hola, soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n'
+    +'1. El sistema ya ha preguntado si habla con el negocio.\n'
+    +(st.contacto
+      ?'   Si NO es '+st.contacto+', di: \u00bfMe puede poner con '+st.contacto+'? Espera a que le pasen.\n'
+       +'   Cuando est\u00e9 el contacto, pres\u00e9ntate: Hola '+st.contacto+', soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n'
+      :'   Si confirman, pres\u00e9ntate: Hola, soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n')
     +'2. Motivo SIN mencionar el tipo de negocio:\n'
     +'   Le llamo para notificarle que hemos identificado que la potencia contratada no est\u00e1 ajustada al consumo real de su establecimiento.\n'
     +'   Nosotros nos encargamos de solucionarlo sin coste. Diez minutos de revisi\u00f3n, \u00bfle encaja esta semana?\n'
@@ -4019,10 +4023,14 @@ async function supLlamar(id){
   sec=0;clearInterval(iv);
   iv=setInterval(function(){sec++;var m=Math.floor(sec/60),s=sec%60;document.getElementById('ctm').textContent=m+':'+(s<10?'0':'')+s;},1000);
   var systemPrompt='Eres CARLA, llamando de parte de la distribuidora el\u00e9ctrica de la zona.\n\n'
-    +'ESTABLECIMIENTO: '+t.nombre+' ('+t.cadena+', '+t.municipio+')\n\n'
+    +'ESTABLECIMIENTO: '+t.nombre+' ('+t.cadena+', '+t.municipio+')\n'
+    +(supSt[t.id]&&supSt[t.id].contacto?'CONTACTO CONOCIDO: '+supSt[t.id].contacto+'\n':'')+'\n'
     +'FLUJO DE LA LLAMADA:\n'
-    +'1. El sistema ya ha preguntado si habla con el establecimiento. Si confirman, preséntate:\n'
-    +'   Hola, soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n'
+    +'1. El sistema ya ha preguntado si habla con el establecimiento.\n'
+    +((supSt[t.id]&&supSt[t.id].contacto)
+      ?'   Si NO es '+supSt[t.id].contacto+', di: \u00bfMe puede poner con '+supSt[t.id].contacto+'? Espera.\n'
+       +'   Cuando est\u00e9 el contacto: Hola '+supSt[t.id].contacto+', soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n'
+      :'   Si confirman: Hola, soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n')
     +'2. Motivo SIN mencionar el nombre del establecimiento:\n'
     +'   Le llamo para notificarle que hemos identificado que la potencia contratada no est\u00e1 ajustada al consumo real de su establecimiento.\n'
     +'   Nosotros nos encargamos de solucionarlo sin coste. Diez minutos de revisi\u00f3n, \u00bfle encaja esta semana?\n'
@@ -4293,10 +4301,14 @@ async function hotLlamar(id){
   iv=setInterval(function(){sec++;var m=Math.floor(sec/60),s=sec%60;document.getElementById('ctm').textContent=m+':'+(s<10?'0':'')+s;},1000);
   var systemPrompt='Eres CARLA, comercial de la empresa colaboradora de la distribuidora el\u00e9ctrica de la zona.\n\n'
     +'NEGOCIO: '+t.nombre+' ('+t.municipio+', CP '+t.cp+')\n'
-    +'SECTOR: Alojamiento ('+t.tipo+')\n\n'
+    +'SECTOR: Alojamiento ('+t.tipo+')\n'
+    +(st.contacto?'CONTACTO CONOCIDO: '+st.contacto+'\n':'')+'\n'
     +'FLUJO DE LA LLAMADA:\n'
-    +'1. El sistema ya ha preguntado si habla con el negocio. Si confirman, preséntate:\n'
-    +'   Hola, soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n'
+    +'1. El sistema ya ha preguntado si habla con el negocio.\n'
+    +(st.contacto
+      ?'   Si NO es '+st.contacto+', di: \u00bfMe puede poner con '+st.contacto+'? Espera a que le pasen.\n'
+       +'   Cuando est\u00e9 el contacto, pres\u00e9ntate: Hola '+st.contacto+', soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n'
+      :'   Si confirman, pres\u00e9ntate: Hola, soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n')
     +'2. Notificación técnica — sin mencionar tipo de alojamiento:\n'
     +'   Le llamo para notificarle un desajuste de potencia que hemos detectado en el suministro eléctrico de su establecimiento.\n'
     +'   Hemos identificado que la potencia contratada no está ajustada al consumo real.\n'
@@ -4567,10 +4579,14 @@ async function denLlamar(id){
   iv=setInterval(function(){sec++;var m=Math.floor(sec/60),s=sec%60;document.getElementById('ctm').textContent=m+':'+(s<10?'0':'')+s;},1000);
   var systemPrompt='Eres CARLA, comercial de la empresa colaboradora de la distribuidora el\u00e9ctrica de la zona.\n\n'
     +'NEGOCIO: '+t.nombre+' ('+t.municipio+', CP '+t.cp+')\n'
-    +'SECTOR: '+t.tipo+'\n\n'
+    +'SECTOR: '+t.tipo+'\n'
+    +(st.contacto?'CONTACTO CONOCIDO: '+st.contacto+'\n':'')+'\n'
     +'FLUJO DE LA LLAMADA:\n'
-    +'1. El sistema ya ha preguntado si habla con el negocio. Si confirman, preséntate:\n'
-    +'   Hola, soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n'
+    +'1. El sistema ya ha preguntado si habla con el negocio.\n'
+    +(st.contacto
+      ?'   Si NO es '+st.contacto+', di: \u00bfMe puede poner con '+st.contacto+'? Espera a que le pasen.\n'
+       +'   Cuando est\u00e9 el contacto, pres\u00e9ntate: Hola '+st.contacto+', soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n'
+      :'   Si confirman, pres\u00e9ntate: Hola, soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n')
     +'2. Motivo SIN mencionar el tipo de negocio:\n'
     +'   Le llamo para notificarle que hemos identificado que la potencia contratada no est\u00e1 ajustada al consumo real de su establecimiento.\n'
     +'   Nosotros nos encargamos de solucionarlo sin coste. Diez minutos de revisi\u00f3n, \u00bfle encaja esta semana?\n'
