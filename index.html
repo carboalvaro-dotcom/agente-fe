@@ -2137,6 +2137,7 @@ function startCampaign(){
     // Immediate start
     if(!confirm('Iniciar campaña "'+fl+'" ahora con '+queue.length+' contactos?')) return;
     campaignQueue=queue;campaignIdx=0;campaignRunning=true;campaignPaused=false;
+    _campStartTime=Date.now();
     document.getElementById('camp-bar').classList.add('on');
     ['cls-v','cls-r','cls-nc','cls-ni'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=el.textContent[0]+el.textContent[1]+' 0';});
     const duEl=document.getElementById('cls-du');if(duEl)duEl.textContent='? 0';
@@ -2806,7 +2807,7 @@ function toggleCampaignPause(){
 }
 
 function stopCampaign(){
-  campaignRunning=false;campaignPaused=false;
+  campaignRunning=false;campaignPaused=false;_campStartTime=0;
   if(campaignTimer){clearTimeout(campaignTimer);campaignTimer=null;}
   clearInterval(iv);
   document.getElementById('camp-bar').classList.remove('on');
