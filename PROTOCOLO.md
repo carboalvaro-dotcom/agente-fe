@@ -374,6 +374,30 @@ El módulo `acc-module` define su propia función `openSector` con un array de s
 
 Si no se hace: el acordeón del nuevo sector NO abre al hacer click.
 
+### 11.1b runNextCampaignCall — CRÍTICO
+**EL MÁS IMPORTANTE Y EL MÁS FÁCIL DE OLVIDAR.**
+
+Añadir bloque `if(id.startsWith('{XXX}:'))` en `runNextCampaignCall`.
+Si no se hace: la campaña muestra "Campaña completada" inmediatamente sin hacer ninguna llamada.
+
+```js
+// Copiar bloque SUP y sustituir SUP→{XXX}:
+if(typeof id==='string'&&id.startsWith('{XXX}:')){
+  const {xxx}IdC=id.substring(4);
+  const items=typeof {XXX}!=='undefined'&&{XXX}.{items}?{XXX}.{items}:[];
+  const tX=items.find(function(x){return x.id==={xxx}IdC;});
+  if(!tX||!tX.telefono){campaignIdx++;runNextCampaignCall();return;}
+  // ... progress bar ...
+  {xxx}Sel={xxx}IdC; window._{xxx}Id={xxx}IdC;
+  try{{xxx}Open2({xxx}IdC);}catch(e){}
+  await {xxx}Llamar({xxx}IdC);
+  await new Promise(r=>{campaignTimer=setTimeout(r,60000);});
+  campaignIdx++;updateCampLiveStats();
+  if(campaignRunning&&!campaignPaused){...await 45s...}
+  runNextCampaignCall();return;
+}
+```
+
 ### 11.2 Campaña — getCampaignOrder
 Añadir bloque `if(cpFilter==='{XXX}')` en `getCampaignOrder` siguiendo el patrón de SUP/DEN/TAL.
 
