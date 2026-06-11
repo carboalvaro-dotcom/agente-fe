@@ -1748,6 +1748,16 @@ function endCall(contactId, reason){
     if(denSel===denId3)denOpen2(denId3);
     return;
   }
+  // Si es hotel
+  if(typeof contactId==='string'&&contactId.startsWith('HOT:')){
+    var hotId3=contactId.substring(4);
+    if(!hotSt[hotId3])hotSt[hotId3]={};
+    if(reason&&reason!=='duda')hotSt[hotId3].estado=reason;
+    else if(!hotSt[hotId3].estado||hotSt[hotId3].estado==='sinLlamar')hotSt[hotId3].estado='duda';
+    hotSave();hotRenderList();upStats();
+    if(hotSel===hotId3)hotOpen2(hotId3);
+    return;
+  }
   // Si es supermercado
   if(typeof contactId==='string'&&contactId.startsWith('SUP:')){
     var supId3=contactId.substring(4);
