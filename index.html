@@ -2365,7 +2365,7 @@ function applyCallResult(data,callId,contactId){
     }
     var talResultMap={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
     if(data.resultado&&talResultMap[data.resultado])talSt[talId2].estado=talResultMap[data.resultado];
-    var _agN=['carla','carlos'];
+    var _agN=['carla','carlos','karla','karl','azalea','karlo','carles'];
     if(data.nombreContacto&&!talSt[talId2].contacto&&!_agN.includes((data.nombreContacto||'').toLowerCase()))talSt[talId2].contacto=data.nombreContacto;
     if(data.cuandoLlamar&&data.resultado==='rellamar'&&!talSt[talId2].fechaRellamar){talSt[talId2].fechaRellamar=data.cuandoLlamar;addCalendarEvent(TAL.talleres.find(function(x){return x.id===talId2;}),data.cuandoLlamar);}
     if(!talSt[talId2].notas){talSt[talId2].notas=new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'})+' - '+(talSt[talId2].estado||'duda')+' - Pendiente de analisis';}
@@ -2389,7 +2389,7 @@ function applyCallResult(data,callId,contactId){
     if(_denNotas){var denEx=denSt[denId2].notas||'';denSt[denId2].notas=denEx?denEx+'\n\n'+_denNotas:_denNotas;}
     var denRM={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
     if(data.resultado&&denRM[data.resultado])denSt[denId2].estado=denRM[data.resultado];
-    var _agND=['carla','carlos'];
+    var _agND=['carla','carlos','karla','karl','azalea','karlo','carles'];
     if(data.nombreContacto&&!denSt[denId2].contacto&&!_agND.includes((data.nombreContacto||'').toLowerCase()))denSt[denId2].contacto=data.nombreContacto;
     if(data.cuandoLlamar&&data.resultado==='rellamar'&&!denSt[denId2].fechaRellamar){denSt[denId2].fechaRellamar=data.cuandoLlamar;addCalendarEvent(DEN.clinicas.find(function(x){return x.id===denId2;}),data.cuandoLlamar);}
     if(!denSt[denId2].notas){denSt[denId2].notas=new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'})+' - '+( denSt[denId2].estado||'duda')+' - Pendiente de analisis';}
@@ -2409,7 +2409,7 @@ function applyCallResult(data,callId,contactId){
     if(_hotNotas){var hotEx=hotSt[hotId2].notas||'';hotSt[hotId2].notas=hotEx?hotEx+'\n\n'+_hotNotas:_hotNotas;}
     var hotRM={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
     if(data.resultado&&hotRM[data.resultado])hotSt[hotId2].estado=hotRM[data.resultado];
-    var _agNH=['carla','carlos'];
+    var _agNH=['carla','carlos','karla','karl','azalea','karlo','carles'];
     if(data.nombreContacto&&!hotSt[hotId2].contacto&&!_agNH.includes((data.nombreContacto||'').toLowerCase()))hotSt[hotId2].contacto=data.nombreContacto;
     if(data.cuandoLlamar&&data.resultado==='rellamar'&&!hotSt[hotId2].fechaRellamar){hotSt[hotId2].fechaRellamar=data.cuandoLlamar;}
     if(!hotSt[hotId2].notas){hotSt[hotId2].notas=new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'});}
@@ -2429,7 +2429,7 @@ function applyCallResult(data,callId,contactId){
     if(_supNotas){var supEx=supSt[supId2].notas||'';supSt[supId2].notas=supEx?supEx+'\n\n'+_supNotas:_supNotas;}
     var supRM={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
     if(data.resultado&&supRM[data.resultado])supSt[supId2].estado=supRM[data.resultado];
-    var _agNS=['carla','carlos'];
+    var _agNS=['carla','carlos','karla','karl','azalea','karlo','carles'];
     if(data.nombreContacto&&!supSt[supId2].contacto&&!_agNS.includes((data.nombreContacto||'').toLowerCase()))supSt[supId2].contacto=data.nombreContacto;
     if(data.cuandoLlamar&&data.resultado==='rellamar'&&!supSt[supId2].fechaRellamar){supSt[supId2].fechaRellamar=data.cuandoLlamar;addCalendarEvent(SUP.supers.find(function(x){return x.id===supId2;}),data.cuandoLlamar);}
     if(!supSt[supId2].notas){supSt[supId2].notas=new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'})+' - '+(supSt[supId2].estado||'duda')+' - Pendiente de analisis';}
@@ -2455,7 +2455,7 @@ function applyCallResult(data,callId,contactId){
     var resultMap={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
     if(data.resultado&&resultMap[data.resultado])accSt[accId].estado=resultMap[data.resultado];
     // Guardar nombre contacto si la IA lo detectó
-    var agentNamesArr=['carla','carlos'];
+    var agentNamesArr=['carla','carlos','karla','karl','azalea','karlo','carles'];
     if(data.nombreContacto&&!accSt[accId].contacto&&!agentNamesArr.includes((data.nombreContacto||'').toLowerCase())){
       accSt[accId].contacto=data.nombreContacto;
     }
@@ -2478,7 +2478,7 @@ function applyCallResult(data,callId,contactId){
     c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
   }
   if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
-  var agentNamesArr=['carla','carlos'];
+  var agentNamesArr=['carla','carlos','karla','karl','azalea','karlo','carles'];
   if(data.nombreContacto&&!c.contactName&&!agentNamesArr.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
   if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
   if(data.emailContacto&&!c.email) c.email=data.emailContacto;
