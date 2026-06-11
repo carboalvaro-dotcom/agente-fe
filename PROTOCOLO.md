@@ -353,3 +353,44 @@ Si dice "el estándar" → usar el template de la sección 9 tal cual, solo adap
 
 Si tiene uno propio → construirlo según sus indicaciones respetando las reglas de tono.
 
+
+---
+
+## 11. PASOS EXTRA OBLIGATORIOS — Fácil de olvidar
+
+Estos pasos NO están en la sección 3 del checklist técnico pero son OBLIGATORIOS:
+
+### 11.1 openSector — array en acc-module
+El módulo `acc-module` define su propia función `openSector` con un array de secciones.
+**SIEMPRE añadir `'{xxx}-section'` a ese array.**
+
+```js
+// En acc-module, función openSector:
+// ANTES:
+['{prev}','tal-section','sup-section','den-section']
+// DESPUÉS:
+['{prev}','{xxx}-section','tal-section','sup-section','den-section']
+```
+
+Si no se hace: el acordeón del nuevo sector NO abre al hacer click.
+
+### 11.2 Campaña — getCampaignOrder
+Añadir bloque `if(cpFilter==='{XXX}')` en `getCampaignOrder` siguiendo el patrón de SUP/DEN/TAL.
+
+### 11.3 Campaña — select camp-cp
+Añadir `<option value="{XXX}">{emoji} {Nombre} (todos)</option>` en el select `id="camp-cp"`.
+
+### 11.4 Campaña — showCampaignSummary
+Añadir bloque `isXxx` y su `else if` (ya cubierto en sección 3 pero repetido aquí por su importancia).
+
+---
+
+## 12. CHECKLIST FINAL COMPLETO — 20 puntos antes de deploy
+
+Añadir estos 4 puntos al checklist de la sección 6:
+
+- [ ] `'{xxx}-section'` añadido al array en `openSector` de **acc-module**
+- [ ] Bloque `if(cpFilter==='{XXX}')` en `getCampaignOrder`
+- [ ] `<option value="{XXX}">` en select `id="camp-cp"`
+- [ ] Campaña completada muestra resumen correcto en `showCampaignSummary`
+
