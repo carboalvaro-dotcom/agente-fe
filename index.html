@@ -2387,6 +2387,26 @@ function applyCallResult(data,callId,contactId){
     denRenderList();if(denSel===denId2)denOpen2(denId2);
     upStats();updateCampLiveStats();return;
   }
+  // Handle HOT hotel results
+  if(typeof contactId==='string'&&contactId.startsWith('HOT:')){
+    var hotId2=contactId.substring(4);
+    if(!hotSt[hotId2])hotSt[hotId2]={};
+    hotSt[hotId2]._callId=callId;
+    if(!hotSt[hotId2].llamadas||hotSt[hotId2].llamadas<1)hotSt[hotId2].llamadas=1;
+    if(data.recordingUrl)hotSt[hotId2]._recordingUrl=data.recordingUrl;
+    var _hotHung=getHungUpLine(window._lastEndedReason||'');
+    var _hotNotas=data.notas?data.notas+(_hotHung?'\n'+_hotHung:''):(_hotHung||'');
+    if(_hotNotas){var hotEx=hotSt[hotId2].notas||'';hotSt[hotId2].notas=hotEx?hotEx+'\n\n'+_hotNotas:_hotNotas;}
+    var hotRM={visitaOK:'visita',rellamar:'rellamar',noInteresa:'noInteresa',noContesta:'noContesta',duda:'duda'};
+    if(data.resultado&&hotRM[data.resultado])hotSt[hotId2].estado=hotRM[data.resultado];
+    var _agNH=['carla','carlos'];
+    if(data.nombreContacto&&!hotSt[hotId2].contacto&&!_agNH.includes((data.nombreContacto||'').toLowerCase()))hotSt[hotId2].contacto=data.nombreContacto;
+    if(data.cuandoLlamar&&data.resultado==='rellamar'&&!hotSt[hotId2].fechaRellamar){hotSt[hotId2].fechaRellamar=data.cuandoLlamar;}
+    if(!hotSt[hotId2].notas){hotSt[hotId2].notas=new Date().toLocaleString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Madrid'});}
+    hotSave();clearInterval(iv);document.getElementById('cban').classList.remove('on');
+    hotRenderList();if(hotSel===hotId2)hotOpen2(hotId2);
+    upStats();autoBackupAll();return;
+  }
   // Handle SUP supermercado results
   if(typeof contactId==='string'&&contactId.startsWith('SUP:')){
     var supId2=contactId.substring(4);
