@@ -2179,6 +2179,26 @@ async function runNextCampaignCall(){
     return;
   }
   // === SUP supermercado call ===
+  // === HOT hotel call ===
+  if(typeof id==='string'&&id.startsWith('HOT:')){
+    const hotIdC=id.substring(4);
+    const hoteles=typeof HOT!=='undefined'&&HOT.hoteles?HOT.hoteles:[];
+    const tH=hoteles.find(function(x){return x.id===hotIdC;});
+    if(!tH||!tH.telefono){campaignIdx++;runNextCampaignCall();return;}
+    const doneH=campaignIdx,totalH=campaignQueue.length,pctH=Math.round((doneH/totalH)*100);
+    document.getElementById('camp-title').textContent='Llamando: '+tH.nombre.slice(0,35);
+    document.getElementById('camp-sub').textContent=(doneH+1)+' de '+totalH;
+    document.getElementById('camp-fill').style.width=pctH+'%';
+    document.getElementById('camp-pct').textContent=pctH+'%';
+    hotSel=hotIdC;window._hotId=hotIdC;
+    try{hotOpen2(hotIdC);}catch(e){}
+    window.scrollTo(0,0);
+    await hotLlamar(hotIdC);
+    await new Promise(r=>{campaignTimer=setTimeout(r,60000);});
+    campaignIdx++;updateCampLiveStats();
+    if(campaignRunning&&!campaignPaused){document.getElementById('camp-sub').textContent='Esperando 45s...';await new Promise(r=>{campaignTimer=setTimeout(r,45000);});}
+    runNextCampaignCall();return;
+  }
   if(typeof id==='string'&&id.startsWith('SUP:')){
     const supIdC=id.substring(4);
     const supers=typeof SUP!=='undefined'&&SUP.supers?SUP.supers:[];
