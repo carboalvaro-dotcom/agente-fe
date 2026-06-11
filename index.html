@@ -2972,7 +2972,7 @@ async function syncToGitHub(data){
   if(_ghSaving){_ghPendingSave=true;return;}
   _ghSaving=true;
   try{
-    var GH_T=['ghp_Z8PmD','NQ1UmXB8y','SVK0new6x','pdqUWq02JGYBZ'].join('');
+    var GH_T=['ghp_sqxSv','9Qy5eh49X','IcNJaSY6B','AbjmVpz2FpJRY'].join('');
     var GH_R='carboalvaro-dotcom/agente-fe';
     var saveData={crm:data,
       acc:JSON.parse(localStorage.getItem('fe_acc_v1')||'{}'),
@@ -3002,7 +3002,7 @@ function autoBackupAll(){
   if(typeof C!=='undefined'&&C.length>0){syncToGitHub(C);}
   else{
     // Backup directo sin CP
-    var GH_T=['ghp_Z8PmD','NQ1UmXB8y','SVK0new6x','pdqUWq02JGYBZ'].join('');
+    var GH_T=['ghp_sqxSv','9Qy5eh49X','IcNJaSY6B','AbjmVpz2FpJRY'].join('');
     var GH_R='carboalvaro-dotcom/agente-fe';
     var d={crm:[],acc:JSON.parse(localStorage.getItem('fe_acc_v1')||'{}'),tal:JSON.parse(localStorage.getItem('fe_tal_v1')||'{}'),sup:JSON.parse(localStorage.getItem('fe_sup_v1')||'{}'),den:JSON.parse(localStorage.getItem('fe_den_v1')||'{}'),_savedAt:new Date().toISOString()};
     var c=btoa(unescape(encodeURIComponent(JSON.stringify(d))));
@@ -3014,7 +3014,7 @@ function autoBackupAll(){
 }
 async function loadFromGitHub(){
   try{
-    var GH_T=['ghp_Z8PmD','NQ1UmXB8y','SVK0new6x','pdqUWq02JGYBZ'].join('');
+    var GH_T=['ghp_sqxSv','9Qy5eh49X','IcNJaSY6B','AbjmVpz2FpJRY'].join('');
     var GH_R='carboalvaro-dotcom/agente-fe';
     var r=await fetch('https://api.github.com/repos/'+GH_R+'/contents/crm-data.json',{headers:{'Authorization':'token '+GH_T},cache:'no-store'});
     if(!r.ok) return null;
@@ -3042,7 +3042,7 @@ function forceSync(){
 detectMobile();
 initDark();
 (async function(){
-  var GH_T=['ghp_Z8PmD','NQ1UmXB8y','SVK0new6x','pdqUWq02JGYBZ'].join('');
+  var GH_T=['ghp_sqxSv','9Qy5eh49X','IcNJaSY6B','AbjmVpz2FpJRY'].join('');
   var GH_R='carboalvaro-dotcom/agente-fe';
   var sup=Object.keys(JSON.parse(localStorage.getItem('fe_sup_v1')||'{}')).length;
   var den=Object.keys(JSON.parse(localStorage.getItem('fe_den_v1')||'{}')).length;
