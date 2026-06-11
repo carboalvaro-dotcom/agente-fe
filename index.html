@@ -1611,7 +1611,21 @@ function setRes(e,b){
   curR=e;
   document.querySelectorAll('.rbtn').forEach(x=>x.classList.remove('on'));
   b.classList.add('on');
-  // Save immediately
+  // Detectar sector activo y delegar al módulo correcto
+  var _est=e==='visitaOK'?'visita':e;
+  if(typeof hotSel!=='undefined'&&hotSel&&typeof hotSetEstado==='function'){
+    hotSetEstado(hotSel,_est);return;
+  }
+  if(typeof supSel!=='undefined'&&supSel&&typeof supSetEstado==='function'){
+    supSetEstado(supSel,_est);return;
+  }
+  if(typeof denSel!=='undefined'&&denSel&&typeof denSetEstado==='function'){
+    denSetEstado(denSel,_est);return;
+  }
+  if(typeof talSel!=='undefined'&&talSel&&typeof talSetEstado==='function'){
+    talSetEstado(talSel,_est);return;
+  }
+  // CP mode
   if(curId===null) return;
   const c=C.find(x=>x.id===curId);
   if(!c) return;
