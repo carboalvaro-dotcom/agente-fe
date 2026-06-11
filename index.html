@@ -321,6 +321,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
       <option value="ACC">&#127970; Administradores (todos)</option>
       <option value="ACC-aragon">&#127963; Arag&#243;n</option>
       <option value="TAL">&#128295; Talleres (todos)</option>
+      <option value="HOT">&#127976; Hoteles (todos)</option>
       <option value="SUP">&#127890; Supermercados (todos)</option>
             <option value="DEN">&#129338; Salud (dental/vet/farmacia/fisio)</option>
       <option value="08390" style="color:#000">08390 Montgat</option>
@@ -2048,6 +2049,21 @@ function getCampaignOrder(){
       return false;
     });
     return denFiltered.map(function(c){return 'DEN:'+c.id;});
+  }
+  if(cpFilter==='HOT'){
+    var hotStData=JSON.parse(localStorage.getItem('fe_hot_v1')||'{}');
+    var hoteles2=typeof HOT!=='undefined'&&HOT.hoteles?HOT.hoteles:[];
+    var hotFiltered=hoteles2.filter(function(h){
+      if(!h.telefono)return false;
+      var st=(hotStData[h.id]||{estado:'sinLlamar'}).estado;
+      if(filter==='nuevos') return st==='sinLlamar';
+      if(filter==='todos'||filter==='pendiente') return st!=='visita'&&st!=='noInteresa';
+      if(filter==='rellamar') return st==='rellamar';
+      if(filter==='duda') return st==='duda';
+      if(filter==='noContesta') return st==='noContesta';
+      return false;
+    });
+    return hotFiltered.map(function(h){return 'HOT:'+h.id;});
   }
   if(cpFilter==='SUP'){
     var supStData=JSON.parse(localStorage.getItem('fe_sup_v1')||'{}');
