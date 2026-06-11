@@ -325,7 +325,7 @@ Este es el speech aprobado para **todos los sectores** salvo que se indique lo c
 > *"Hola, soy Carla, le llamo de parte de la distribuidora eléctrica de su zona."*
 
 ### Motivo (primera frase)
-> *"Le llamamos porque hemos detectado que su suministro puede estar afectado por desajustes de potencia. Nosotros nos encargamos de solucionarlo sin coste. Diez minutos de revisión, ¿le encaja esta semana?"*
+> *"Le llamo para notificarle que hemos identificado que la potencia contratada no está ajustada al consumo real de su establecimiento. Esto puede estar provocando sobrecostes en su factura o incluso riesgo en el suministro. Nosotros nos encargamos de revisarlo y corregirlo sin coste. Son unos diez minutos, ¿le encaja esta semana?"*
 
 ### Si el cliente pregunta para qué sirve o duda
 > *"Es importante para la optimización de costes en su factura de luz. El desajuste de potencia puede estar afectando su suministro eléctrico ahora mismo, y cuanto antes lo revisemos, antes lo solucionamos sin coste para usted."*
