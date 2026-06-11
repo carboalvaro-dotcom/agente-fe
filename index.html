@@ -406,7 +406,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
         <input type="date" id="fecha-desde" class="lp-date-input" onchange="renderList();accRenderList()">
         <span class="lp-date-label">Hasta</span>
         <input type="date" id="fecha-hasta" class="lp-date-input" onchange="renderList();accRenderList()">
-        <button class="lp-date-hoy" onclick="fetchMissingRecordings()" title="Buscar grabaciones en Vapi" style="background:#7c3aed;color:#fff;border-color:#7c3aed">&#127911; Grab</button>
+        <button class="lp-date-hoy" onclick="fetchMissingRecordings()" title="Buscar grabaciones en Vapi" style="background:#7c3aed;color:#fff;border-color:#7c3aed">&#128257; RECU</button>
         <button class="lp-date-hoy" onclick="syncVapiHoy()" title="Recuperar llamadas Vapi hoy" style="background:var(--ac);color:#fff;border-color:var(--ac)">&#128257; Sync</button>
         <button class="lp-date-hoy" onclick="setFechaHoy()">&#128197; Hoy</button>
         <button class="lp-date-clear" onclick="clearFechas()">&#215;</button>
@@ -2550,6 +2550,21 @@ function selectGSR(id,mod){
   else if(mod==='Admins'&&typeof accOpen2==='function')accOpen2(id.replace('ACC:',''));
 }
 async function fetchMissingRecordings(){
+  // Si hay ficha abierta con _callId, recuperar ese resultado directamente
+  var _activeSectors=[
+    {st:JSON.parse(localStorage.getItem('fe_hot_v1')||'{}'),pfx:'HOT',sel:typeof hotSel!=='undefined'?hotSel:null},
+    {st:JSON.parse(localStorage.getItem('fe_sup_v1')||'{}'),pfx:'SUP',sel:typeof supSel!=='undefined'?supSel:null},
+    {st:JSON.parse(localStorage.getItem('fe_den_v1')||'{}'),pfx:'DEN',sel:typeof denSel!=='undefined'?denSel:null},
+    {st:JSON.parse(localStorage.getItem('fe_tal_v1')||'{}'),pfx:'TAL',sel:typeof talSel!=='undefined'?talSel:null},
+  ];
+  for(var _si=0;_si<_activeSectors.length;_si++){
+    var _sc=_activeSectors[_si];
+    if(_sc.sel&&_sc.st[_sc.sel]&&_sc.st[_sc.sel]._callId){
+      toast('Recuperando resultado...','');
+      fetchCallNotes(_sc.st[_sc.sel]._callId,_sc.pfx+':'+_sc.sel);
+      return;
+    }
+  }
   toast('Buscando grabaciones en Vapi...','');
   try{
     // Llamar al backend que descarga la lista completa de Vapi
@@ -2571,6 +2586,7 @@ async function fetchMissingRecordings(){
     var _tS=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
     var _sS=JSON.parse(localStorage.getItem('fe_sup_v1')||'{}');
     var _aS=JSON.parse(localStorage.getItem('fe_acc_v1')||'{}');
+    var _hS=JSON.parse(localStorage.getItem('fe_hot_v1')||'{}');
     var updated=0;
     var applyRec=function(st,saveFn){
       Object.keys(st).forEach(function(id){
@@ -2587,6 +2603,7 @@ async function fetchMissingRecordings(){
     applyRec(_tS,function(){localStorage.setItem('fe_tal_v1',JSON.stringify(_tS));});
     applyRec(_sS,function(){localStorage.setItem('fe_sup_v1',JSON.stringify(_sS));});
     applyRec(_aS,function(){localStorage.setItem('fe_acc_v1',JSON.stringify(_aS));});
+    applyRec(_hS,function(){localStorage.setItem('fe_hot_v1',JSON.stringify(_hS));});
     C.forEach(function(c){
       if(c._callId&&!c._recordingUrl&&recs[c._callId]){
         c._recordingUrl=recs[c._callId];
@@ -2598,6 +2615,8 @@ async function fetchMissingRecordings(){
     // Re-renderizar
     try{denRenderList();}catch(e){}
     try{talRenderList();}catch(e){}
+    try{supRenderList();}catch(e){}
+    try{hotRenderList();}catch(e){}
     try{accRenderList();}catch(e){}
     renderList();
     if(typeof denSel!=='undefined'&&denSel&&typeof denOpen2==='function')denOpen2(denSel);
@@ -2668,6 +2687,8 @@ async function syncVapiHoy(){
     upStats();
     try{denRenderList();}catch(e){}
     try{talRenderList();}catch(e){}
+    try{supRenderList();}catch(e){}
+    try{hotRenderList();}catch(e){}
     try{accRenderList();}catch(e){}
     renderList();
     toast('\u2713 '+upd+' llamadas sync ('+sk+' sin match)','ok');
