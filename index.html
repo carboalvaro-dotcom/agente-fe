@@ -2490,9 +2490,11 @@ function applyCallResult(data,callId,contactId){
   endCall(contactId, data.resultado&&data.resultado!=='pendiente'?data.resultado:'pendiente');
   c._callId=callId;
   if(data.recordingUrl) c._recordingUrl=data.recordingUrl;
-  if(data.notas){
-    c._lastSummary=data.notas;
-    c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
+  if(data.notas||window._lastEndedReason){
+    var _cpHung=getHungUpLine(window._lastEndedReason||'');
+    var _cpNotas=(data.notas||'')+(_cpHung?'\n'+_cpHung:'');
+    c._lastSummary=_cpNotas;
+    c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+_cpNotas;
   }
   if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
   var agentNamesArr=['carla','carlos','karla','karl','azalea','karlo','carles'];
