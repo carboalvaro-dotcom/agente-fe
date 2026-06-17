@@ -403,9 +403,9 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
     </div>
       <div class="lp-date-bar">
         <span class="lp-date-label">Desde</span>
-        <input type="date" id="fecha-desde" class="lp-date-input" onchange="renderList();accRenderList()">
+        <input type="date" id="fecha-desde" class="lp-date-input" onchange="renderList();accRenderList();if(typeof hotRenderList==='function')hotRenderList();if(typeof supRenderList==='function')supRenderList();if(typeof denRenderList==='function')denRenderList();if(typeof talRenderList==='function')talRenderList();">
         <span class="lp-date-label">Hasta</span>
-        <input type="date" id="fecha-hasta" class="lp-date-input" onchange="renderList();accRenderList()">
+        <input type="date" id="fecha-hasta" class="lp-date-input" onchange="renderList();accRenderList();if(typeof hotRenderList==='function')hotRenderList();if(typeof supRenderList==='function')supRenderList();if(typeof denRenderList==='function')denRenderList();if(typeof talRenderList==='function')talRenderList();">
         <button class="lp-date-hoy" onclick="fetchMissingRecordings()" title="Buscar grabaciones en Vapi" style="background:#7c3aed;color:#fff;border-color:#7c3aed">&#128257; RECU</button>
         <button class="lp-date-hoy" onclick="syncVapiHoy()" title="Recuperar llamadas Vapi hoy" style="background:var(--ac);color:#fff;border-color:var(--ac)">&#128257; Sync</button>
         <button class="lp-date-hoy" onclick="setFechaHoy()">&#128197; Hoy</button>
@@ -2977,6 +2977,7 @@ function showCampHistory(){
 
 
 function _syncCampFloat(){
+  return; // Panel flotante desactivado por petición del usuario
   var cf=document.getElementById('camp-float');if(!cf)return;
   if(typeof campaignRunning!=='undefined'&&campaignRunning){
     cf.classList.add('on');
