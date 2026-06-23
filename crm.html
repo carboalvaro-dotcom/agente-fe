@@ -3146,21 +3146,28 @@ initDark();
   var den=Object.keys(JSON.parse(localStorage.getItem('fe_den_v1')||'{}')).length;
   var tal=Object.keys(JSON.parse(localStorage.getItem('fe_tal_v1')||'{}')).length;
   var acc=Object.keys(JSON.parse(localStorage.getItem('fe_acc_v1')||'{}')).length;
-  var total=sup+den+tal+acc;
-  if(total<10){
+  var hot=Object.keys(JSON.parse(localStorage.getItem('fe_hot_v1')||'{}')).length;
+  var crmLen=JSON.parse(localStorage.getItem('fe_crm_v2')||'[]').length;
+  // Restauración por módulo: cada módulo vacío en local se rellena desde GitHub
+  // independientemente de los demás, para no depender de un único contador global.
+  var anyEmpty=(sup<10||den<10||tal<10||acc<5||hot<10||crmLen<10);
+  if(anyEmpty){
     try{
       var r=await fetch('https://api.github.com/repos/'+GH_R+'/contents/crm-data.json',{headers:{'Authorization':'token '+GH_T},cache:'no-store'});
       if(r.ok){
         var f=await r.json();
         var bk=JSON.parse(decodeURIComponent(escape(atob(f.content.replace(/\n/g,'')))));
-        if(bk.hot&&Object.keys(bk.hot).length>0)localStorage.setItem('fe_hot_v1',JSON.stringify(bk.hot));
-        if(bk.sup&&Object.keys(bk.sup).length>0)localStorage.setItem('fe_sup_v1',JSON.stringify(bk.sup));
-        if(bk.den&&Object.keys(bk.den).length>0)localStorage.setItem('fe_den_v1',JSON.stringify(bk.den));
-        if(bk.tal&&Object.keys(bk.tal).length>0)localStorage.setItem('fe_tal_v1',JSON.stringify(bk.tal));
-        if(bk.acc&&Object.keys(bk.acc).length>0)localStorage.setItem('fe_acc_v1',JSON.stringify(bk.acc));
-        if(bk.crm&&bk.crm.length>0)localStorage.setItem('fe_crm_v2',JSON.stringify(bk.crm));
-        console.log('Auto-restore OK:',bk._savedAt);
-        if(typeof toast==='function')toast('Datos restaurados desde backup','ok');
+        var restored=[];
+        if(hot<10&&bk.hot&&Object.keys(bk.hot).length>0){localStorage.setItem('fe_hot_v1',JSON.stringify(bk.hot));restored.push('hot');}
+        if(sup<10&&bk.sup&&Object.keys(bk.sup).length>0){localStorage.setItem('fe_sup_v1',JSON.stringify(bk.sup));restored.push('sup');}
+        if(den<10&&bk.den&&Object.keys(bk.den).length>0){localStorage.setItem('fe_den_v1',JSON.stringify(bk.den));restored.push('den');}
+        if(tal<10&&bk.tal&&Object.keys(bk.tal).length>0){localStorage.setItem('fe_tal_v1',JSON.stringify(bk.tal));restored.push('tal');}
+        if(acc<5&&bk.acc&&Object.keys(bk.acc).length>0){localStorage.setItem('fe_acc_v1',JSON.stringify(bk.acc));restored.push('acc');}
+        if(crmLen<10&&bk.crm&&bk.crm.length>0){localStorage.setItem('fe_crm_v2',JSON.stringify(bk.crm));restored.push('crm');}
+        if(restored.length>0){
+          console.log('Auto-restore OK ('+restored.join(',')+'):',bk._savedAt);
+          if(typeof toast==='function')toast('Restaurado desde backup: '+restored.join(', '),'ok');
+        }
       }
     }catch(e){console.log('restore error:',e.message);}
   }
