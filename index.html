@@ -3172,6 +3172,38 @@ initDark();
     }catch(e){console.log('restore error:',e.message);}
   }
   init();
+
+  // ===== LIMPIEZA AUTOMÁTICA DE DATOS CRUZADOS (una sola vez, persistente) =====
+  // Si el módulo TAL tiene IDs que no empiezan por 'tal_' (residuo del bug _vi corregido el 17/06),
+  // se eliminan de TAL. El dato real ya vive en su módulo correcto (DEN), así que no hay pérdida.
+  try{
+    var _talRaw=JSON.parse(localStorage.getItem('fe_tal_v1')||'{}');
+    var _talBad=Object.keys(_talRaw).filter(function(k){return !k.startsWith('tal_');});
+    if(_talBad.length>0){
+      var _talClean={};
+      Object.keys(_talRaw).forEach(function(k){if(k.startsWith('tal_'))_talClean[k]=_talRaw[k];});
+      localStorage.setItem('fe_tal_v1',JSON.stringify(_talClean));
+      if(typeof talSt!=='undefined')talSt=_talClean;
+      console.log('Limpieza automática TAL: eliminados '+_talBad.length+' registros residuales (ya presentes en DEN)');
+    }
+  }catch(e){console.log('cleanup TAL error:',e.message);}
+
+  // ===== BACKUP PERIÓDICO (red de seguridad cada 3 minutos) =====
+  // Complementa el backup por-acción: cubre el caso de que una acción puntual
+  // no haya llegado a GitHub por mala conexión en ese instante exacto.
+  setInterval(function(){
+    if(typeof autoBackupAll==='function')autoBackupAll();
+  }, 180000);
+
+  // ===== BACKUP AL CAMBIAR DE PESTAÑA O CERRAR =====
+  // Captura la última acción justo antes de perder el foco/cerrar, para minimizar
+  // la ventana de riesgo entre la acción y el siguiente backup periódico.
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState==='hidden' && typeof autoBackupAll==='function') autoBackupAll();
+  });
+  window.addEventListener('beforeunload', function(){
+    if(typeof autoBackupAll==='function') autoBackupAll();
+  });
 })();
 
 
