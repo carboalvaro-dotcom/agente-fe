@@ -1412,12 +1412,25 @@ function sel(id){
             +'">'+esc+'</div>';
         }).filter(Boolean).join('');
       };
-      // Show audio player
+      // Show audio player (Vapi recordings require auth header since 2025)
       const audio=document.getElementById('last-call-audio');
       if(recUrl){
-        audio.src=recUrl;
         audio.style.display='block';
         if(!c._recordingUrl){c._recordingUrl=recUrl;save();}
+        audio.src='';
+        (async()=>{
+          try{
+            const resp=await fetch(recUrl,{headers:{'Authorization':'Bearer '+VAPI_KEY}});
+            if(resp.ok){
+              const blob=await resp.blob();
+              audio.src=URL.createObjectURL(blob);
+            }else{
+              audio.src=recUrl;
+            }
+          }catch(e){
+            audio.src=recUrl;
+          }
+        })();
       }else{
         audio.style.display='none';
         audio.src='';
