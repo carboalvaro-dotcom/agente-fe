@@ -1420,7 +1420,15 @@ function sel(id){
         audio.src='';
         (async()=>{
           try{
-            const resp=await fetch(recUrl,{headers:{'Authorization':'Bearer '+VAPI_KEY}});
+            let callId=c._callId||'';
+            if(!callId){
+              const m=recUrl.match(/hipaa-recordings\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/);
+              if(m)callId=m[1];
+            }
+            const fetchUrl=callId
+              ?'https://api.vapi.ai/call/'+callId+'/recording'
+              :recUrl;
+            const resp=await fetch(fetchUrl,{headers:{'Authorization':'Bearer '+VAPI_KEY}});
             if(resp.ok){
               const blob=await resp.blob();
               audio.src=URL.createObjectURL(blob);
