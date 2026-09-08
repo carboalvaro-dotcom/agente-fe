@@ -595,7 +595,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
         </div>
         <div id="hist-box" style="display:none;margin:0 14px 10px;background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:10px 12px">
           <div style="font-size:11px;font-weight:700;color:var(--mt2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">&#128203; Historial de llamadas</div>
-          <div id="hist-list" style="max-height:180px;overflow-y:auto"></div>
+          <div id="hist-list" style="max-height:320px;overflow-y:auto"></div>
         </div>
         <textarea class="nt" id="notas" placeholder="Notas: nombre del contacto, fecha visita, objeciones, observaciones..."></textarea>
         <div class="save-bar">
@@ -1274,6 +1274,29 @@ function renderList(){
     c.sector.toLowerCase().includes(q)||
     (c.cp||'').includes(q)
   );
+  // When filter is "llamadas": flat list sorted globally by most recent call first
+  if(curF==='llamadas'){
+    list=list.slice().sort(function(a,b){
+      const pa=a.ultimaLlamada||'';const pb=b.ultimaLlamada||'';
+      if(pa&&pb)return pb.localeCompare(pa);
+      if(pa)return -1;if(pb)return 1;return 0;
+    });
+    let html='';
+    const isMob2=window.innerWidth<=768||/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    list.forEach(c=>{
+      const pro=isPRO(c);
+      const isOpen2=isMob2&&c.id===curId;
+      html+=`<div class="ci est-${c.estado}${isOpen2?' sel':''}" onclick="selMob(${c.id},this)">
+        <div class="ci-r1"><div class="ci-name">${c.nombre}</div>
+          <div class="ci-badges">${pro?'<span class="badge b-pro">PRO</span>':''}${c.prioritario&&!pro?'<span class="badge b-prio">⚡</span>':''}<span class="sdot ${c.estado}"></span></div>
+        </div>
+        <div class="ci-r2"><span class="ci-tel">${c.telefono}</span><span class="ci-kw" style="background:var(--acl);color:var(--ac)">${c.llamadas}x</span></div>
+        ${c.ultimaLlamada?'<div style="font-size:9px;color:var(--ac);margin-top:1px;font-family:var(--mo)">📞 '+c.llamadas+'x  '+c.ultimaLlamada.split(',')[0]+'</div>':''}
+      </div>`;
+    });
+    document.getElementById('lp-list').innerHTML=html;
+    return;
+  }
   const groups={};
   list.forEach(c=>{const cp=c.cp||'OTRO';if(!groups[cp])groups[cp]=[];groups[cp].push(c);});
   // Sort each CP group: contacts with recent calls first (most recent on top), then pending
@@ -1286,7 +1309,14 @@ function renderList(){
       return 0;
     });
   });
-  const cpOrder=Object.keys(groups).sort();
+  // Sort CPs by their most recent call (not alphabetically)
+  const cpOrder=Object.keys(groups).sort(function(a,b){
+    const maxA=groups[a].reduce(function(m,c){return(c.ultimaLlamada||'')>m?c.ultimaLlamada:m;},'');
+    const maxB=groups[b].reduce(function(m,c){return(c.ultimaLlamada||'')>m?c.ultimaLlamada:m;},'');
+    if(maxA&&maxB)return maxB.localeCompare(maxA);
+    if(maxA)return -1;if(maxB)return 1;
+    return a.localeCompare(b);
+  });
   let html='';
   cpOrder.forEach(cp=>{
     const name=CP_NAMES[cp]||cp;
@@ -1382,21 +1412,15 @@ function sel(id){
       // Get recording URL - check _recordingUrl first, then extract from notas
       let recUrl=c._recordingUrl||'';
       if(!recUrl&&c.notas){
-        const _um=c.notas.match(/https:\/\/[^\s\n]+(?:vapi\.ai|storage\.googleapis\.com|cloudfront\.net)[^\s\n]*/i);
+        // Match R2 HIPAA URLs (cloudflarestorage.com), Vapi storage, or audio extensions
+        const _um=c.notas.match(/https:\/\/\S+(?:vapi\.ai|storage\.googleapis\.com|cloudfront\.net|cloudflarestorage\.com)\S*/i)
+          ||c.notas.match(/https:\/\/\S+\.(?:mp3|wav|ogg|m4a|mp4|webm)/i);
         if(_um)recUrl=_um[0].trim();
       }
-      if(!recUrl&&c.notas){
-        const _um2=c.notas.match(/https:\/\/\S+\.(?:mp3|wav|ogg|m4a|mp4|webm)/i);
-        if(_um2)recUrl=_um2[0].trim();
-      }
-      // Build clean summary - remove URL line
+      // Build clean summary - strip ALL https URLs (not just storage.vapi.ai)
       let summary=c._lastSummary||c.notas||'';
       if(summary){
-        const si2=summary.indexOf('https://storage.vapi.ai/');
-        if(si2>-1){
-          const ei2=summary.indexOf('\n',si2);
-          summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();
-        }
+        summary=summary.replace(/https?:\/\/\S+/g,'').replace(/\n{3,}/g,'\n\n').trim();
       }
       var _lsum=document.getElementById('last-call-summary');
       if(_lsum){
@@ -1472,7 +1496,7 @@ function sel(id){
     document.getElementById('hist-list').innerHTML=c.historial.map(function(h){
       return '<div style="padding:5px 0;border-bottom:1px solid var(--bd);font-size:11px">'
         +'<div style="font-weight:600">'+(_ei[h.r]||'○')+' '+h.f+'</div>'
-        +(h.n?'<div style="color:var(--mt);margin-top:2px;white-space:pre-wrap">'+h.n.slice(0,200)+'</div>':'')+'</div>';
+        +(h.n?'<div style="color:var(--mt);margin-top:2px;white-space:pre-wrap">'+h.n.replace(/https?:\/\/\S+/g,'').replace(/\n{3,}/g,'\n').trim().slice(0,250)+'</div>':'')+'</div>';
     }).join('');
   }else if(hbox){hbox.style.display='none';}
   renderList();
