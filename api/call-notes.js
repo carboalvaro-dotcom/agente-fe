@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Range');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   const VAPI_KEY = '96d7565b-f657-42e2-b144-670153ff65eb';
@@ -32,11 +32,31 @@ export default async function handler(req, res) {
         const recResp = await fetch(recUrl);
         if (!recResp.ok) return res.status(502).json({ error: 'Recording fetch failed: ' + recResp.status });
         const ct = recResp.headers.get('content-type') || 'audio/wav';
+        const buf = Buffer.from(await recResp.arrayBuffer());
         res.setHeader('Content-Type', ct);
         res.setHeader('Accept-Ranges', 'bytes');
         res.setHeader('Cache-Control', 'max-age=3600');
-        const buf = await recResp.arrayBuffer();
-        return res.status(200).send(Buffer.from(buf));
+        res.setHeader('Access-Control-Expose-Headers', 'Content-Range, Accept-Ranges, Content-Length');
+        // Chrome pide 'Range: bytes=0-' para <audio>. Si respondemos 200 sin
+        // Content-Range el reproductor se queda colgado: hay que devolver 206.
+        const range = req.headers.range;
+        if (range) {
+          const m = /bytes=(\d*)-(\d*)/.exec(range);
+          let start = m && m[1] ? parseInt(m[1], 10) : 0;
+          let end = m && m[2] ? parseInt(m[2], 10) : buf.length - 1;
+          if (!isFinite(start) || start < 0) start = 0;
+          if (!isFinite(end) || end >= buf.length) end = buf.length - 1;
+          if (start > end) {
+            res.setHeader('Content-Range', 'bytes */' + buf.length);
+            return res.status(416).end();
+          }
+          const chunk = buf.subarray(start, end + 1);
+          res.setHeader('Content-Range', 'bytes ' + start + '-' + end + '/' + buf.length);
+          res.setHeader('Content-Length', chunk.length);
+          return res.status(206).send(chunk);
+        }
+        res.setHeader('Content-Length', buf.length);
+        return res.status(200).send(buf);
       } catch(e) {
         return res.status(500).json({ error: e.message });
       }
