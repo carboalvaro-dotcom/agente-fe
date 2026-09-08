@@ -27,7 +27,9 @@ export default async function handler(req, res) {
             || (callData.artifact && (callData.artifact.recordingUrl || callData.artifact.stereoRecordingUrl))
             || '';
           if (!recUrl) return res.status(404).json({ error: 'No recording found' });
-          recResp = await fetch(recUrl, { headers: { Authorization: `Bearer ${VAPI_KEY}` } });
+          // NO enviar Authorization: la URL de R2 va pre-firmada y el header
+          // rompe la firma S3 (400). Se pide tal cual.
+          recResp = await fetch(recUrl);
         }
         if (!recResp.ok) return res.status(502).json({ error: 'Recording fetch failed: ' + recResp.status });
         const ct = recResp.headers.get('content-type') || 'audio/wav';
