@@ -6,48 +6,78 @@ export default async function handler(req, res) {
 
   const VAPI_KEY = '96d7565b-f657-42e2-b144-670153ff65eb';
 
-  // GET ?proxyRecording={callId} — proxy audio through backend to avoid browser CORS issues
+  // ── GET handlers ──────────────────────────────────────────────────────────
   if (req.method === 'GET') {
     const _q = req.query || {};
-    const proxyId = _q.proxyRecording;
-    if (!proxyId) return res.status(400).json({ error: 'proxyRecording param required' });
-    try {
-      // Try Vapi's dedicated recording endpoint first
-      let recResp = await fetch(`https://api.vapi.ai/call/${proxyId}/recording`, {
-        headers: { Authorization: `Bearer ${VAPI_KEY}` }
-      });
-      // If no dedicated endpoint, get recordingUrl from the call object and fetch that
-      if (!recResp.ok) {
-        const callData = await fetch(`https://api.vapi.ai/call/${proxyId}`, {
+
+    // GET ?proxyRecording={callId} — proxy audio to avoid browser CORS issues with R2
+    if (_q.proxyRecording) {
+      const callId = _q.proxyRecording;
+      try {
+        // Try Vapi's dedicated recording proxy first
+        let recResp = await fetch(`https://api.vapi.ai/call/${callId}/recording`, {
           headers: { Authorization: `Bearer ${VAPI_KEY}` }
-        }).then(r => r.json()).catch(() => ({}));
-        const recUrl = callData.recordingUrl
-          || (callData.artifact && (callData.artifact.recordingUrl || callData.artifact.stereoRecordingUrl))
-          || '';
-        if (!recUrl) return res.status(404).json({ error: 'No recording found for this call' });
-        recResp = await fetch(recUrl, { headers: { Authorization: `Bearer ${VAPI_KEY}` } });
+        });
+        // Fallback: get recordingUrl from call object and fetch it directly
+        if (!recResp.ok) {
+          const callData = await fetch(`https://api.vapi.ai/call/${callId}`, {
+            headers: { Authorization: `Bearer ${VAPI_KEY}` }
+          }).then(r => r.json()).catch(() => ({}));
+          const recUrl = callData.recordingUrl
+            || (callData.artifact && (callData.artifact.recordingUrl || callData.artifact.stereoRecordingUrl))
+            || '';
+          if (!recUrl) return res.status(404).json({ error: 'No recording found' });
+          recResp = await fetch(recUrl, { headers: { Authorization: `Bearer ${VAPI_KEY}` } });
+        }
+        if (!recResp.ok) return res.status(502).json({ error: 'Recording fetch failed: ' + recResp.status });
+        const ct = recResp.headers.get('content-type') || 'audio/wav';
+        res.setHeader('Content-Type', ct);
+        res.setHeader('Accept-Ranges', 'bytes');
+        res.setHeader('Cache-Control', 'max-age=3600');
+        const buf = await recResp.arrayBuffer();
+        return res.status(200).send(Buffer.from(buf));
+      } catch(e) {
+        return res.status(500).json({ error: e.message });
       }
-      if (!recResp.ok) return res.status(502).json({ error: 'Recording fetch failed: ' + recResp.status });
-      const ct = recResp.headers.get('content-type') || 'audio/wav';
-      res.setHeader('Content-Type', ct);
-      res.setHeader('Accept-Ranges', 'bytes');
-      res.setHeader('Cache-Control', 'max-age=3600');
-      const buf = await recResp.arrayBuffer();
-      return res.status(200).send(Buffer.from(buf));
-    } catch(e) {
-      return res.status(500).json({ error: e.message });
     }
+
+    // GET ?listToday=1 — list today's calls (for bulk sync / recovery)
+    if (_q.listToday) {
+      try {
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const listResp = await fetch(
+          `https://api.vapi.ai/call?limit=100&createdAtGt=${today.toISOString()}`,
+          { headers: { Authorization: `Bearer ${VAPI_KEY}` } }
+        );
+        if (!listResp.ok) return res.status(500).json({ error: 'Vapi list failed' });
+        const allCalls = await listResp.json();
+        const calls = (Array.isArray(allCalls) ? allCalls : allCalls.data || []).map(c => ({
+          id: c.id,
+          phone: (c.customer && c.customer.number) || '',
+          recordingUrl: c.recordingUrl || (c.artifact && c.artifact.recordingUrl) || '',
+          duration: c.endedAt && c.startedAt
+            ? Math.round((new Date(c.endedAt) - new Date(c.startedAt)) / 1000)
+            : 0,
+          endedReason: c.endedReason || '',
+          transcript: c.transcript || '',
+          createdAt: c.createdAt || ''
+        }));
+        return res.status(200).json({ calls });
+      } catch(e) {
+        return res.status(500).json({ error: e.message });
+      }
+    }
+
+    return res.status(400).json({ error: 'Unknown GET query' });
   }
 
+  // ── POST: analyze a single call ───────────────────────────────────────────
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { callId } = req.body;
   if (!callId) return res.status(400).json({ error: 'callId required' });
 
-  const VAPI_KEY = '96d7565b-f657-42e2-b144-670153ff65eb';
-
-  // Fast: just fetch the call data directly, no waiting loops
-  // Frontend will retry if needed
   try {
     const r = await fetch(`https://api.vapi.ai/call/${callId}`, {
       headers: { Authorization: `Bearer ${VAPI_KEY}` }
@@ -56,7 +86,6 @@ export default async function handler(req, res) {
 
     const data = await r.json();
 
-    // Still in progress
     if (data.status === 'in-progress' || data.status === 'ringing') {
       return res.status(200).json({ notas: '', resultado: 'duda', retry: true });
     }
@@ -69,14 +98,12 @@ export default async function handler(req, res) {
       ? Math.round((new Date(data.endedAt) - new Date(data.startedAt)) / 1000)
       : null;
 
-    // Not enough data yet
     if (transcript.length < 20 && !endedReason) {
       return res.status(200).json({ notas: '', resultado: 'duda', retry: true });
     }
 
     // ── CLASIFICACIÓN ────────────────────────────────────────────
     let resultado = 'duda';
-
     const noContactReasons = ['customer-did-not-answer','no-answer','voicemail',
       'machine_end_beep','machine_end_silence','machine_end_other'];
     const shortCall = duration !== null && duration < 15;
@@ -138,11 +165,10 @@ export default async function handler(req, res) {
     const now = new Date().toLocaleDateString('es-ES', {
       day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
     });
-    // Extract rellamar date/time
     let rellamarHora = null;
     if (resultado === 'rellamar') {
       const horaM = rawTranscript.match(/(?:a las?|las?)\s*(\d{1,2}(?::\d{2})?)/i);
-      const diaM = rawTranscript.match(/\b(esta tarde|esta noche|ma[\u00f1n]ana|pasado|lunes|martes|mi[\u00e9e]rcoles|jueves|viernes)\b/i);
+      const diaM = rawTranscript.match(/\b(esta tarde|esta noche|ma[ñn]ana|pasado|lunes|martes|mi[ée]rcoles|jueves|viernes)\b/i);
       if (horaM || diaM) rellamarHora = [diaM?.[1], horaM?.[1]].filter(Boolean).join(' a las ');
     }
 

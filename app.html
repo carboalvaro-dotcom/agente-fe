@@ -2629,20 +2629,20 @@ function renderCallsPanel(st,ultimaLlamada){
     if(_seen[idMatch[1]])return false;
     _seen[idMatch[1]]=true;return true;
   });
-  if(!bloques.length)bloques=[notas||'Llamada realizada'];
+  if(!bloques.length){
+    // notas vacías: si hay _callId ofrecer re-sync
+    var _empty=st._callId
+      ?'<span style="color:var(--mt);font-size:11px">Sin resumen — pulsa <b>↻ Sync</b> para recuperar</span>'
+      :'<span style="color:var(--mt);font-size:11px">Llamada registrada</span>';
+    lcs.innerHTML=_empty;return;
+  }
   lcs.innerHTML=bloques.map(function(blk,idx){
-    var um=blk.match(/https:\/\/\S+(?:vapi\.ai|googleapis\.com|cloudfront\.net)\S*/i)
-      ||blk.match(/https:\/\/\S+\.(?:mp3|wav|ogg|m4a|mp4|webm)/i);
-    var ru=um?um[0].trim():'';
-    if(!ru&&idx===0&&st._recordingUrl)ru=st._recordingUrl;
-    var txt=blk.replace(/https:\/\/\S+/g,'').replace(/^\s+|\s+$/gm,'').trim();
-    if(!txt&&!ru)return '';
-    var esc=(txt||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    // Remove any embedded URLs from display text (audio is handled by the main player above)
+    var txt=blk.replace(/https:\/\/\S+/g,'').replace(/\n{3,}/g,'\n\n').replace(/^\s+|\s+$/gm,'').trim();
+    if(!txt)return '';
+    var esc=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     var sep=idx>0?'border-top:1px solid var(--bd);margin-top:10px;padding-top:10px;':'';
-    return '<div style="'+sep+'font-size:11px;line-height:1.6">'
-      +esc
-      +(ru?'<audio controls src="'+ru+'" style="width:100%;height:32px;margin-top:6px;border-radius:6px;display:block"></audio>':'')
-      +'</div>';
+    return '<div style="'+sep+'font-size:11px;line-height:1.6;">'+esc+'</div>';
   }).filter(Boolean).join('')||'<span style="color:var(--mt);font-size:11px">Sin resumen</span>';
 }
 function checkDuplicate(telefono){
@@ -2953,6 +2953,14 @@ function forceSync(){
 detectMobile();
 initDark();
 init();
+// Auto-sync Vapi calls on load (catches any calls missed if page was refreshed during campaign)
+setTimeout(function(){
+  var _hasMissed=C.some(function(c){return c.llamadas>0&&c._callId&&!c.notas;});
+  if(_hasMissed){
+    console.log('[CRM] Auto-sync: hay llamadas sin resumen, recuperando de Vapi...');
+    syncVapiHoy();
+  }
+},4000);
 
 
 
