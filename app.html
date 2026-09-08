@@ -1412,7 +1412,7 @@ function sel(id){
             +'">'+esc+'</div>';
         }).filter(Boolean).join('');
       };
-      // Show audio player (Vapi recordings require auth header since 2025)
+      // Show audio player (Vapi recordings in R2 need backend proxy for CORS)
       const audio=document.getElementById('last-call-audio');
       if(recUrl){
         audio.style.display='block';
@@ -1420,21 +1420,24 @@ function sel(id){
         audio.src='';
         (async()=>{
           try{
+            // Extract callId: prefer stored _callId, then regex from URL
             let callId=c._callId||'';
             if(!callId){
-              const m=recUrl.match(/hipaa-recordings\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/);
+              // Handle both hipaa-recordings/ and storage.vapi.ai/ URL formats
+              const m=recUrl.match(/(?:hipaa-recordings\/|storage\.vapi\.ai\/)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/);
               if(m)callId=m[1];
             }
-            const fetchUrl=callId
-              ?'https://api.vapi.ai/call/'+callId+'/recording'
-              :recUrl;
-            const resp=await fetch(fetchUrl,{headers:{'Authorization':'Bearer '+VAPI_KEY}});
-            if(resp.ok){
-              const blob=await resp.blob();
-              audio.src=URL.createObjectURL(blob);
-            }else{
-              audio.src=recUrl;
+            if(callId){
+              // Use backend proxy — server-side fetch avoids browser CORS issues with R2
+              const resp=await fetch(BACKEND_URL+'?proxyRecording='+callId);
+              if(resp.ok&&resp.headers.get('content-type')&&resp.headers.get('content-type').startsWith('audio')){
+                const blob=await resp.blob();
+                audio.src=URL.createObjectURL(blob);
+                return;
+              }
             }
+            // Last resort: try direct URL (works for old storage.vapi.ai/ non-HIPAA recordings)
+            audio.src=recUrl;
           }catch(e){
             audio.src=recUrl;
           }

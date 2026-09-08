@@ -1,8 +1,44 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  const VAPI_KEY = '96d7565b-f657-42e2-b144-670153ff65eb';
+
+  // GET ?proxyRecording={callId} — proxy audio through backend to avoid browser CORS issues
+  if (req.method === 'GET') {
+    const _q = req.query || {};
+    const proxyId = _q.proxyRecording;
+    if (!proxyId) return res.status(400).json({ error: 'proxyRecording param required' });
+    try {
+      // Try Vapi's dedicated recording endpoint first
+      let recResp = await fetch(`https://api.vapi.ai/call/${proxyId}/recording`, {
+        headers: { Authorization: `Bearer ${VAPI_KEY}` }
+      });
+      // If no dedicated endpoint, get recordingUrl from the call object and fetch that
+      if (!recResp.ok) {
+        const callData = await fetch(`https://api.vapi.ai/call/${proxyId}`, {
+          headers: { Authorization: `Bearer ${VAPI_KEY}` }
+        }).then(r => r.json()).catch(() => ({}));
+        const recUrl = callData.recordingUrl
+          || (callData.artifact && (callData.artifact.recordingUrl || callData.artifact.stereoRecordingUrl))
+          || '';
+        if (!recUrl) return res.status(404).json({ error: 'No recording found for this call' });
+        recResp = await fetch(recUrl, { headers: { Authorization: `Bearer ${VAPI_KEY}` } });
+      }
+      if (!recResp.ok) return res.status(502).json({ error: 'Recording fetch failed: ' + recResp.status });
+      const ct = recResp.headers.get('content-type') || 'audio/wav';
+      res.setHeader('Content-Type', ct);
+      res.setHeader('Accept-Ranges', 'bytes');
+      res.setHeader('Cache-Control', 'max-age=3600');
+      const buf = await recResp.arrayBuffer();
+      return res.status(200).send(Buffer.from(buf));
+    } catch(e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { callId } = req.body;
