@@ -50,7 +50,7 @@ export default async function handler(req, res) {
           `https://api.vapi.ai/call?limit=100&createdAtGt=${today.toISOString()}`,
           { headers: { Authorization: `Bearer ${VAPI_KEY}` } }
         );
-        if (!listResp.ok) return res.status(500).json({ error: 'Vapi list failed' });
+        if (!listResp.ok) return res.status(500).json({ error: 'Vapi list failed', status: listResp.status });
         const allCalls = await listResp.json();
         const calls = (Array.isArray(allCalls) ? allCalls : allCalls.data || []).map(c => ({
           id: c.id,
@@ -64,6 +64,84 @@ export default async function handler(req, res) {
           createdAt: c.createdAt || ''
         }));
         return res.status(200).json({ calls });
+      } catch(e) {
+        return res.status(500).json({ error: e.message });
+      }
+    }
+
+    // GET ?listAssistants=1 — list all Vapi assistants with their full config
+    if (_q.listAssistants) {
+      try {
+        const r = await fetch('https://api.vapi.ai/assistant?limit=20', {
+          headers: { Authorization: `Bearer ${VAPI_KEY}` }
+        });
+        if (!r.ok) return res.status(500).json({ error: 'Vapi assistants failed', status: r.status });
+        const data = await r.json();
+        return res.status(200).json({ assistants: Array.isArray(data) ? data : data.data || data });
+      } catch(e) {
+        return res.status(500).json({ error: e.message });
+      }
+    }
+
+    // GET ?getRecentCalls=10 — get last N calls with full details
+    if (_q.getRecentCalls) {
+      try {
+        const limit = parseInt(_q.getRecentCalls) || 5;
+        const r = await fetch(`https://api.vapi.ai/call?limit=${limit}`, {
+          headers: { Authorization: `Bearer ${VAPI_KEY}` }
+        });
+        if (!r.ok) return res.status(500).json({ error: 'Vapi calls failed', status: r.status });
+        const data = await r.json();
+        const calls = (Array.isArray(data) ? data : data.data || []).map(c => ({
+          id: c.id,
+          phone: (c.customer && c.customer.number) || '',
+          assistantId: c.assistantId || (c.assistant && c.assistant.id) || '',
+          status: c.status,
+          endedReason: c.endedReason || '',
+          duration: c.endedAt && c.startedAt
+            ? Math.round((new Date(c.endedAt) - new Date(c.startedAt)) / 1000)
+            : 0,
+          transcript: c.transcript || '',
+          recordingUrl: c.recordingUrl || (c.artifact && c.artifact.recordingUrl) || '',
+          createdAt: c.createdAt || '',
+          messages: (c.messages || []).slice(0, 5)
+        }));
+        return res.status(200).json({ calls });
+      } catch(e) {
+        return res.status(500).json({ error: e.message });
+      }
+    }
+
+    // GET ?fixAssistant=assistantId — patch backgroundSound to off
+    if (_q.fixAssistant) {
+      const assistantId = _q.fixAssistant;
+      try {
+        // First get current config
+        const getR = await fetch(`https://api.vapi.ai/assistant/${assistantId}`, {
+          headers: { Authorization: `Bearer ${VAPI_KEY}` }
+        });
+        if (!getR.ok) return res.status(500).json({ error: 'Could not get assistant', status: getR.status });
+        const current = await getR.json();
+
+        // Patch: remove backgroundSound, ensure voice/model are intact
+        const patch = { backgroundSound: 'off' };
+
+        const patchR = await fetch(`https://api.vapi.ai/assistant/${assistantId}`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${VAPI_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(patch)
+        });
+        if (!patchR.ok) {
+          const errBody = await patchR.text();
+          return res.status(500).json({ error: 'Patch failed', status: patchR.status, body: errBody });
+        }
+        const updated = await patchR.json();
+        return res.status(200).json({
+          ok: true,
+          before: { backgroundSound: current.backgroundSound },
+          after: { backgroundSound: updated.backgroundSound },
+          assistantId
+        });
       } catch(e) {
         return res.status(500).json({ error: e.message });
       }
