@@ -51,7 +51,7 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .lp-date-bar{display:flex;align-items:center;gap:3px;padding:4px 8px;border-top:1px solid var(--bd);}
 .lp-date-label{font-size:9px;color:var(--mt2);white-space:nowrap;flex-shrink:0;}
 .lp-date-input{font-size:9px;padding:2px 2px;border:1px solid var(--bd);border-radius:3px;background:var(--bg);color:var(--tx);flex:1;min-width:0;}
-.lp-date-hoy{font-size:9px;padding:2px 6px;border-radius:20px;border:1px solid var(--ac);background:var(--acl);color:var(--ac);cursor:pointer;font-weight:600;white-space:nowrap;flex-shrink:0;}
+.lp-date-hoy{font-size:10px;padding:2px 6px;border-radius:20px;border:1px solid var(--ac);background:var(--acl);color:var(--ac);cursor:pointer;font-weight:600;white-space:nowrap;flex-shrink:0;}
 .lp-date-hoy:hover{background:var(--ac);color:#fff;}
 .lp-date-clear{font-size:10px;padding:1px 5px;border-radius:20px;border:1px solid var(--bd);background:none;color:var(--mt2);cursor:pointer;flex-shrink:0;}
 .ftab{font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid var(--bd);background:none;color:var(--mt);cursor:pointer;font-family:var(--fn);transition:all .15s;white-space:nowrap;}
@@ -99,7 +99,7 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .det::-webkit-scrollbar{width:3px;}.det::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px;}
 .card{background:var(--s0);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
 .card-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--bd);background:var(--s1);}
-.card-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--mt);}
+.card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--mt);}
 .ch-wrap{padding:7px 14px;}
 .ch-name{font-size:13px;font-weight:600;line-height:1.3;margin-bottom:2px;}
 .ch-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
@@ -107,8 +107,8 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .ficha-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:0 12px 10px;}
 .fg-item{display:flex;flex-direction:column;gap:3px;}
 .fg-item.span2{grid-column:span 2;}.fg-item.span3{grid-column:span 3;}.fg-item.span4{grid-column:span 4;}
-.fg-label{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--mt);font-weight:500;}
-.fg-input{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:3px 6px;font-size:11px;font-family:var(--mo);color:var(--tx);outline:none;transition:border-color .15s;}
+.fg-label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--mt);font-weight:500;}
+.fg-input{width:100%;background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:4px 7px;font-size:12px;font-family:var(--mo);color:var(--tx);outline:none;transition:border-color .15s;}
 .fg-input:focus{border-color:var(--ac);background:var(--s0);}
 .res-btns{display:flex;gap:6px;flex-wrap:wrap;padding:12px 14px 8px;}
 .rbtn{padding:6px 12px;border-radius:6px;font-size:11px;font-weight:500;cursor:pointer;font-family:var(--fn);border:1px solid transparent;transition:all .15s;}
@@ -120,6 +120,22 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .rbtn:hover{filter:brightness(.94);}
 textarea.nt{width:calc(100% - 28px);margin:0 14px 10px;background:var(--s2);border:1px solid var(--bd);border-radius:6px;padding:8px 10px;color:var(--tx);font-size:12px;font-family:var(--fn);resize:vertical;min-height:160px;outline:none;}
 textarea.nt:focus{border-color:var(--ac);background:var(--s0);}
+/* pastillas de estado, sustituyen a los emojis de colores */
+.pill{display:inline-block;padding:1px 8px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.02em;white-space:nowrap;}
+.pill-ok{background:#e7f6ec;color:#1a7f37;}
+.pill-cb{background:#fff4e0;color:#a15c00;}
+.pill-nc{background:#eceef1;color:#5b6470;}
+.pill-ni{background:#fdecec;color:#c0392b;}
+.pill-du{background:#f0e6ff;color:#7c3aed;}
+body.dark .pill-ok{background:#132d1c;color:#4ac26b;}
+body.dark .pill-cb{background:#33240a;color:#e0a33a;}
+body.dark .pill-nc{background:#22262b;color:#9aa4b0;}
+body.dark .pill-ni{background:#341717;color:#f0736a;}
+body.dark .pill-du{background:#241a38;color:#b28cf5;}
+/* campos vacios: ocultos hasta pulsar "ver todos" */
+.ficha-grid:not(.show-empty) .fg-empty{display:none;}
+.fg-toggle{grid-column:span 4;justify-self:start;margin-top:2px;background:none;border:none;padding:2px 0;font-size:10px;color:var(--mt);cursor:pointer;font-family:var(--fn);text-decoration:underline;}
+.fg-toggle:hover{color:var(--ac);}
 .save-bar{display:flex;justify-content:flex-end;gap:7px;padding:8px 14px 14px;border-top:1px solid var(--bd);margin-top:4px;}
 .phase{border-bottom:1px solid var(--bd);}.phase:last-child{border-bottom:none;}
 .ph-head{padding:9px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
@@ -406,8 +422,6 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
         <input type="date" id="fecha-desde" class="lp-date-input" onchange="renderList();accRenderList();if(typeof hotRenderList==='function')hotRenderList();if(typeof supRenderList==='function')supRenderList();if(typeof denRenderList==='function')denRenderList();if(typeof talRenderList==='function')talRenderList();">
         <span class="lp-date-label">Hasta</span>
         <input type="date" id="fecha-hasta" class="lp-date-input" onchange="renderList();accRenderList();if(typeof hotRenderList==='function')hotRenderList();if(typeof supRenderList==='function')supRenderList();if(typeof denRenderList==='function')denRenderList();if(typeof talRenderList==='function')talRenderList();">
-        <button class="lp-date-hoy" onclick="fetchMissingRecordings()" title="Buscar grabaciones en Vapi" style="background:#7c3aed;color:#fff;border-color:#7c3aed">&#128257; RECU</button>
-        <button class="lp-date-hoy" onclick="syncVapiHoy()" title="Recuperar llamadas Vapi hoy" style="background:var(--ac);color:#fff;border-color:var(--ac)">&#128257; Sync</button>
         <button class="lp-date-hoy" onclick="setFechaHoy()">&#128197; Hoy</button>
         <button class="lp-date-clear" onclick="clearFechas()">&#215;</button>
       </div>
@@ -602,7 +616,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
         </div>
         <div id="last-call-panel" style="display:none;margin:0 14px 10px;background:var(--acl);border:1px solid rgba(26,86,219,.15);border-radius:10px;overflow:hidden;">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(26,86,219,.08);">
-            <span style="font-size:11px;font-weight:700;color:var(--ac);">📞 Última llamada</span>
+            <span style="font-size:11px;font-weight:700;color:var(--ac);">Últimas llamadas</span>
             <span id="last-call-time" style="font-size:10px;color:var(--mt);"></span>
           </div>
           <div style="padding:8px 12px;">
@@ -614,9 +628,8 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
           <div style="font-size:11px;font-weight:700;color:var(--mt2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">&#128203; Historial de llamadas</div>
           <div id="hist-list" style="max-height:240px;overflow-y:auto;overscroll-behavior:contain"></div>
         </div>
-        <textarea class="nt" id="notas" placeholder="Notas: nombre del contacto, fecha visita, objeciones, observaciones..."></textarea>
+        <textarea class="nt" id="notas" onblur="autoSaveNotas()" placeholder="Notas: nombre del contacto, fecha visita, objeciones, observaciones..."></textarea>
         <div class="save-bar">
-          <button class="btn btn-gh btn-sm" onclick="clearRes()">Limpiar</button>
           <button class="btn btn-pr btn-sm" onclick="saveRes()">Guardar resultado</button>
         </div>
       </div>
@@ -1137,6 +1150,20 @@ function init(){
     });
   }catch{C=RAW.map(r=>({...r,estado:'pendiente',notas:'',contactName:'',visitDate:'',cups:'',consumo:'',telefono2:''}));}
   upStats();renderList();
+  autoSyncVapi();
+}
+
+// Sync automatico: sustituye al boton manual. Como mucho una vez cada 10 min
+// para no bajarse el historial entero de Vapi en cada recarga.
+function autoSyncVapi(){
+  try{
+    var last=parseInt(localStorage.getItem('fe_last_sync')||'0',10);
+    if(Date.now()-last < 10*60*1000) return;
+    localStorage.setItem('fe_last_sync',String(Date.now()));
+    setTimeout(function(){
+      if(typeof syncVapiHoy==='function') syncVapiHoy();
+    },1500);
+  }catch(e){}
 }
 
 function save(){
@@ -1374,21 +1401,45 @@ function sel(id){
     (pro?`<span class="ch-badge" style="background:var(--pul);color:var(--pu);padding:2px 9px;border-radius:20px;font-size:10px;font-weight:500">⚡ PRO</span>`:'')+
     (c.prioritario?`<span class="ch-badge" style="background:var(--aml);color:var(--am);padding:2px 9px;border-radius:20px;font-size:10px;font-weight:500">Potencia desajustada</span>`:'');
 
-  document.getElementById('ficha-grid').innerHTML=`
-    <div class="fg-item span2"><div class="fg-label">Teléfono</div><input class="fg-input" value="${c.telefono}" onchange="saveField(${id},'telefono',this.value)"></div>
-    <div class="fg-item span2"><div class="fg-label">Teléfono 2</div><input class="fg-input" value="${c.telefono2||''}" placeholder="—" onchange="saveField(${id},'telefono2',this.value)"></div>
-    <div class="fg-item span2"><div class="fg-label">Email</div><input class="fg-input" value="${c.email||''}" placeholder="—" onchange="saveField(${id},'email',this.value)"></div>
-    <div class="fg-item span2"><div class="fg-label">Nombre contacto</div><input class="fg-input" value="${c.contactName||''}" placeholder="—" onchange="saveField(${id},'contactName',this.value)"></div>
-    <div class="fg-item"><div class="fg-label">Potencia (kW)</div><input class="fg-input" value="${c.potencia_kw}" onchange="saveField(${id},'potencia_kw',parseFloat(this.value)||0)"></div>
-    <div class="fg-item"><div class="fg-label">Consumo (kWh)</div><input class="fg-input" value="${c.consumo||''}" placeholder="—" onchange="saveField(${id},'consumo',this.value)"></div>
-    <div class="fg-item"><div class="fg-label">Tarifa</div><input class="fg-input" value="${c.tarifa}" onchange="saveField(${id},'tarifa',this.value)"></div>
-    <div class="fg-item"><div class="fg-label">Comercializadora</div><input class="fg-input" value="${c.comercializadora||''}" placeholder="—" onchange="saveField(${id},'comercializadora',this.value)"></div>
-    <div class="fg-item span4"><div class="fg-label">Dirección</div><input class="fg-input" value="${c.direccion}" onchange="saveField(${id},'direccion',this.value)"></div>
-    <div class="fg-item span2"><div class="fg-label">CUPS</div><input class="fg-input" value="${c.cups||''}" placeholder="ES003140..." style="font-size:10px;" onchange="saveField(${id},'cups',this.value)"></div>
-    <div class="fg-item"><div class="fg-label">Fecha visita</div><input class="fg-input" value="${c.visitDate||''}" placeholder="—" onchange="saveField(${id},'visitDate',this.value)"></div>
-    <div class="fg-item"><div class="fg-label">Sector</div><input class="fg-input" value="${cnaeDesc(c.sector)}" placeholder="—" readonly style="cursor:default;color:var(--mt);font-size:11px;" title="${c.sector}"></div>
-    <div class="fg-item span2"><div class="fg-label">NIF</div><input class="fg-input" value="${c.nif}" onchange="saveField(${id},'nif',this.value)"></div>
-  `;
+  var _fg=[
+    ['span2','Teléfono', c.telefono, 'telefono', ''],
+    ['span2','Teléfono 2', c.telefono2||'', 'telefono2', ''],
+    ['span2','Email', c.email||'', 'email', ''],
+    ['span2','Nombre contacto', c.contactName||'', 'contactName', ''],
+    ['','Potencia (kW)', c.potencia_kw, 'potencia_kw', 'num'],
+    ['','Consumo (kWh)', c.consumo||'', 'consumo', ''],
+    ['','Tarifa', c.tarifa, 'tarifa', ''],
+    ['','Comercializadora', c.comercializadora||'', 'comercializadora', ''],
+    ['span4','Dirección', c.direccion, 'direccion', ''],
+    ['span2','CUPS', c.cups||'', 'cups', ''],
+    ['','Fecha visita', c.visitDate||'', 'visitDate', ''],
+    ['span2','NIF', c.nif, 'nif', '']
+  ];
+  var _vacios=0;
+  var _html=_fg.map(function(f){
+    var span=f[0],lab=f[1],val=(f[2]===0||f[2])?String(f[2]):'',campo=f[3],tipo=f[4];
+    var empty=!val.trim();
+    if(empty)_vacios++;
+    var conv=tipo==='num'?"parseFloat(this.value)||0":"this.value";
+    return '<div class="fg-item '+span+(empty?' fg-empty':'')+'">'
+      +'<div class="fg-label">'+lab+'</div>'
+      +'<input class="fg-input" value="'+val.replace(/"/g,'&quot;')+'" placeholder="—" '
+      +'onchange="saveField('+id+',\''+campo+'\','+conv+')"></div>';
+  }).join('');
+  // Sector va aparte: es de solo lectura
+  var _sec=cnaeDesc(c.sector)||'';
+  _html+='<div class="fg-item'+(_sec.trim()?'':' fg-empty')+'"><div class="fg-label">Sector</div>'
+    +'<input class="fg-input" value="'+_sec.replace(/"/g,'&quot;')+'" placeholder="—" readonly '
+    +'style="cursor:default;color:var(--mt)" title="'+String(c.sector||'').replace(/"/g,'&quot;')+'"></div>';
+  if(!_sec.trim())_vacios++;
+  if(_vacios>0){
+    var _lbl='+ '+_vacios+' campo'+(_vacios===1?'':'s')+' sin rellenar';
+    _html+='<button type="button" class="fg-toggle" data-label="'+_lbl+'" onclick="toggleVacios(this)">'
+      +_lbl+'</button>';
+  }
+  var _grid=document.getElementById('ficha-grid');
+  _grid.classList.remove('show-empty');
+  _grid.innerHTML=_html;
 
   document.getElementById('notas').value=c.notas||'';
   // Last call panel
@@ -1438,8 +1489,7 @@ function sel(id){
   // Call recording link
   const recDiv=document.getElementById('rec-link');
   if(recDiv){
-    if(c._callId) recDiv.innerHTML=`<a href="https://dashboard.vapi.ai/calls" target="_blank" style="font-size:11px;color:var(--ac);text-decoration:none;display:inline-flex;align-items:center;gap:4px;">▶ Escuchar grabación en Vapi</a>`;
-    else recDiv.innerHTML='';
+    recDiv.innerHTML='';  // cada llamada ya lleva su propio reproductor
   }
   document.querySelectorAll('.rbtn').forEach(b=>b.classList.remove('on'));
   const rm={visitaOK:'r-ok',rellamar:'r-cb',noContesta:'r-nc',noInteresa:'r-ni'};
@@ -1448,17 +1498,25 @@ function sel(id){
   var hbox=document.getElementById('hist-box');
   if(hbox&&c.historial&&c.historial.length>0){
     hbox.style.display='block';
-    var _ei={duda:'\uD83D\uDFE3',rellamar:'\uD83D\uDFE1',noContesta:'⚫',noInteresa:'\uD83D\uDD34',visita:'\uD83D\uDFE2',visitaOK:'\uD83D\uDFE2',pendiente:'○'};
+    var _ei={duda:['pill-du','Duda'],rellamar:['pill-cb','Rellamar'],noContesta:['pill-nc','No contestó'],
+             noInteresa:['pill-ni','No interesa'],visita:['pill-ok','Visita'],visitaOK:['pill-ok','Visita'],
+             pendiente:['pill-nc','Pendiente']};
     var _hpd=function(x){var m=(x||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})[,\s]+(\d{1,2}):(\d{2})/);return m?new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5]).getTime():0;};
     var _sh=c.historial.map(function(h,i){return{h:h,t:_hpd(h.f),i:i};})
       .sort(function(x,y){return (y.t-x.t)||(y.i-x.i);}).map(function(o){return o.h;});
     document.getElementById('hist-list').innerHTML=_sh.map(function(h){
       return '<div style="padding:5px 0;border-bottom:1px solid var(--bd);font-size:11px">'
-        +'<div style="font-weight:600">'+(_ei[h.r]||'○')+' '+h.f+'</div>'
+        +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:2px"><span class="pill '+((_ei[h.r]||_ei.pendiente)[0])+'">'+((_ei[h.r]||_ei.pendiente)[1])+'</span><span style="font-size:10px;color:var(--mt);font-family:var(--mo)">'+h.f+'</span></div>'
         +(h.n?'<div style="color:var(--mt);margin-top:2px;white-space:pre-wrap">'+h.n.slice(0,200)+'</div>':'')+'</div>';
     }).join('');
   }else if(hbox){hbox.style.display='none';}
   renderList();
+}
+
+function toggleVacios(btn){
+  var g=document.getElementById('ficha-grid');
+  var on=g.classList.toggle('show-empty');
+  btn.textContent=on?'− ocultar los vacíos':btn.getAttribute('data-label');
 }
 
 function saveField(id,field,value){
@@ -1634,6 +1692,16 @@ function setRes(e,b){
   if(notasEl) c.notas=notasEl.value;
   save();upStats();renderList();
   toast('✓ '+b.textContent.trim(),'ok');
+}
+
+function autoSaveNotas(){
+  if(curId===null) return;
+  var c=C.find(function(x){return x.id===curId;});
+  if(!c) return;
+  var v=document.getElementById('notas').value;
+  if(v===(c.notas||'')) return;
+  c.notas=v; save();
+  toast('Notas guardadas','ok');
 }
 
 function saveRes(){
@@ -2726,6 +2794,48 @@ function loadRec(btn,callId){
     })
     .catch(function(e){btn.disabled=false;btn.textContent='\u26A0 No se pudo cargar ('+e.message+')';});
 }
+// Convierte el bloque de notas del backend (con emojis) en cabecera limpia:
+// fecha + pastilla de estado, y el resto de lineas sin emojis sueltos.
+var _PILLS=[
+  [/VISITA CONCERTADA/i,'pill-ok','Visita concertada'],
+  [/No interesa/i,'pill-ni','No interesa'],
+  [/Rellamar/i,'pill-cb','Rellamar'],
+  [/No contest/i,'pill-nc','No contestó'],
+  [/Duda/i,'pill-du','Duda']
+];
+function formatBloqueLlamada(esc){
+  var lineas=esc.split('\n');
+  var fecha='',pill='',resto=[];
+  for(var i=0;i<lineas.length;i++){
+    var L=lineas[i].replace(/^[\s\u2000-\u3000]*[\uD800-\uDBFF][\uDC00-\uDFFF]\s*/,'')
+                   .replace(/^[\s]*[\u2000-\u3300\u2600-\u27BF\u25A0-\u25FF]+\s*/,'').trim();
+    if(!L) continue;
+    var fm=L.match(/^(\d{1,2}\/\d{1,2}\/\d{4}[,\s]+\d{1,2}:\d{2}(?:\s*·\s*\d+s)?)$/);
+    if(!fecha&&fm){fecha=fm[1];continue;}
+    if(!pill){
+      var hit=null;
+      for(var k=0;k<_PILLS.length;k++){ if(_PILLS[k][0].test(L)){hit=_PILLS[k];break;} }
+      if(hit){
+        pill='<span class="pill '+hit[1]+'">'+hit[2]+'</span>';
+        var extra=L.replace(/^.*?(VISITA CONCERTADA|No interesa|Rellamar|No contest\S*|Duda[^\u2014-]*)/i,'')
+                   .replace(/^[\s\u2014\u2013-]+/,'').trim();
+        if(extra) resto.push(extra);
+        continue;
+      }
+    }
+    resto.push(L);
+  }
+  var cab='';
+  if(fecha||pill){
+    cab='<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;">'
+      +(pill||'')
+      +(fecha?'<span style="font-size:10px;color:var(--mt);font-family:var(--mo)">'+fecha+'</span>':'')
+      +'</div>';
+  }
+  var cuerpo=resto.length?'<div style="white-space:pre-wrap;color:var(--tx)">'+resto.join('\n')+'</div>':'';
+  return cab+cuerpo;
+}
+
 function renderCallsPanel(st,ultimaLlamada){
   var lcp=document.getElementById('last-call-panel');
   var lct=document.getElementById('last-call-time');
@@ -2733,7 +2843,7 @@ function renderCallsPanel(st,ultimaLlamada){
   if(!lcp||!lcs){return;}
   if(!(st.llamadas>0)){lcp.style.display='none';return;}
   lcp.style.display='block';
-  if(lct)lct.textContent=ultimaLlamada||st.ultimaLlamada||'';
+  if(lct)lct.textContent='';  // la fecha ya va en cada bloque, no repetirla
   var notas=st.notas||'';
   var _rawBloques=notas.split(/\n\n+/).map(function(b){return b.trim();}).filter(Boolean);
   // Deduplicar: si dos bloques tienen el mismo callId (\uD83D\uDD17), quedarse con el más reciente
@@ -2760,6 +2870,7 @@ function renderCallsPanel(st,ultimaLlamada){
     var txt=blk.replace(/https?:\/\/\S+/g,'').replace(/^\s+|\s+$/gm,'').trim();
     if(!txt&&!bCallId)return '';
     var esc=(txt||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    esc=formatBloqueLlamada(esc);
     var sep=idx>0?'border-top:1px solid var(--bd);margin-top:10px;padding-top:10px;':'';
     var au='';
     if(_hasRec&&bCallId&&typeof BACKEND_URL!=='undefined'){
