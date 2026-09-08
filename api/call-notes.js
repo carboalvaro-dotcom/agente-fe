@@ -153,6 +153,26 @@ export default async function handler(req, res) {
   // ── POST: analyze a single call ───────────────────────────────────────────
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  // POST action=makeCall — proxy outbound call (browser can't call Vapi directly due to CORS)
+  if (req.body.action === 'makeCall') {
+    const { payload } = req.body;
+    if (!payload) return res.status(400).json({ error: 'payload required' });
+    try {
+      const r = await fetch('https://api.vapi.ai/call/phone', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${VAPI_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const text = await r.text();
+      if (!r.ok) return res.status(200).json({ error: 'Vapi ' + r.status + ': ' + text.slice(0, 300) });
+      let data;
+      try { data = JSON.parse(text); } catch(e) { data = { raw: text }; }
+      return res.status(200).json(data);
+    } catch(e) {
+      return res.status(200).json({ error: e.message });
+    }
+  }
+
   const { callId } = req.body;
   if (!callId) return res.status(400).json({ error: 'callId required' });
 

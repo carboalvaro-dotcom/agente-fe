@@ -1701,7 +1701,6 @@ async function launchCall(){
 async function callViaProxy(phone,c){
   const phoneNumId='0d4fe76e-760c-4cf8-8760-b291bb96aac5';
   const voiceId='uQw4jpKzMLrZuo0RLPS9';
-  const elKey='sk_57942fe62398a4deae03f454de30e8229192223181dbaa59';
   const payload={
     phoneNumberId:phoneNumId,
     customer:{number:phone,name:c.nombre},
@@ -1719,13 +1718,15 @@ async function callViaProxy(phone,c){
       endCallPhrases:['adiós','adios','hasta luego','hasta pronto','vale gracias','muchas gracias adiós','hasta el jueves','hasta mañana','que tenga un buen día','hasta entonces','hasta el lunes','hasta el martes','hasta el miércoles','hasta el viernes','buen día','buenas','chao','chau','bye']
     }
   };
-  const r=await fetch('https://api.vapi.ai/call/phone',{
+  // Llamada enrutada por backend Vercel (CORS: el browser no puede llamar a api.vapi.ai directamente)
+  const r=await fetch(BACKEND_URL,{
     method:'POST',
-    headers:{Authorization:'Bearer '+VAPI_KEY,'Content-Type':'application/json'},
-    body:JSON.stringify(payload)
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'makeCall',payload})
   });
-  if(!r.ok){const t=await r.text();throw new Error('Vapi '+r.status+': '+t.slice(0,160));}
+  if(!r.ok){const t=await r.text();throw new Error('Backend '+r.status+': '+t.slice(0,160));}
   const data=await r.json();
+  if(data.error)throw new Error(data.error);
   if(data?.id){const cx=C.find(x=>x.id===curId);if(cx)cx._callId=data.id;}
   return data;
 }
