@@ -94,7 +94,7 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .rp{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);min-height:0;}
 .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--mt2);}
 .empty-icon{font-size:40px;opacity:.25;}.empty p{font-size:13px;}
-.det{flex:1;overflow-y:auto;padding:10px 14px 60px;display:none;flex-direction:column;gap:8px;min-height:0;max-height:calc(100vh - 95px);resize:vertical;}
+.det{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:10px 14px 80px;display:none;flex-direction:column;gap:8px;min-height:0;}
 .det.vis{display:flex;}
 .det::-webkit-scrollbar{width:3px;}.det::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px;}
 .card{background:var(--s0);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
@@ -606,13 +606,13 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
             <span id="last-call-time" style="font-size:10px;color:var(--mt);"></span>
           </div>
           <div style="padding:8px 12px;">
-            <div id="last-call-summary" style="font-size:12px;color:var(--tx);line-height:1.6;margin-bottom:8px;white-space:pre-line;"></div>
+            <div id="last-call-summary" style="font-size:12px;color:var(--tx);line-height:1.6;margin-bottom:8px;white-space:pre-line;max-height:260px;overflow-y:auto;overscroll-behavior:contain;padding-right:6px;"></div>
             <audio id="last-call-audio" controls style="width:100%;height:36px;display:none;border-radius:6px;"></audio>
           </div>
         </div>
         <div id="hist-box" style="display:none;margin:0 14px 10px;background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:10px 12px">
           <div style="font-size:11px;font-weight:700;color:var(--mt2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">&#128203; Historial de llamadas</div>
-          <div id="hist-list" style="max-height:180px;overflow-y:auto"></div>
+          <div id="hist-list" style="max-height:240px;overflow-y:auto;overscroll-behavior:contain"></div>
         </div>
         <textarea class="nt" id="notas" placeholder="Notas: nombre del contacto, fecha visita, objeciones, observaciones..."></textarea>
         <div class="save-bar">
@@ -1416,20 +1416,7 @@ function sel(id){
           summary=(summary.slice(0,si2)+(ei2>-1?summary.slice(ei2):'')).trim();
         }
       }
-      var _lsum=document.getElementById('last-call-summary');
-      if(_lsum){
-        var _raw=summary||'';
-        var _blks=_raw.split(/\n\n+/).filter(function(b){return b.trim();});
-        if(!_blks.length)_blks=['Sin datos'];
-        _lsum.innerHTML=_blks.map(function(blk,idx){
-          var txt=blk.replace(/https:\/\/\S+/g,'').trim();
-          if(!txt)return '';
-          var esc=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-          return '<div style="font-size:11px;white-space:pre-wrap;line-height:1.6;'
-            +(idx>0?'border-top:1px solid var(--bd);margin-top:8px;padding-top:8px;':'')
-            +'">'+esc+'</div>';
-        }).filter(Boolean).join('');
-      };
+      // El listado lo pinta renderCallsPanel() (ordenado + audio por llamada)
       // Show audio player
       const audio=document.getElementById('last-call-audio');
       if(recUrl){
@@ -1462,7 +1449,10 @@ function sel(id){
   if(hbox&&c.historial&&c.historial.length>0){
     hbox.style.display='block';
     var _ei={duda:'\uD83D\uDFE3',rellamar:'\uD83D\uDFE1',noContesta:'⚫',noInteresa:'\uD83D\uDD34',visita:'\uD83D\uDFE2',visitaOK:'\uD83D\uDFE2',pendiente:'○'};
-    document.getElementById('hist-list').innerHTML=c.historial.map(function(h){
+    var _hpd=function(x){var m=(x||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})[,\s]+(\d{1,2}):(\d{2})/);return m?new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5]).getTime():0;};
+    var _sh=c.historial.map(function(h,i){return{h:h,t:_hpd(h.f),i:i};})
+      .sort(function(x,y){return (y.t-x.t)||(y.i-x.i);}).map(function(o){return o.h;});
+    document.getElementById('hist-list').innerHTML=_sh.map(function(h){
       return '<div style="padding:5px 0;border-bottom:1px solid var(--bd);font-size:11px">'
         +'<div style="font-weight:600">'+(_ei[h.r]||'○')+' '+h.f+'</div>'
         +(h.n?'<div style="color:var(--mt);margin-top:2px;white-space:pre-wrap">'+h.n.slice(0,200)+'</div>':'')+'</div>';
@@ -2734,21 +2724,31 @@ function renderCallsPanel(st,ultimaLlamada){
     _seen[idMatch[1]]=true;return true;
   });
   if(!bloques.length)bloques=[notas||'Llamada realizada'];
+  // Ordenar por fecha DD/MM/YYYY HH:mm -> mas reciente arriba (orden estable)
+  var _pd=function(x){var m=(x||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})[,\s]+(\d{1,2}):(\d{2})/);return m?new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5]).getTime():0;};
+  bloques=bloques.map(function(b,i){return{b:b,t:_pd(b),i:i};})
+    .sort(function(x,y){return (y.t-x.t)||(y.i-x.i);})
+    .map(function(o){return o.b;});
+  // Mostrar solo las 2 ultimas: el resto queda en el Historial
+  var _MAX=2, _extra=bloques.length-_MAX;
+  if(_extra>0)bloques=bloques.slice(0,_MAX);
   lcs.innerHTML=bloques.map(function(blk,idx){
-    var um=blk.match(/https:\/\/\S+\.(?:mp3|wav|ogg|m4a|mp4|webm)(?:\?\S*)?/i)
-      ||blk.match(/https:\/\/storage\.vapi\.ai\/\S+/i)
-      ||blk.match(/https:\/\/\S+(?:vapi\.ai|googleapis\.com|cloudfront\.net)\/\S+/i);
-    var ru=um?um[0].trim():'';
-    if(!ru&&st._recordingUrl)ru=st._recordingUrl;
-    var txt=blk.replace(/https:\/\/\S+/g,'').replace(/^\s+|\s+$/gm,'').trim();
-    if(!txt&&!ru)return '';
+    var cIdM=blk.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+    var bCallId=cIdM?cIdM[0]:'';
+    var _hasRec=blk.indexOf('\uD83C\uDFA7')>=0;
+    var txt=blk.replace(/https?:\/\/\S+/g,'').replace(/^\s+|\s+$/gm,'').trim();
+    if(!txt&&!bCallId)return '';
     var esc=(txt||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     var sep=idx>0?'border-top:1px solid var(--bd);margin-top:10px;padding-top:10px;':'';
-    return '<div style="'+sep+'font-size:11px;line-height:1.6">'
-      +esc
-      +(ru?'<audio controls src="'+ru+'" style="width:100%;height:32px;margin-top:6px;border-radius:6px;display:block"></audio>':'')
-      +'</div>';
+    var au='';
+    if(_hasRec&&bCallId&&typeof BACKEND_URL!=='undefined'){
+      au='<audio controls preload="none" src="'+BACKEND_URL+'?proxyRecording='+bCallId+'" style="width:100%;height:32px;margin-top:6px;border-radius:6px;display:block"></audio>';
+    }
+    return '<div style="'+sep+'font-size:11px;line-height:1.6">'+esc+au+'</div>';
   }).filter(Boolean).join('')||'<span style="color:var(--mt);font-size:11px">Sin resumen</span>';
+  if(_extra>0){
+    lcs.innerHTML+='<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--bd);font-size:10px;color:var(--mt);text-align:center">+'+_extra+' llamadas anteriores &middot; ver Historial</div>';
+  }
 }
 function checkDuplicate(telefono){
   if(!telefono)return null;
