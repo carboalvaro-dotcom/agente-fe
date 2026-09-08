@@ -590,7 +590,7 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
             <span id="last-call-time" style="font-size:10px;color:var(--mt);"></span>
           </div>
           <div style="padding:8px 12px;">
-            <div id="last-call-summary" style="font-size:12px;color:var(--tx);line-height:1.6;margin-bottom:8px;white-space:pre-line;"></div>
+            <div id="last-call-summary" style="font-size:12px;color:var(--tx);line-height:1.6;margin-bottom:8px;white-space:pre-line;max-height:300px;overflow-y:auto;overscroll-behavior:contain;padding-right:6px;"></div>
             <audio id="last-call-audio" controls style="width:100%;height:36px;display:none;border-radius:6px;"></audio>
           </div>
         </div>
@@ -1423,20 +1423,7 @@ function sel(id){
       if(summary){
         summary=summary.replace(/https?:\/\/\S+/g,'').replace(/\n{3,}/g,'\n\n').trim();
       }
-      var _lsum=document.getElementById('last-call-summary');
-      if(_lsum){
-        var _raw=summary||'';
-        var _blks=_raw.split(/\n\n+/).filter(function(b){return b.trim();});
-        if(!_blks.length)_blks=['Sin datos'];
-        _lsum.innerHTML=_blks.map(function(blk,idx){
-          var txt=blk.replace(/https:\/\/\S+/g,'').trim();
-          if(!txt)return '';
-          var esc=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-          return '<div style="font-size:11px;white-space:pre-wrap;line-height:1.6;'
-            +(idx>0?'border-top:1px solid var(--bd);margin-top:8px;padding-top:8px;':'')
-            +'">'+esc+'</div>';
-        }).filter(Boolean).join('');
-      };
+      // El render del listado lo hace renderCallsPanel() (ordenado + audio por llamada)
       // Show audio player (Vapi recordings in R2 need backend proxy for CORS)
       const audio=document.getElementById('last-call-audio');
       if(recUrl){
@@ -1494,7 +1481,9 @@ function sel(id){
   if(hbox&&c.historial&&c.historial.length>0){
     hbox.style.display='block';
     var _ei={duda:'\uD83D\uDFE3',rellamar:'\uD83D\uDFE1',noContesta:'⚫',noInteresa:'\uD83D\uDD34',visita:'\uD83D\uDFE2',visitaOK:'\uD83D\uDFE2',pendiente:'○'};
-    document.getElementById('hist-list').innerHTML=c.historial.map(function(h){
+    var _hpd=function(s){var m=(s||'').match(/(\d{2})\/(\d{2})\/(\d{4})[, ]+(\d{2}):(\d{2})/);return m?new Date(m[3],m[2]-1,m[1],m[4],m[5]).getTime():0;};
+    var _sortedH=c.historial.slice().sort(function(a,b){return _hpd(b.f)-_hpd(a.f);});
+    document.getElementById('hist-list').innerHTML=_sortedH.map(function(h){
       return '<div style="padding:5px 0;border-bottom:1px solid var(--bd);font-size:11px">'
         +'<div style="font-weight:600">'+(_ei[h.r]||'○')+' '+h.f+'</div>'
         +(h.n?'<div style="color:var(--mt);margin-top:2px;white-space:pre-wrap">'+h.n.replace(/https?:\/\/\S+/g,'').replace(/\n{3,}/g,'\n').trim().slice(0,250)+'</div>':'')+'</div>';
@@ -2421,7 +2410,7 @@ function applyCallResult(data,callId,contactId){
   if(data.notas){
     c._lastSummary=data.notas;
     // Notas más recientes arriba
-    c.notas=data.notas+(c.notas&&c.notas.length>5?'\n\n'+c.notas:'');
+    c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
   }
   if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
   var agentNamesArr=['carla','carlos'];
@@ -2600,7 +2589,7 @@ async function syncVapiHoy(){
         var isNew=false;
         // Solo añadir si no hay nota con ese callId ya
         if(!st.notas){st.notas=nt;isNew=true;}
-        else if(c.id&&st.notas.indexOf(c.id)<0){st.notas=nt+'\n\n'+st.notas;isNew=true;}  // nuevas arriba
+        else if(c.id&&st.notas.indexOf(c.id)<0){st.notas=st.notas+'\n\n'+nt;isNew=true;}
         if(isNew){
           st.llamadas=(st.llamadas||0)+1;
           // Update primary call fields only for the newest call (Vapi returns desc order)
@@ -2707,13 +2696,32 @@ function renderCallsPanel(st,ultimaLlamada){
       :'<span style="color:var(--mt);font-size:11px">Llamada registrada</span>';
     lcs.innerHTML=_empty;return;
   }
+  // Ordenar bloques: más reciente arriba, extrayendo fecha 📞 DD/MM/YYYY, HH:mm
+  var _pd=function(s){
+    var m=(s||'').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})[,\s]+(\d{1,2}):(\d{2})/);
+    if(!m)return 0;
+    return new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5]).getTime();
+  };
+  // orden estable: más reciente arriba; los sin fecha al final
+  bloques=bloques.map(function(b,i){return{b:b,t:_pd(b),i:i};})
+    .sort(function(x,y){return (y.t-x.t)||(y.i-x.i);})
+    .map(function(o){return o.b;});
+
   lcs.innerHTML=bloques.map(function(blk,idx){
-    // Remove any embedded URLs from display text (audio is handled by the main player above)
-    var txt=blk.replace(/https:\/\/\S+/g,'').replace(/\n{3,}/g,'\n\n').replace(/^\s+|\s+$/gm,'').trim();
-    if(!txt)return '';
+    // Extraer callId (UUID) del bloque para audio proxy
+    var cIdM=blk.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+    var bCallId=cIdM?cIdM[0]:'';
+    // Extraer texto limpio (sin URLs)
+    var txt=blk.replace(/https?:\/\/\S+/g,'').replace(/\n{3,}/g,'\n\n').replace(/^\s+|\s+$/gm,'').trim();
+    if(!txt&&!bCallId)return '';
     var esc=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     var sep=idx>0?'border-top:1px solid var(--bd);margin-top:10px;padding-top:10px;':'';
-    return '<div style="'+sep+'font-size:11px;line-height:1.6;">'+esc+'</div>';
+    // Audio player por bloque vía proxy backend
+    var audioHtml='';
+    if(bCallId&&typeof BACKEND_URL!=='undefined'){
+      audioHtml='<audio controls src="'+BACKEND_URL+'?proxyRecording='+bCallId+'" style="width:100%;height:32px;margin-top:6px;border-radius:6px;display:block;"></audio>';
+    }
+    return '<div style="'+sep+'font-size:11px;line-height:1.6;">'+esc+audioHtml+'</div>';
   }).filter(Boolean).join('')||'<span style="color:var(--mt);font-size:11px">Sin resumen</span>';
 }
 function checkDuplicate(telefono){
