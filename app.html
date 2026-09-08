@@ -1836,7 +1836,7 @@ function endCall(contactId, reason){
 }
 
 async function pollCallStatus(callId,contactId){
-  // Poll backend cada 5s - cuando retry===false la llamada termino y ya tenemos el analisis
+  // Poll backend cada 5s — cuando retry===false la llamada terminó y ya tenemos el análisis
   for(let i=0;i<36;i++){
     await new Promise(r=>setTimeout(r,5000));
     try{
@@ -1845,11 +1845,13 @@ async function pollCallStatus(callId,contactId){
       if(!r.ok) continue;
       const data=await r.json();
       if(!data.retry){
+        // Llamada terminada y analizada — aplicar resultado directamente
         applyCallResult(data,callId,contactId);
         return;
       }
     }catch(e){}
   }
+  // Timeout — intentar fetch final
   fetchCallNotes(callId,contactId);
 }
 
@@ -2418,7 +2420,8 @@ function applyCallResult(data,callId,contactId){
   if(data.recordingUrl) c._recordingUrl=data.recordingUrl;
   if(data.notas){
     c._lastSummary=data.notas;
-    c.notas=(c.notas&&c.notas.length>5?c.notas+'\n\n':'')+data.notas;
+    // Notas más recientes arriba
+    c.notas=data.notas+(c.notas&&c.notas.length>5?'\n\n'+c.notas:'');
   }
   if(data.resultado&&data.resultado!=='pendiente') c.estado=data.resultado;
   var agentNamesArr=['carla','carlos'];
@@ -2597,7 +2600,7 @@ async function syncVapiHoy(){
         var isNew=false;
         // Solo añadir si no hay nota con ese callId ya
         if(!st.notas){st.notas=nt;isNew=true;}
-        else if(c.id&&st.notas.indexOf(c.id)<0){st.notas=st.notas+'\n\n'+nt;isNew=true;}
+        else if(c.id&&st.notas.indexOf(c.id)<0){st.notas=nt+'\n\n'+st.notas;isNew=true;}  // nuevas arriba
         if(isNew){
           st.llamadas=(st.llamadas||0)+1;
           // Update primary call fields only for the newest call (Vapi returns desc order)
