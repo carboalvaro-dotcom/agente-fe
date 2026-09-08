@@ -98,6 +98,8 @@ body{font-family:var(--fn);background:var(--bg);color:var(--tx);height:100vh;dis
 .det.vis{display:flex;}
 .det::-webkit-scrollbar{width:3px;}.det::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px;}
 .card{background:var(--s0);border:1px solid var(--bd);border-radius:var(--r2);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+/* sin esto las tarjetas se encogen dentro del flex y se cortan por dentro */
+.det>.card{flex:0 0 auto;}
 .card-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--bd);background:var(--s1);}
 .card-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--mt);}
 .ch-wrap{padding:7px 14px;}
@@ -1470,14 +1472,8 @@ function sel(id){
       // El listado lo pinta renderCallsPanel() (ordenado + audio por llamada)
       // Show audio player
       const audio=document.getElementById('last-call-audio');
-      if(recUrl){
-        audio.src=recUrl;
-        audio.style.display='block';
-        if(!c._recordingUrl){c._recordingUrl=recUrl;save();}
-      }else{
-        audio.style.display='none';
-        audio.src='';
-      }
+      if(audio){audio.style.display='none';audio.src='';}
+      if(recUrl&&!c._recordingUrl){c._recordingUrl=recUrl;save();}
     }else{
       lcp.style.display='none';
     }
@@ -2819,7 +2815,7 @@ function formatBloqueLlamada(esc){
         pill='<span class="pill '+hit[1]+'">'+hit[2]+'</span>';
         var extra=L.replace(/^.*?(VISITA CONCERTADA|No interesa|Rellamar|No contest\S*|Duda[^\u2014-]*)/i,'')
                    .replace(/^[\s\u2014\u2013-]+/,'').trim();
-        if(extra) resto.push(extra);
+        if(extra&&!/^revisar$/i.test(extra)) resto.push(extra);
         continue;
       }
     }
