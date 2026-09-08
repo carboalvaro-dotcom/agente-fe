@@ -14,23 +14,22 @@ export default async function handler(req, res) {
     if (_q.proxyRecording) {
       const callId = _q.proxyRecording;
       try {
-        // Try Vapi's dedicated recording proxy first
-        let recResp = await fetch(`https://api.vapi.ai/call/${callId}/recording`, {
+        const callData = await fetch(`https://api.vapi.ai/call/${callId}`, {
           headers: { Authorization: `Bearer ${VAPI_KEY}` }
-        });
-        // Fallback: get recordingUrl from call object and fetch it directly
-        if (!recResp.ok) {
-          const callData = await fetch(`https://api.vapi.ai/call/${callId}`, {
-            headers: { Authorization: `Bearer ${VAPI_KEY}` }
-          }).then(r => r.json()).catch(() => ({}));
-          const recUrl = callData.recordingUrl
-            || (callData.artifact && (callData.artifact.recordingUrl || callData.artifact.stereoRecordingUrl))
-            || '';
-          if (!recUrl) return res.status(404).json({ error: 'No recording found' });
-          // NO enviar Authorization: la URL de R2 va pre-firmada y el header
-          // rompe la firma S3 (400). Se pide tal cual.
-          recResp = await fetch(recUrl);
-        }
+        }).then(r => r.json()).catch(() => ({}));
+        const art = callData.artifact || {};
+        // IMPORTANTE: recordingUrl es la URL cruda del bucket R2 y siempre da 400
+        // (InvalidArgument: Authorization). Hay que usar las presignedUrl, que
+        // caducan a los 30 min — por eso se piden en cada peticion.
+        const recUrl = art.presignedMonoUrl
+          || art.presignedStereoUrl
+          || (art.recording && art.recording.mono && art.recording.mono.combinedUrl)
+          || callData.recordingUrl
+          || art.recordingUrl
+          || '';
+        if (!recUrl) return res.status(404).json({ error: 'No recording found' });
+        // Sin Authorization: la URL ya va firmada; el header rompe la firma S3.
+        const recResp = await fetch(recUrl);
         if (!recResp.ok) return res.status(502).json({ error: 'Recording fetch failed: ' + recResp.status });
         const ct = recResp.headers.get('content-type') || 'audio/wav';
         res.setHeader('Content-Type', ct);
