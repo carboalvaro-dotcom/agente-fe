@@ -2705,6 +2705,19 @@ async function syncVapiHoy(){
     toast('Error sync: '+err.message,'err');
   }
 }
+function loadRec(btn,callId){
+  btn.disabled=true;btn.textContent='Cargando grabacion...';
+  fetch(BACKEND_URL+'?proxyRecording='+callId)
+    .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.blob();})
+    .then(function(b){
+      var a=document.createElement('audio');
+      a.controls=true;a.src=URL.createObjectURL(b);
+      a.style.cssText='width:100%;height:32px;margin-top:6px;border-radius:6px;display:block';
+      btn.parentNode.replaceChild(a,btn);
+      a.play().catch(function(){});
+    })
+    .catch(function(e){btn.disabled=false;btn.textContent='\u26A0 No se pudo cargar ('+e.message+')';});
+}
 function renderCallsPanel(st,ultimaLlamada){
   var lcp=document.getElementById('last-call-panel');
   var lct=document.getElementById('last-call-time');
@@ -2742,7 +2755,7 @@ function renderCallsPanel(st,ultimaLlamada){
     var sep=idx>0?'border-top:1px solid var(--bd);margin-top:10px;padding-top:10px;':'';
     var au='';
     if(_hasRec&&bCallId&&typeof BACKEND_URL!=='undefined'){
-      au='<audio controls preload="none" src="'+BACKEND_URL+'?proxyRecording='+bCallId+'" style="width:100%;height:32px;margin-top:6px;border-radius:6px;display:block"></audio>';
+      au='<button type="button" onclick="loadRec(this,\''+bCallId+'\')" style="margin-top:6px;width:100%;padding:5px 8px;font-size:11px;font-family:var(--fn);cursor:pointer;background:var(--s0);color:var(--ac);border:1px solid var(--bd);border-radius:6px;">&#9654; Escuchar grabaci&oacute;n</button>';
     }
     return '<div style="'+sep+'font-size:11px;line-height:1.6">'+esc+au+'</div>';
   }).filter(Boolean).join('')||'<span style="color:var(--mt);font-size:11px">Sin resumen</span>';
