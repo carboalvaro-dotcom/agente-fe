@@ -1146,6 +1146,9 @@ function init(){
       return x?{...r,estado:x.estado||'pendiente',notas:x.notas||'',contactName:x.contactName||'',
         email:x.email||r.email||'',visitDate:x.visitDate||'',cups:x.cups||r.cups||'',
         consumo:x.consumo||r.consumo||'',telefono2:x.telefono2||'',potencia_kw:x.potencia_kw||r.potencia_kw,
+        telefono:x.telefono||r.telefono,tarifa:x.tarifa||r.tarifa,
+        comercializadora:x.comercializadora||r.comercializadora||'',
+        direccion:x.direccion||r.direccion,nif:x.nif||r.nif,fechaRellamar:x.fechaRellamar||'',
         llamadas:x.llamadas||0,ultimaLlamada:x.ultimaLlamada||'',
         _callId:x._callId||'',_recordingUrl:x._recordingUrl||'',_lastSummary:x._lastSummary||''}
         :{...r,estado:'pendiente',notas:'',contactName:'',visitDate:'',cups:'',consumo:'',telefono2:''};
@@ -1173,6 +1176,8 @@ function save(){
     id:c.id,estado:c.estado,notas:c.notas||'',contactName:c.contactName||'',
     email:c.email||'',visitDate:c.visitDate||'',cups:c.cups||'',
     consumo:c.consumo||'',telefono:c.telefono||'',telefono2:c.telefono2||'',potencia_kw:c.potencia_kw,
+    tarifa:c.tarifa||'',comercializadora:c.comercializadora||'',direccion:c.direccion||'',nif:c.nif||'',
+    fechaRellamar:c.fechaRellamar||'',
     llamadas:c.llamadas||0,ultimaLlamada:c.ultimaLlamada||'',
     _callId:c._callId||'',_recordingUrl:c._recordingUrl||'',_lastSummary:c._lastSummary||''
   }));
@@ -1481,6 +1486,7 @@ function sel(id){
   // Llamadas badge
   const lbadge=document.getElementById('llamadas-badge');
   if(lbadge) lbadge.textContent=c.llamadas>0?'\uD83D\uDCDE '+c.llamadas+(c.llamadas===1?' llamada':' llamadas')+(c.ultimaLlamada?' · \uD83D\uDCC5 '+c.ultimaLlamada:''):'';
+  _verTodas=false;
   renderCallsPanel(c,c.ultimaLlamada);
   // Call recording link
   const recDiv=document.getElementById('rec-link');
@@ -2832,7 +2838,17 @@ function formatBloqueLlamada(esc){
   return cab+cuerpo;
 }
 
+// Muestra todas las llamadas del contacto en el panel (no solo las 2 ultimas)
+var _verTodas=false;
+function verTodasLlamadas(btn){
+  _verTodas=true;
+  var st=_ultimoContactoPanel;
+  if(st) renderCallsPanel(st,st.ultimaLlamada);
+}
+var _ultimoContactoPanel=null;
+
 function renderCallsPanel(st,ultimaLlamada){
+  _ultimoContactoPanel=st;
   var lcp=document.getElementById('last-call-panel');
   var lct=document.getElementById('last-call-time');
   var lcs=document.getElementById('last-call-summary');
@@ -2857,7 +2873,7 @@ function renderCallsPanel(st,ultimaLlamada){
     .sort(function(x,y){return (y.t-x.t)||(y.i-x.i);})
     .map(function(o){return o.b;});
   // Mostrar solo las 2 ultimas: el resto queda en el Historial
-  var _MAX=2, _extra=bloques.length-_MAX;
+  var _MAX=_verTodas?bloques.length:2, _extra=bloques.length-_MAX;
   if(_extra>0)bloques=bloques.slice(0,_MAX);
   lcs.innerHTML=bloques.map(function(blk,idx){
     var cIdM=blk.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
@@ -2875,7 +2891,10 @@ function renderCallsPanel(st,ultimaLlamada){
     return '<div style="'+sep+'font-size:11px;line-height:1.6">'+esc+au+'</div>';
   }).filter(Boolean).join('')||'<span style="color:var(--mt);font-size:11px">Sin resumen</span>';
   if(_extra>0){
-    lcs.innerHTML+='<div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--bd);font-size:10px;color:var(--mt);text-align:center">+'+_extra+' llamadas anteriores &middot; ver Historial</div>';
+    lcs.innerHTML+='<button type="button" onclick="verTodasLlamadas(this)" '
+      +'style="margin-top:8px;padding-top:8px;width:100%;border:none;border-top:1px dashed var(--bd);'
+      +'background:none;font-size:10px;color:var(--mt);text-align:center;cursor:pointer;font-family:var(--fn)">'
+      +'+ '+_extra+' llamada'+(_extra===1?'':'s')+' anterior'+(_extra===1?'':'es')+' &middot; ver todas</button>';
   }
 }
 function checkDuplicate(telefono){
