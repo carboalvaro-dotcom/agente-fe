@@ -1131,6 +1131,19 @@ const RAW=[{"id": 999, "nombre": "PRUEBAS CARBÓ SL", "nif": "TEST", "telefono":
 
 const CNAE={'1011':'Cárnico','1071':'Panadería/Pastelería','1391':'Tejidos punto','1392':'Artículos textiles','1393':'Alfombras','1396':'Tejidos elásticos','1413':'Confección','1423':'Artículos piel','1429':'Marroquinería','1713':'Acabado textiles','2059':'Química','2562':'Trabajos metal','2841':'Tratamiento metales','3109':'Muebles','3316':'Aeronáutica','4120':'Construcción','4322':'Fontanería/Climatización','4331':'Solados/Alicatados','4332':'Carpintería','4391':'Cubiertas','4399':'Construcción esp.','4511':'Venta coches','4520':'Taller vehículos','4619':'Agentes comerciales','4641':'Textil mayorista','4642':'Confección mayorista','4647':'Perfumería mayorista','4649':'Hogar mayorista','4661':'Maquinaria','4674':'Ferretería/Fontanería','4683':'Combustibles','4711':'Supermercado','4712':'Alimentación','4722':'Alimentación esp.','4751':'Textil','4759':'Hogar','4763':'Deporte','4764':'Juguetes','4765':'Juegos','4771':'Moda','4774':'Ortopedia','4775':'Perfumería','4778':'Óptica/Joyería','4941':'Transporte','5210':'Almacenamiento','5320':'Mensajería','5610':'Restaurante','5611':'Bar/Cafetería','5630':'Bar','6202':'Informática','6419':'Banco/Caja','6820':'Inmobiliaria','6910':'Jurídico','7490':'Consultoría','7499':'Servicios div.','7500':'Veterinaria','8210':'Oficina','8520':'Educación primaria','8559':'Formación','8623':'Dentista','8690':'Sanidad','8710':'Residencia','8812':'Serv. sociales','9531':'Electrónica','9602':'Peluquería','9621':'Estética','9810':'Com. propietarios','9820':'Actividades div.','9821':'Bar/Restaurante'};
 function cnaeDesc(s){return CNAE[String(s)]||s||'—';}
+// Solo la calle: el numero de portal no aporta nada dicho en voz alta
+// y el TTS lo lee fatal. Ojo: hay calles con numero dentro del nombre
+// ("Ronda 8 de Marc"), asi que solo se quita el numero FINAL.
+function calleSola(d){
+  var s=(d||'').split(',')[0].trim();
+  if(!s) return '';
+  var t=s.replace(/\s+(s\/n|s\.n\.?)$/i,'')
+         .replace(/\s+(bis|dup|duplicado)$/i,'')
+         .replace(/\s+\d+\s*[-\/]?\s*[a-zA-Z]?$/,'')
+         .trim();
+  return t.length>=3 ? t : s;
+}
+
 function cleanNombre(n){
   return (n||'').replace(/[,.]?\s*(S\.L\.L\.?|S\.L\.?|S\.A\.?|S\.A\.U\.?|S\.L\.U\.?|S\.C\.P\.?|S\.C\.?|S\.A\.L\.?|S\.C\.L\.?|C\.B\.?|S\.L\.P\.?|SLL|SLU|SAU|SAL|SCL|SCP|SLP|SL|SA|CB)\s*$/i,'').trim();
 }
@@ -1557,7 +1570,7 @@ Luego espera su respuesta y sigue la conversacion de forma natural con humor. Si
   }
 
   // Sin direccion la frase del PASO 2B quedaba coja ("en el suministro de  hemos...")
-  var _dir=(c.direccion||'').trim();
+  var _dir=calleSola(c.direccion);
   var _paso2b=_dir
     ? '"Entiendo. Le llamo porque en el suministro de '+_dir+' hemos detectado una incidencia en las potencias contratadas que puede estar generando sobrecostes. ¿Tiene usted relación con ese local o suministro?"'
     : '"Entiendo. Le llamo por un suministro registrado a nombre de '+cleanNombre(c.nombre)+', donde hemos detectado una incidencia en las potencias contratadas. ¿Tiene usted relación con ese suministro?"';
@@ -1764,7 +1777,7 @@ async function callViaProxy(phone,c){
       startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},stopSpeakingPlan:{numWords:2,voiceSeconds:0.1,backoffSeconds:1},
       firstMessage:c.nif==="AMIGO"?"Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.":`Buenos días, ¿hablo con ${cleanNombre(c.nombre)}?`,
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
-      voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8},
+      voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.8,similarityBoost:0.8,style:0,useSpeakerBoost:true},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
       endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
       recordingEnabled:true,
@@ -3640,7 +3653,7 @@ async function accLlamar(id){
       firstMessage:apertura,
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,
         messages:[{role:'system',content:systemPrompt}]},
-      voice:{provider:'11labs',voiceId:'uQw4jpKzMLrZuo0RLPS9',model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8},
+      voice:{provider:'11labs',voiceId:'uQw4jpKzMLrZuo0RLPS9',model:'eleven_turbo_v2_5',stability:0.8,similarityBoost:0.8,style:0,useSpeakerBoost:true},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
       endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
       recordingEnabled:true,
@@ -3941,7 +3954,7 @@ async function talLlamar(id){
   iv=setInterval(function(){sec++;var m=Math.floor(sec/60),s=sec%60;document.getElementById('ctm').textContent=m+':'+(s<10?'0':'')+s;},1000);
   var systemPrompt='Eres CARLA, comercial de la empresa colaboradora de la distribuidora el\u00e9ctrica de la zona.\n\n'
     +'NEGOCIO: '+t.nombre+' ('+t.municipio+', CP '+t.cp+')\n'
-    +((t.direccion||'').trim()?'DIRECCION DEL SUMINISTRO: '+t.direccion+'\n':'')
+    +(calleSola(t.direccion)?'CALLE DEL SUMINISTRO: '+calleSola(t.direccion)+'\n':'')
     +'SECTOR: '+t.tipo+'\n'
     +(st.contacto?'CONTACTO CONOCIDO: '+st.contacto+'\n':'')+'\n'
     +'FLUJO DE LA LLAMADA:\n'
@@ -3951,8 +3964,8 @@ async function talLlamar(id){
        +'   Cuando est\u00e9 el contacto, pres\u00e9ntate: Hola '+st.contacto+', soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n'
       :'   Si confirman, pres\u00e9ntate: Hola, soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n')
     +'2. Motivo SIN mencionar el tipo de negocio:\n'
-    +((t.direccion||'').trim()
-      ?'   Le llamo por el suministro de '+t.direccion+'. Hemos identificado que la potencia contratada no est\u00e1 ajustada al consumo real.\n'
+    +(calleSola(t.direccion)
+      ?'   Le llamo por el suministro de '+calleSola(t.direccion)+'. Hemos identificado que la potencia contratada no est\u00e1 ajustada al consumo real.\n'
        +'   Di la direcci\u00f3n UNA sola vez, al dar el motivo, y no la repitas m\u00e1s.\n'
       :'   Le llamo para notificarle que hemos identificado que la potencia contratada no est\u00e1 ajustada al consumo real de su establecimiento.\n')
     +'   Nosotros nos encargamos de solucionarlo sin coste. Diez minutos de revisi\u00f3n, \u00bfle encaja esta semana?\n'
@@ -3985,7 +3998,7 @@ async function talLlamar(id){
       firstMessage:'Buenos d\u00edas, \u00bfhablo con '+nb+'?',
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,
         messages:[{role:'system',content:systemPrompt}]},
-      voice:{provider:'11labs',voiceId:'uQw4jpKzMLrZuo0RLPS9',model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8},
+      voice:{provider:'11labs',voiceId:'uQw4jpKzMLrZuo0RLPS9',model:'eleven_turbo_v2_5',stability:0.8,similarityBoost:0.8,style:0,useSpeakerBoost:true},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
       endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
       recordingEnabled:true,
@@ -4233,7 +4246,7 @@ async function supLlamar(id){
   iv=setInterval(function(){sec++;var m=Math.floor(sec/60),s=sec%60;document.getElementById('ctm').textContent=m+':'+(s<10?'0':'')+s;},1000);
   var systemPrompt='Eres CARLA, llamando de parte de la distribuidora el\u00e9ctrica de la zona.\n\n'
     +'ESTABLECIMIENTO: '+t.nombre+' ('+t.cadena+', '+t.municipio+')\n'
-    +((t.direccion||'').trim()?'DIRECCION DEL SUMINISTRO: '+t.direccion+'\n':'')
+    +(calleSola(t.direccion)?'CALLE DEL SUMINISTRO: '+calleSola(t.direccion)+'\n':'')
     +(supSt[t.id]&&supSt[t.id].contacto?'CONTACTO CONOCIDO: '+supSt[t.id].contacto+'\n':'')+'\n'
     +'FLUJO DE LA LLAMADA:\n'
     +'1. El sistema ya ha preguntado si habla con el establecimiento.\n'
@@ -4242,8 +4255,8 @@ async function supLlamar(id){
        +'   Cuando est\u00e9 el contacto: Hola '+supSt[t.id].contacto+', soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n'
       :'   Si confirman: Hola, soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n')
     +'2. Motivo SIN mencionar el nombre del establecimiento:\n'
-    +((t.direccion||'').trim()
-      ?'   Le llamo por el suministro de '+t.direccion+'. Hemos identificado que la potencia contratada no est\u00e1 ajustada al consumo real.\n'
+    +(calleSola(t.direccion)
+      ?'   Le llamo por el suministro de '+calleSola(t.direccion)+'. Hemos identificado que la potencia contratada no est\u00e1 ajustada al consumo real.\n'
        +'   Di la direcci\u00f3n UNA sola vez, al dar el motivo, y no la repitas m\u00e1s.\n'
       :'   Le llamo para notificarle que hemos identificado que la potencia contratada no est\u00e1 ajustada al consumo real de su establecimiento.\n')
     +'   Nosotros nos encargamos de solucionarlo sin coste. Diez minutos de revisi\u00f3n, \u00bfle encaja esta semana?\n'
@@ -4274,7 +4287,7 @@ async function supLlamar(id){
       firstMessage:'\u00bfHablo con '+nb+'?',
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,
         messages:[{role:'system',content:systemPrompt}]},
-      voice:{provider:'11labs',voiceId:'uQw4jpKzMLrZuo0RLPS9',model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8},
+      voice:{provider:'11labs',voiceId:'uQw4jpKzMLrZuo0RLPS9',model:'eleven_turbo_v2_5',stability:0.8,similarityBoost:0.8,style:0,useSpeakerBoost:true},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
       endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
       recordingEnabled:true,
@@ -4514,7 +4527,7 @@ async function hotLlamar(id){
   iv=setInterval(function(){sec++;var m=Math.floor(sec/60),s=sec%60;document.getElementById('ctm').textContent=m+':'+(s<10?'0':'')+s;},1000);
   var systemPrompt='Eres CARLA, comercial de la empresa colaboradora de la distribuidora el\u00e9ctrica de la zona.\n\n'
     +'NEGOCIO: '+t.nombre+' ('+t.municipio+', CP '+t.cp+')\n'
-    +((t.direccion||'').trim()?'DIRECCION DEL SUMINISTRO: '+t.direccion+'\n':'')
+    +(calleSola(t.direccion)?'CALLE DEL SUMINISTRO: '+calleSola(t.direccion)+'\n':'')
     +'SECTOR: Alojamiento ('+t.tipo+')\n'
     +(st.contacto?'CONTACTO CONOCIDO: '+st.contacto+'\n':'')+'\n'
     +'FLUJO DE LA LLAMADA:\n'
@@ -4524,8 +4537,8 @@ async function hotLlamar(id){
        +'   Cuando est\u00e9 el contacto, pres\u00e9ntate: Hola '+st.contacto+', soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n'
       :'   Si confirman, pres\u00e9ntate: Hola, soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n')
     +'2. Notificación técnica — sin mencionar tipo de alojamiento:\n'
-    +((t.direccion||'').trim()
-      ?'   Le llamo por el suministro de '+t.direccion+'. Hemos detectado ah\u00ed un desajuste de potencia.\n'
+    +(calleSola(t.direccion)
+      ?'   Le llamo por el suministro de '+calleSola(t.direccion)+'. Hemos detectado ah\u00ed un desajuste de potencia.\n'
        +'   Di la direcci\u00f3n UNA sola vez, al dar el motivo, y no la repitas m\u00e1s.\n'
       :'   Le llamo para notificarle un desajuste de potencia que hemos detectado en el suministro el\u00e9ctrico de su establecimiento.\n')
     +'   Hemos identificado que la potencia contratada no está ajustada al consumo real.\n'
@@ -4560,7 +4573,7 @@ async function hotLlamar(id){
       firstMessage:'Buenos d\u00edas, \u00bfhablo con '+nb+'?',
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,
         messages:[{role:'system',content:systemPrompt}]},
-      voice:{provider:'11labs',voiceId:'uQw4jpKzMLrZuo0RLPS9',model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8},
+      voice:{provider:'11labs',voiceId:'uQw4jpKzMLrZuo0RLPS9',model:'eleven_turbo_v2_5',stability:0.8,similarityBoost:0.8,style:0,useSpeakerBoost:true},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
       endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
       recordingEnabled:true,
@@ -4796,7 +4809,7 @@ async function denLlamar(id){
   iv=setInterval(function(){sec++;var m=Math.floor(sec/60),s=sec%60;document.getElementById('ctm').textContent=m+':'+(s<10?'0':'')+s;},1000);
   var systemPrompt='Eres CARLA, comercial de la empresa colaboradora de la distribuidora el\u00e9ctrica de la zona.\n\n'
     +'NEGOCIO: '+t.nombre+' ('+t.municipio+', CP '+t.cp+')\n'
-    +((t.direccion||'').trim()?'DIRECCION DEL SUMINISTRO: '+t.direccion+'\n':'')
+    +(calleSola(t.direccion)?'CALLE DEL SUMINISTRO: '+calleSola(t.direccion)+'\n':'')
     +'SECTOR: '+t.tipo+'\n'
     +(st.contacto?'CONTACTO CONOCIDO: '+st.contacto+'\n':'')+'\n'
     +'FLUJO DE LA LLAMADA:\n'
@@ -4806,8 +4819,8 @@ async function denLlamar(id){
        +'   Cuando est\u00e9 el contacto, pres\u00e9ntate: Hola '+st.contacto+', soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n'
       :'   Si confirman, pres\u00e9ntate: Hola, soy Carla, le llamo de parte de la distribuidora el\u00e9ctrica de su zona.\n')
     +'2. Motivo SIN mencionar el tipo de negocio:\n'
-    +((t.direccion||'').trim()
-      ?'   Le llamo por el suministro de '+t.direccion+'. Hemos identificado que la potencia contratada no est\u00e1 ajustada al consumo real.\n'
+    +(calleSola(t.direccion)
+      ?'   Le llamo por el suministro de '+calleSola(t.direccion)+'. Hemos identificado que la potencia contratada no est\u00e1 ajustada al consumo real.\n'
        +'   Di la direcci\u00f3n UNA sola vez, al dar el motivo, y no la repitas m\u00e1s.\n'
       :'   Le llamo para notificarle que hemos identificado que la potencia contratada no est\u00e1 ajustada al consumo real de su establecimiento.\n')
     +'   Nosotros nos encargamos de solucionarlo sin coste. Diez minutos de revisi\u00f3n, \u00bfle encaja esta semana?\n'
@@ -4840,7 +4853,7 @@ async function denLlamar(id){
       firstMessage:'Buenos d\u00edas, \u00bfhablo con '+nb+'?',
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,
         messages:[{role:'system',content:systemPrompt}]},
-      voice:{provider:'11labs',voiceId:'uQw4jpKzMLrZuo0RLPS9',model:'eleven_turbo_v2_5',stability:0.55,similarityBoost:0.8},
+      voice:{provider:'11labs',voiceId:'uQw4jpKzMLrZuo0RLPS9',model:'eleven_turbo_v2_5',stability:0.8,similarityBoost:0.8,style:0,useSpeakerBoost:true},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
       endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
       recordingEnabled:true,
