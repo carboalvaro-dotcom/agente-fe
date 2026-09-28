@@ -1422,10 +1422,12 @@ function sel(id){
     ['','Fecha visita', c.visitDate||'', 'visitDate', ''],
     ['span2','NIF', c.nif, 'nif', '']
   ];
+  // Telefono y Direccion no se colapsan nunca: son los que siempre se miran
+  var _SIEMPRE={telefono:1,direccion:1};
   var _vacios=0;
   var _html=_fg.map(function(f){
     var span=f[0],lab=f[1],val=(f[2]===0||f[2])?String(f[2]):'',campo=f[3],tipo=f[4];
-    var empty=!val.trim();
+    var empty=!val.trim()&&!_SIEMPRE[campo];
     if(empty)_vacios++;
     var conv=tipo==='num'?"parseFloat(this.value)||0":"this.value";
     return '<div class="fg-item '+span+(empty?' fg-empty':'')+'">'
@@ -1554,10 +1556,16 @@ Nada mas descolgar di EXACTAMENTE: "Hola Francisco, portate bien que te estoy vi
 Luego espera su respuesta y sigue la conversacion de forma natural con humor. Si pregunta quien llama di que eres un agente secreto.`;
   }
 
+  // Sin direccion la frase del PASO 2B quedaba coja ("en el suministro de  hemos...")
+  var _dir=(c.direccion||'').trim();
+  var _paso2b=_dir
+    ? '"Entiendo. Le llamo porque en el suministro de '+_dir+' hemos detectado una incidencia en las potencias contratadas que puede estar generando sobrecostes. ¿Tiene usted relación con ese local o suministro?"'
+    : '"Entiendo. Le llamo por un suministro registrado a nombre de '+cleanNombre(c.nombre)+', donde hemos detectado una incidencia en las potencias contratadas. ¿Tiene usted relación con ese suministro?"';
+
   return `Eres CARLA, asistente telefónica de una asesoría energética.
 
 DATOS DEL SUMINISTRO (contexto interno):
-- Empresa: ${c.nombre} · Dirección: ${c.direccion}
+- Empresa: ${c.nombre}${_dir?' · Dirección: '+_dir:''}
 - Tarifa: ${c.tarifa} · Potencia: ${c.potencia_kw} kW${c.consumo?' · Consumo: '+c.consumo+' kWh':''}
 
 OBJETIVO: Confirmar empresa, detectar responsable y conseguir visita de 10 minutos.
@@ -1573,7 +1581,7 @@ PASO 2A — Si confirman que SÍ es esa empresa:
 "Le llamo porque detectamos que ${cleanNombre(c.nombre)} podría tener una potencia contratada que está generando un sobrecoste en su factura de luz. ¿Es usted quien gestiona ese tema?"
 
 PASO 2B — Si dicen que NO es esa empresa o no la conocen:
-"Entiendo. Le llamo porque en el suministro de ${c.direccion} hemos detectado una incidencia en las potencias contratadas que puede estar generando sobrecostes. ¿Tiene usted relación con ese local o suministro?"
+${_paso2b}
 - Si tienen relación → continúa el guión
 - Si no → "Disculpe la molestia, que tenga buen día." Y CUELGA.
 
