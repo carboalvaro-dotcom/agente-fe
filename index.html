@@ -683,7 +683,7 @@ let _lastGhSha=null;
 let _pollActive=false;
 const CP_NAMES={'08390':'Montgat','08391':'Tiana','08329':'Teià','08911':'Badalona','08917':'Badalona Montígala','08019':'Barcelona 08019','08037':'Barcelona 08037','08339':'Premià de Dalt','08330':'Premià de Mar','08310':'Argentona','08350':'Arenys de Mar'};
 
-const RAW=[[{"id": 999, "nombre": "PRUEBAS CARBÓ SL", "nif": "TEST", "telefono": "+34619012680", "email": "carboalvaro@gmail.com", "direccion": "RONDA 8 DE MARÇ 48", "comercializadora": "ENDESA ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 12.0, "sector": "TEST — No llamar", "prioritario": false, "cp": "08390"},
+const RAW=[{"id": 999, "nombre": "PRUEBAS CARBÓ SL", "nif": "TEST", "telefono": "+34619012680", "email": "carboalvaro@gmail.com", "direccion": "RONDA 8 DE MARÇ 48", "comercializadora": "ENDESA ENERGÍA", "tarifa": "3.0 TD", "potencia_kw": 12.0, "sector": "TEST — No llamar", "prioritario": false, "cp": "08390"},
 {"id": 1000, "nombre": "FRANCISCO", "nif": "AMIGO", "telefono": "+34629750758", "email": "", "direccion": "DONDE SEA", "comercializadora": "", "tarifa": "3.0 TD", "potencia_kw": 0, "sector": "TEST PERSONAL", "prioritario": false, "cp": "08390"},
 {"id": 0, "nombre": "ROSENDO RABAT COMAS", "nif": "38616614M", "telefono": "934692699", "email": "", "direccion": "ARNO JAGER 71, BJO", "comercializadora": "ENDESA ENERGÍA", "tarifa": "2.0 TD", "potencia_kw": 12.5, "sector": "Actividad comercial", "prioritario": false, "cp": "08390", "cups": "ES0031405020391001KE", "consumo": "6825"},
 {"id": 2, "nombre": "JUAN GILI SL", "nif": "B58810235", "telefono": "934693585", "email": "", "direccion": "ESGLESIA 1, 1", "comercializadora": "GAS NATURAL SDG", "tarifa": "2.0 TD", "potencia_kw": 15.0, "sector": "Actividad comercial", "prioritario": false, "cp": "08390", "cups": "ES0031405020492002CF", "consumo": "5964"},
@@ -1460,7 +1460,49 @@ function calleSola(d){
 }
 
 function cleanNombre(n){
-  return (n||'').replace(/[,.]?\s*(S\.L\.L\.?|S\.L\.?|S\.A\.?|S\.A\.U\.?|S\.L\.U\.?|S\.C\.P\.?|S\.C\.?|S\.A\.L\.?|S\.C\.L\.?|C\.B\.?|S\.L\.P\.?|SLL|SLU|SAU|SAL|SCL|SCP|SLP|SL|SA|CB)\s*$/i,'').trim();
+  // v2: quita basura final (**, puntos, comas) y formas jurídicas aunque vengan con espacios ("S A", "S. L.")
+  var s=(n||'').replace(/[\s*,.]+$/,'').trim(), prev;
+  do{
+    prev=s;
+    s=s.replace(/[,.]?\s*(S\.?\s?L\.?\s?L\.?|S\.?\s?L\.?\s?U\.?|S\.?\s?L\.?\s?P\.?|S\.?\s?A\.?\s?U\.?|S\.?\s?A\.?\s?L\.?|S\.?\s?C\.?\s?P\.?|S\.?\s?C\.?\s?L\.?|S\.?\s?L\.?|S\.?\s?A\.?|S\.?\s?C\.?|C\.?\s?B\.?)$/i,'').replace(/[\s*,.]+$/,'').trim();
+  }while(s!==prev && s.length>2);
+  return s||(n||'').trim();
+}
+// v2: nombre corto para decir en voz alta (sin forma jurídica, en minúsculas capitalizadas para el TTS)
+function nombreVoz(n){
+  var s=cleanNombre(n);
+  if(s===s.toUpperCase()) s=s.toLowerCase().replace(/(^|[\s\-'(])([a-záéíóúàèòïüñç])/g,function(m,a,b){return a+b.toUpperCase();});
+  return s;
+}
+// v2: calle lista para el TTS: abreviaturas expandidas y siempre con tipo de vía delante
+// ("AV DIAGONAL" -> "avenida Diagonal", "CASANOVA" -> "calle Casanova")
+function calleVoz(d){
+  var s=calleSola(d);
+  if(!s) return '';
+  var VIAS=[
+    [/^(C\/|C\.|CL\.?|CALLE|CARRER|C)\s+/i,'calle '],
+    [/^(AV\.?|AVDA\.?|AVGDA\.?|AVINGUDA|AVENIDA)\s+/i,'avenida '],
+    [/^(PS\.?|PG\.?|PSG\.?|PASSEIG|PASEO|Pº)\s+/i,'paseo '],
+    [/^(CR\.?|CTRA\.?|CARRETERA)\s+/i,'carretera '],
+    [/^(CN\.?|CM\.?|CAMI|CAMÍ|CAMINO)\s+/i,'camino '],
+    [/^(PZ\.?|PL\.?|PÇA\.?|PLAÇA|PLAZA)\s+/i,'plaza '],
+    [/^(RB\.?|RBLA\.?|RAMBLA)\s+/i,'rambla '],
+    [/^(RD\.?|RDA\.?|RONDA)\s+/i,'ronda '],
+    [/^(PJ\.?|PTGE\.?|PASSATGE|PASAJE)\s+/i,'pasaje '],
+    [/^(TRAV\.?|TRV\.?|TRAVESSERA|TRAVESIA|TRAVESÍA)\s+/i,'travesía '],
+    [/^(POL\.?|PI\.?|POLIGONO|POLÍGONO|POLIGON)\s+/i,'polígono '],
+    [/^(VIA|VÍA)\s+/i,'vía ']
+  ];
+  var tipo='calle ', resto=s;
+  for(var i=0;i<VIAS.length;i++){ if(VIAS[i][0].test(s)){ tipo=VIAS[i][1]; resto=s.replace(VIAS[i][0],''); break; } }
+  if(resto===resto.toUpperCase()) resto=resto.toLowerCase().replace(/(^|[\s\-'(])([a-záéíóúàèòïüñç])/g,function(m,a,b){return a+b.toUpperCase();}).replace(/(^|\s)(De|Del|La|Les|Dels|D'|L'|I|Y)(?=\s|$|[A-ZÀ-Ü])/g,function(m){return m.toLowerCase();});
+  return (tipo+resto).trim();
+}
+// v2: nombre con el que Carla se presenta. Cambiar aquí si se quiere usar un nombre comercial propio.
+var CARLA_ASESORIA='una asesoría energética';
+function saludoHora(){
+  var h=parseInt(new Date().toLocaleString('es-ES',{hour:'2-digit',hour12:false,timeZone:'Europe/Madrid'}),10);
+  return h>=14?'Buenas tardes':'Buenos días';
 }
 let C=[],curId=null,curF='todos',curR=null,iv=null,sec=0;
 
@@ -1884,129 +1926,94 @@ Nada mas descolgar di EXACTAMENTE: "Hola Francisco, portate bien que te estoy vi
 Luego espera su respuesta y sigue la conversacion de forma natural con humor. Si pregunta quien llama di que eres un agente secreto.`;
   }
 
-  // Sin direccion la frase del PASO 2B quedaba coja ("en el suministro de  hemos...")
-  var _dir=calleSola(c.direccion);
-  var _paso2b=_dir
-    ? '"Entiendo. Le llamo porque en el suministro de '+_dir+' hemos detectado una incidencia en las potencias contratadas que puede estar generando sobrecostes. ¿Tiene usted relación con ese local o suministro?"'
-    : '"Entiendo. Le llamo por un suministro registrado a nombre de '+cleanNombre(c.nombre)+', donde hemos detectado una incidencia en las potencias contratadas. ¿Tiene usted relación con ese suministro?"';
-  // La direccion en la apertura: el dato que demuestra que la llamada no es a ciegas
-  var _apertura=_dir
-    ? '"Le llamo por el suministro de '+_dir+'. Hemos detectado que la potencia contratada podría estar generando un sobrecoste en la factura de luz. ¿Es usted quien lleva ese tema?"'
-    : '"Le llamo porque hemos detectado que '+cleanNombre(c.nombre)+' podría tener una potencia contratada que está generando un sobrecoste en la factura de luz. ¿Es usted quien lleva ese tema?"';
+  // ===== SPEECH v2 (01/10/2026) — objetivo: contacto del responsable de la luz =====
+  var _nom=nombreVoz(c.nombre);
+  var _calle=calleVoz(c.direccion);
+  var _kw=c.potencia_kw?Math.round(parseFloat(c.potencia_kw)):0;
+  var _motivo=_calle
+    ? '"Es por el suministro de '+_calle+': queremos revisar si la potencia contratada está bien ajustada. ¿Con quién lo puedo ver?"'
+    : '"Es por el suministro eléctrico de su empresa: queremos revisar si la potencia contratada está bien ajustada. ¿Con quién lo puedo ver?"';
+  var _gancho=_kw
+    ? '"Con '+_kw+' kilovatios contratados, cuando la potencia no está ajustada al uso real se paga de más cada mes. En una revisión de 10 minutos le decimos si es su caso y cuánto."'
+    : '"Cuando la potencia contratada no está ajustada al uso real se paga de más cada mes. En una revisión de 10 minutos le decimos si es su caso y cuánto."';
 
-  return `Eres CARLA, asistente telefónica de una asesoría energética.
+  return `Eres CARLA, asistente virtual de ${CARLA_ASESORIA}. Hablas por teléfono con empresas.
 
-DATOS DEL SUMINISTRO (contexto interno):
-- Empresa: ${c.nombre}${_dir?' · Dirección: '+_dir:''}
-- Tarifa: ${c.tarifa} · Potencia: ${c.potencia_kw} kW${c.consumo?' · Consumo: '+c.consumo+' kWh':''}
+DATOS INTERNOS (no los leas en voz alta salvo donde se indica):
+- Empresa: ${_nom}${_calle?' · Suministro: '+_calle:''}
+- Tarifa: ${c.tarifa||'—'} · Potencia: ${_kw||'—'} kW${c.consumo?' · Consumo: '+c.consumo+' kWh':''}
 
-OBJETIVO: Confirmar empresa, detectar responsable y conseguir visita de 10 minutos.
+OBJETIVO DE LA LLAMADA, por orden:
+1. Conseguir NOMBRE + TELÉFONO DIRECTO o EMAIL de quien gestiona la factura de la luz.
+2. Si hablas con esa persona: proponer una revisión de 10 minutos.
+Un contacto bien apuntado es una llamada GANADA. No arriesgues el contacto por intentar la visita.
 
-APERTURA — sigue este flujo exacto:
+━━ ANTES DE HABLAR: ¿PERSONA O MÁQUINA? ━━
+- Locución, menú ("pulse 1", "si conoce la extensión"), música o "manténgase a la espera": NO DIGAS NADA. Espera en silencio hasta que conteste una persona.
+- Si el menú ofrece "administración", "contabilidad" u "otras consultas", pulsa esa opción con la herramienta dtmf. Si no, espera.
+- Contestador o buzón ("deje su mensaje", "después de la señal", "apagado o fuera de cobertura"): usa la herramienta endCall sin decir nada.
+- Recepcionista automática que pide "nombre o departamento": responde solo "Administración". Si vuelve a preguntar: "Contabilidad". Si pregunta una tercera vez: endCall.
+- NUNCA digas en voz alta lo que vas a hacer ("espero en silencio", "voy a esperar"): solo hazlo.
+- Cuando por fin conteste una persona tras un menú o una espera, di: "Hola, soy Carla, de ${CARLA_ASESORIA}. ¿Quién lleva en la empresa la factura de la luz?"
 
-PASO 1 — Al descolgar di SOLO el nombre de la EMPRESA (no el de la persona):
-"Buenos días, ¿hablo con ${cleanNombre(c.nombre)}?"
-- IMPORTANTE: estás llamando a una empresa, no a una persona. Pregunta por la empresa.
-- Si preguntan "¿con quién quiere hablar?" o "¿por quién pregunta?": di SIEMPRE "Con la persona encargada del suministro eléctrico." NUNCA repitas el nombre de la empresa.
+━━ APERTURA (cuando contesta una persona) ━━
+Ya has dicho el saludo ("¿es ${_nom}?"). NO lo repitas NUNCA, ni aunque no te contesten claro.
+Si confirman o dicen "dígame" / "sí":
+"Soy Carla, de ${CARLA_ASESORIA}. Una pregunta rápida: ¿quién se encarga en la empresa de la factura de la luz?"
+Si preguntan "¿de parte de quién?", "¿para qué es?" o "¿de dónde llaman?":
+${_motivo}
+Si dicen claramente que NO es esa empresa: "Disculpe, me he equivocado de número. Que tenga buen día." (No sigas hablando del suministro a quien no es la empresa.)
 
-PASO 2A — Si confirman que SÍ es esa empresa:
-${_apertura}
-- Di la dirección UNA sola vez, al abrir: es lo que demuestra que la llamada no es a ciegas.
-- No vuelvas a repetirla después.
+━━ CON EL FILTRO (recepción, tienda, personal que no decide) ━━
+Tu único trabajo aquí es salir con un nombre y una vía de contacto. Pregunta de una en una, en este orden:
+1. "¿Cómo se llama la persona que lo lleva?"
+2. "¿Me puede pasar con ella?" → si te pasan, espera en silencio.
+3. Si no está o no te pasan: "¿Cuál es la mejor forma de contactarla, un teléfono directo o un email?"
+4. Si no lo dan: "¿A qué hora suele estar para llamarla?"
+Respuestas típicas:
+- "Eso lo lleva la central / las oficinas / administración" → "¿Me facilita el teléfono de la central, o el nombre de quien lo lleva allí?"
+- "Esto es una tienda / un local" → "Entonces, ¿desde dónde se gestionan las facturas? ¿Me da ese contacto?"
+- "Es de alquiler, la luz no la pagamos nosotros" → "¿Quién la paga, la propiedad o un administrador? ¿Me puede dar su contacto?"
+- "Ya nos llamaron / ya lo pasamos a administración" → "Gracias. ¿Con quién habló en administración, para dirigirme a esa persona directamente?"
+- "Mándelo por email" → "Claro, ¿a qué email y a la atención de quién?" (esto ES un contacto: apúntalo bien).
+- "No damos datos" → "Lo entiendo. ¿A qué hora puedo llamar para que me pasen con administración?" → y despídete con "Que tenga buen día."
 
-PASO 2B — Si dicen que NO es esa empresa o no la conocen:
-${_paso2b}
-- Si tienen relación → continúa el guión
-- Si no → "Disculpe la molestia, que tenga buen día." Y CUELGA.
+━━ CUANDO TE DICTAN UN DATO (teléfono, email, nombre) ━━
+- CALLA mientras dictan, aunque hagan pausas. No digas "gracias", "vale" ni "pero" a mitad del número.
+- Cuando terminen, repítelo en bloques para confirmar: "Seis, cero, ocho... setenta y cinco... ¿es correcto?"
+- Si el email es raro, pide que lo deletreen.
+- Al final: "Perfecto, gracias. Preguntaré por [nombre]. Que tenga buen día."
 
-SI PIDEN LLAMAR EN OTRO MOMENTO — PRIORIDAD ABSOLUTA:
-- Acepta SIEMPRE cualquier hora, incluso si es por la tarde o fin de semana
-- Confirma la hora exacta: "Por supuesto, le llamo a las [hora]. ¿Es correcto?"
-- Si dicen "esta tarde" → confirma: "¿A qué hora esta tarde?"
-- Si dicen "mañana" → confirma: "¿A qué hora mañana?"
-- NO digas que solo llamas por las mañanas
-- NO intentes cerrar visita en ese momento
-- SIEMPRE termina con: "Perfecto, le llamo el [día] a las [hora]. Hasta entonces." Y CUELGA
-- IMPORTANTE: al despedirte di en voz alta el día y hora acordados para que quede registrado
+━━ SI HABLAS CON EL RESPONSABLE ━━
+1. Pide el nombre: "¿Con quién tengo el gusto?"
+2. ${_gancho}
+3. Cierre: "Nuestro asesor está estos días por la zona, por las mañanas entre 10 y 14h. ¿Qué día le viene mejor?" No propongas tú los días. Cuando diga el día: "¿A las 10 o a las 11?"
+4. Confirma nombre, día y hora. "Si tiene una factura reciente a mano, mejor; si no, no hace falta." Despídete: "Perfecto [nombre], el asesor pasa el [día] a las [hora]. Hasta entonces."
+Si prefiere no quedar: "Sin problema. ¿Le envío la información por email?" → apunta el email → "Gracias, le escribimos. Que tenga buen día."
 
-HORARIO DE VISITAS (solo para agendar la visita del técnico, NO para las llamadas):
-- El técnico visita solo mañanas 10h-14h
-- Si el cliente propone tarde para la visita: "El asesor pasa por la zona por las mañanas, entre las 10 y las 14h. ¿Qué día le encaja?"
+━━ OBJECIONES (máximo 1 intento por objeción; después, salida) ━━
+- "No me interesa" → "Entendido. ¿Le han revisado la potencia este año? Si no, en 10 minutos sale de dudas."
+- "Ya tenemos asesor" → "Perfecto. ¿Le ha revisado la potencia este año? Una segunda opinión no cuesta nada."
+- "No tengo tiempo" → "Por eso son 10 minutos. ¿Prefiere que le llame otro día?"
+- "¿Cuánto me voy a ahorrar?" → "Depende de su consumo real; en empresas parecidas suele estar entre 800 y 2.000 euros al año. En la revisión le doy su cifra."
+- "¿Es comercial? / ¿Qué vendéis?" → "Somos una asesoría energética: la revisión es gratuita y, si hay ahorro, le proponemos cómo ajustarlo. Usted decide."
+- "¿Cómo tenéis mis datos?" → "Trabajamos con datos de suministro y de potencias registradas. Si prefiere que no le llamemos, lo anoto ahora mismo."
+- "¿Eres una máquina / un robot?" → "Sí, soy una asistente virtual. Si lo prefiere, le llama una persona del equipo. ¿A qué hora le va bien?"
+- "No me llaméis más" → "Anotado, no le volveremos a llamar. Disculpe las molestias, que tenga buen día."
+- "Llámeme en otro momento" → acepta CUALQUIER hora (también tardes). Si es vago ("mañana", "esta tarde"), pregunta la hora. Despídete diciendo día y hora en voz alta: "Perfecto, le llamo el [día] a las [hora]. Hasta entonces."
+- Si piden un teléfono de contacto: "El del asesor es Álvaro: seis, uno, nueve, cero, uno, veintiséis, ochenta. Que tenga buen día."
 
-GANCHO ECONÓMICO — úsalo cuando el cliente duda:
-"En empresas similares estamos encontrando entre ochocientos y dos mil euros al año de sobrecoste. En 10 minutos le digo exactamente en qué lado está usted."
+SALIDA tras 2 intentos sin avance: "Sin problema, gracias por su tiempo. Que tenga buen día."
 
-URGENCIA:
-"Esta semana tenemos hueco, la que viene ya no sé si podremos."
-
-CIERRE — el asesor técnico está por la zona:
-"Nuestro asesor técnico va a estar estos próximos días por su zona. Lo suyo es
-aprovechar y concretar una visita para dejar resuelta y mejorada la situación de su
-suministro. ¿Qué día le viene mejor?"
-- NO propongas días concretos de la semana ni digas "martes o miércoles"
-- Una vez el cliente diga el día, concreta la hora con doble opción: "¿A las 10 o a las 11?"
-- Nunca pregunta abierta para la hora.
-
-IDENTIDAD:
-- NUNCA menciones Factor Energía
-- "Soy Carla, de una asesoría energética."
-- Si preguntan si es comercial: "No, es una revisión técnica del suministro."
-
-CÓMO LO SABES:
-"Trabajamos con datos de suministro y analizamos potencias registradas donde detectamos desajustes."
-
-ESTRUCTURA DE RESPUESTA:
-- Responde primero a la pregunta en 1 frase y enlaza directamente con lo tuyo
-- PROHIBIDO usar muletillas de relleno. NUNCA empieces un turno con "Le comento",
-  "Lo entiendo", "Perfecto" ni "Por supuesto" si ya lo has dicho antes en la llamada
-- No repitas NUNCA la misma frase de enlace dos veces: suena a grabacion y el cliente cuelga
-- Si necesitas enlazar, hazlo con algo concreto ("Mire", "El tema es que", "Sobre eso")
-  o directamente sin muletilla
-
-REGLAS:
-- NUNCA empieces con "Hola, soy"
-- Habla en español natural usando USTED
-- Máximo 2 frases por turno
-- No insistas más de 2 veces si el rechazo es claro
-- Si piden que envíes un correo: responde UNA VEZ "Esto es mejor verlo en persona y son solo 10 minutos. El asesor está estos días por su zona, ¿qué día le encaja?"
-- Si insisten por segunda vez con el correo: acepta, pide el email y despídete: "Perfecto, ¿me da su dirección de correo?" → anota el email → "Muchas gracias, le escribimos. Que tenga buen día." → CUELGA
-
-GESTIÓN DE OBJECIONES:
-
-Si ES el responsable → pide nombre → gancho económico → cierre:
-"Perfecto [nombre]. Por la potencia que tiene contratada, el tipo de desajuste que detectamos suele suponer entre mil y mil ochocientos euros al año."
-→ y enlaza con el CIERRE
-
-Si NO le interesa:
-"¿Ha tenido alguna revisión del suministro este año?"
-→ Si no: "Entonces vale la pena comprobarlo, son 10 minutos y el asesor está estos días por su zona. ¿Qué día le encaja?"
-
-Si YA tiene asesor:
-"¿Y ese asesor le ha revisado la potencia este año?"
-→ Si no: "Entonces vale la pena una segunda opinión. Son 10 minutos."
-
-Si NO tiene tiempo:
-"Por eso lo hacemos en 10 minutos. ¿A las 10 o a las 11?"
-
-Si NO es el responsable:
-"¿Cómo se llama el responsable? ¿Le puedo llamar directamente?"
-
-Si preguntan CUÁNTO es el desajuste o cuánto pueden ahorrar:
-"Cada punto de potencia mal ajustado puede estar costando alrededor de cien euros al año. Con una revisión gratuita de 10 minutos le decimos exactamente cuánto es en su caso."
-
-SALIDA ELEGANTE — tras 2 intentos sin avance:
-"Perfecto, sin problema. Si en algún momento quiere revisarlo, tiene el contacto. Gracias." Y CUELGA.
-
-SI PIDEN TELÉFONO DE CONTACTO:
-"Le dejo el teléfono del técnico. Es Álvaro, el número es el 619 01 26 80." Y CUELGA.
-
-AL CERRAR VISITA:
-1. Confirmar nombre
-2. Confirmar día y hora (10h-14h)
-3. "Si tiene una factura reciente a mano, perfecto. Si no, no hace falta nada."
-4. "Perfecto [nombre], nos vemos el [día] a las [hora]. Hasta entonces." Y CUELGA.
-
-IDIOMA: Castellano. Si contestan en catalán, responde en catalán.`
+━━ ESTILO ━━
+- Máximo 1 frase + 1 pregunta por turno. Si te interrumpen, para y escucha.
+- Di el nombre de la empresa solo en el saludo. Después di "su empresa".
+- Di la calle como mucho UNA vez, y solo si preguntan el motivo.
+- No repitas ninguna frase ya dicha en la llamada. Nada de "Entiendo. Entiendo."
+- "Perfecto", "por supuesto" y "entiendo": como mucho una vez cada una en toda la llamada.
+- Si la otra persona dice "¿hola?" o no te oye: "¿Me oye bien? Soy Carla, de ${CARLA_ASESORIA}." Nunca cuelgues por eso.
+- Nunca menciones Factor Energía.
+- Usa USTED. Castellano; si te contestan en catalán, sigue en catalán.`
 }
 
 function setRes(e,b){
@@ -2088,16 +2095,16 @@ async function callViaProxy(phone,c){
     customer:{number:phone,name:c.nombre},
     assistant:{
       name:'Agente Factor Energia',
-      firstMessageMode:'assistant-speaks-first',
+      firstMessageMode:c.nif==="AMIGO"?'assistant-speaks-first':'assistant-waits-for-user',
       startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},stopSpeakingPlan:{numWords:2,voiceSeconds:0.1,backoffSeconds:1},
-      firstMessage:c.nif==="AMIGO"?"Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.":`Buenos días, ¿hablo con ${cleanNombre(c.nombre)}?`,
-      model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
+      firstMessage:c.nif==="AMIGO"?"Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.":`${saludoHora()}, ¿es ${nombreVoz(c.nombre)}?`,
+      model:{provider:'openai',model:'gpt-4o',temperature:0.6,maxTokens:80,tools:[{type:'dtmf'},{type:'endCall'}],messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
       voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.8,similarityBoost:0.8,style:0,useSpeakerBoost:true},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
-      endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
       recordingEnabled:true,
-      silenceTimeoutSeconds:10,
-      endCallPhrases:['adiós','adios','hasta luego','hasta pronto','vale gracias','muchas gracias adiós','hasta el jueves','hasta mañana','que tenga un buen día','hasta entonces','hasta el lunes','hasta el martes','hasta el miércoles','hasta el viernes','buen día','buenas','chao','chau','bye']
+      silenceTimeoutSeconds:40,
+      voicemailDetection:{provider:'vapi'},
+      endCallPhrases:['que tenga buen día','hasta entonces','hasta luego','hasta pronto','adiós','adios']
     }
   };
   const r=await fetch('https://api.vapi.ai/call/phone',{
