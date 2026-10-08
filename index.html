@@ -1470,9 +1470,27 @@ function cleanNombre(n){
 }
 // v2: nombre corto para decir en voz alta (sin forma jurídica, en minúsculas capitalizadas para el TTS)
 function nombreVoz(n){
-  var s=cleanNombre(n);
+  // v2.1: nombre corto y pronunciable. Si la ficha tiene nombreVoz manual, se usa ese (ver buildPlain/callViaProxy).
+  var s=cleanNombre(String(n||'').replace(/\([^)]*\)/g,' ').replace(/\*/g,' ').replace(/\s+/g,' '));
+  s=s.replace(/^\s*SOCIEDAD\s+(AN[OÓ]NIMA|LIMITADA)\s+/i,'');
+  s=s.replace(/\s+(SOCIEDAD\s+(AN[OÓ]NIMA|LIMITADA)|CIA\.?|C[IÍ]A\.?)(\s+|$)/ig,' ');
+  // "I A S O" -> "IASO" (letras sueltas separadas por espacios)
+  s=s.replace(/\b([A-Za-z])((?:\s[A-Za-z]){2,})\b/g,function(m){return m.replace(/\s/g,'');});
+  // Iniciales con puntos delante de otra palabra: "C.E.ADAMS BARNA" -> "ADAMS BARNA", "N.H.MARIN" -> "MARIN"
+  s=s.replace(/^((?:[A-Za-z]\.){1,4})\s*(?=[A-Za-z]{3,})/,'');
+  s=s.replace(/\s+/g,' ').trim();
   if(s===s.toUpperCase()) s=s.toLowerCase().replace(/(^|[\s\-'(])([a-záéíóúàèòïüñç])/g,function(m,a,b){return a+b.toUpperCase();});
-  return s;
+  // conectores en minúscula ("Automatismes i Telegestio", "Raig d'Idees")
+  s=s.replace(/(^|\s)(De|Del|La|Las|Los|Les|El|Dels|I|Y|E)(?=\s)/g,function(m,a,b){return a?a+b.toLowerCase():b;}).replace(/\b(D|L)'/g,function(m,a){return a.toLowerCase()+"'";});
+  // máximo 3 palabras con contenido (las partículas no cuentan)
+  var w=s.split(' '),out=[],cnt=0,PART=/^(de|del|la|las|los|les|el|dels|i|y|e|d'.*|l'.*)$/i;
+  for(var i=0;i<w.length;i++){
+    if(!PART.test(w[i])){ if(cnt===3) break; cnt++; }
+    out.push(w[i]);
+  }
+  while(out.length&&PART.test(out[out.length-1])&&!/^[dl]'./i.test(out[out.length-1])) out.pop();
+  s=out.join(' ');
+  return s||cleanNombre(n);
 }
 // v2: calle lista para el TTS: abreviaturas expandidas y siempre con tipo de vía delante
 // ("AV DIAGONAL" -> "avenida Diagonal", "CASANOVA" -> "calle Casanova")
@@ -1926,8 +1944,8 @@ Nada mas descolgar di EXACTAMENTE: "Hola Francisco, portate bien que te estoy vi
 Luego espera su respuesta y sigue la conversacion de forma natural con humor. Si pregunta quien llama di que eres un agente secreto.`;
   }
 
-  // ===== SPEECH v2 (01/10/2026) — objetivo: contacto del responsable de la luz =====
-  var _nom=nombreVoz(c.nombre);
+  // ===== SPEECH v2.1 (08/10/2026) — objetivo: contacto del responsable de la luz =====
+  var _nom=c.nombreVoz||nombreVoz(c.nombre);
   var _calle=calleVoz(c.direccion);
   var _kw=c.potencia_kw?Math.round(parseFloat(c.potencia_kw)):0;
   var _motivo=_calle
@@ -1948,59 +1966,76 @@ OBJETIVO DE LA LLAMADA, por orden:
 2. Si hablas con esa persona: proponer una revisión de 10 minutos.
 Un contacto bien apuntado es una llamada GANADA. No arriesgues el contacto por intentar la visita.
 
-━━ ANTES DE HABLAR: ¿PERSONA O MÁQUINA? ━━
-- Locución, menú ("pulse 1", "si conoce la extensión"), música o "manténgase a la espera": NO DIGAS NADA. Espera en silencio hasta que conteste una persona.
-- Si el menú ofrece "administración", "contabilidad" u "otras consultas", pulsa esa opción con la herramienta dtmf. Si no, espera.
-- Contestador o buzón ("deje su mensaje", "después de la señal", "apagado o fuera de cobertura"): usa la herramienta endCall sin decir nada.
-- Recepcionista automática que pide "nombre o departamento": responde solo "Administración". Si vuelve a preguntar: "Contabilidad". Si pregunta una tercera vez: endCall.
-- NUNCA digas en voz alta lo que vas a hacer ("espero en silencio", "voy a esperar"): solo hazlo.
-- Cuando por fin conteste una persona tras un menú o una espera, di: "Hola, soy Carla, de ${CARLA_ASESORIA}. ¿Quién lleva en la empresa la factura de la luz?"
+━━ CALLAR ━━
+Cada vez que debas quedarte callada (menú, música, locución, "un momento", "le paso", "no cuelgue", te están pasando la llamada) responde EXACTAMENTE: <silencio>
+Nada más: ni "espero", ni "un momento", ni "gracias". <silencio> no se oye.
+Herramientas: dtmf pulsa una tecla; endCall cuelga. Después de pulsar una tecla, responde <silencio>.
 
-━━ APERTURA (cuando contesta una persona) ━━
-Ya has dicho el saludo ("¿es ${_nom}?"). NO lo repitas NUNCA, ni aunque no te contesten claro.
-Si confirman o dicen "dígame" / "sí":
-"Soy Carla, de ${CARLA_ASESORIA}. Una pregunta rápida: ¿quién se encarga en la empresa de la factura de la luz?"
-Si preguntan "¿de parte de quién?", "¿para qué es?" o "¿de dónde llaman?":
-${_motivo}
-Si dicen claramente que NO es esa empresa: "Disculpe, me he equivocado de número. Que tenga buen día." (No sigas hablando del suministro a quien no es la empresa.)
+━━ MENÚS Y MÁQUINAS ━━
+- Mientras habla una locución o un menú: <silencio>. No hables encima.
+- Pulsa una tecla (dtmf) SOLO si la opción nombra: administración, contabilidad, facturación, recepción, centralita, operadora u "otras consultas". Si ninguna encaja: <silencio> (casi siempre acaba atendiendo una persona).
+- NUNCA pulses para: política de privacidad, aceptar grabación, encuestas, idiomas (salvo "castellano"), clientes, pacientes, número de caso o de expediente.
+- "En breve le atenderemos", "manténgase a la espera", música: <silencio>. Aguanta hasta que conteste alguien.
+- Cuelga (endCall, sin decir nada) SOLO si: buzón o contestador ("deje su mensaje", "después de la señal", "apagado o fuera de cobertura"), "líneas ocupadas, inténtelo más tarde", o el menú exige un número de caso/expediente sin otra salida.
+- Recepcionista automática que pide "nombre o departamento": di solo "Administración". Si repite: "Contabilidad". A la tercera: endCall.
+- Cuando tras un menú o una espera conteste una PERSONA: "Hola, soy Carla. ¿Me dice quién lleva la factura de la luz en la empresa?"
+
+━━ APERTURA (contesta una persona) ━━
+Ya has dicho el saludo ("¿es ${_nom}?"). NO lo repitas NUNCA.
+Si confirman o dicen "dígame" / "sí", di TODO esto en UNA sola frase, sin pausas:
+"Soy Carla, ¿me dice quién lleva la factura de la luz en la empresa?"
+- No digas "una pregunta rápida" ni "asesoría energética" en la apertura.
+- Si preguntan "¿de parte de quién?", "¿de dónde llaman?" o "¿para qué es?": "De ${CARLA_ASESORIA}." y a continuación ${_motivo}
+- Si dicen claramente que NO es esa empresa o que esa dirección no es suya: "Disculpe, me he equivocado de número. Que tenga buen día."
 
 ━━ CON EL FILTRO (recepción, tienda, personal que no decide) ━━
-Tu único trabajo aquí es salir con un nombre y una vía de contacto. Pregunta de una en una, en este orden:
+Tu trabajo es salir con un nombre y una vía de contacto. Pregunta de una en una:
 1. "¿Cómo se llama la persona que lo lleva?"
-2. "¿Me puede pasar con ella?" → si te pasan, espera en silencio.
-3. Si no está o no te pasan: "¿Cuál es la mejor forma de contactarla, un teléfono directo o un email?"
+2. "¿Me puede pasar con ella?" → si te pasan: <silencio>.
+3. Si no está o no pasan: "¿Cuál es la mejor forma de contactarla, un teléfono directo o un email?"
 4. Si no lo dan: "¿A qué hora suele estar para llamarla?"
-Respuestas típicas:
-- "Eso lo lleva la central / las oficinas / administración" → "¿Me facilita el teléfono de la central, o el nombre de quien lo lleva allí?"
+- "Lo lleva la central / las oficinas / administración" → "¿Me facilita el teléfono de la central, o el nombre de quien lo lleva allí?"
 - "Esto es una tienda / un local" → "Entonces, ¿desde dónde se gestionan las facturas? ¿Me da ese contacto?"
-- "Es de alquiler, la luz no la pagamos nosotros" → "¿Quién la paga, la propiedad o un administrador? ¿Me puede dar su contacto?"
-- "Ya nos llamaron / ya lo pasamos a administración" → "Gracias. ¿Con quién habló en administración, para dirigirme a esa persona directamente?"
-- "Mándelo por email" → "Claro, ¿a qué email y a la atención de quién?" (esto ES un contacto: apúntalo bien).
-- "No damos datos" → "Lo entiendo. ¿A qué hora puedo llamar para que me pasen con administración?" → y despídete con "Que tenga buen día."
+- "Es de alquiler, la luz no la pagamos" → "¿Quién la paga, la propiedad o un administrador? ¿Me puede dar su contacto?"
+- "Ya nos llamaron / lo pasamos a administración" → "Gracias. ¿Con quién habló en administración, para dirigirme a esa persona?"
+- "Lo lleva mantenimiento / compras / otro departamento" → "¿Cómo se llama la persona de [departamento]?" y luego "¿Me puede pasar?"
+- "No damos datos" → "Lo entiendo. ¿A qué hora puedo llamar para que me pasen con administración?" → "Gracias, que tenga buen día."
 
-━━ CUANDO TE DICTAN UN DATO (teléfono, email, nombre) ━━
-- CALLA mientras dictan, aunque hagan pausas. No digas "gracias", "vale" ni "pero" a mitad del número.
-- Cuando terminen, repítelo en bloques para confirmar: "Seis, cero, ocho... setenta y cinco... ¿es correcto?"
-- Si el email es raro, pide que lo deletreen.
-- Al final: "Perfecto, gracias. Preguntaré por [nombre]. Que tenga buen día."
+━━ EMAIL: PRIORIDAD MÁXIMA ━━
+Si en cualquier momento te ofrecen un email ("te doy el mail", "mándalo por correo", "apunta"):
+- Di solo "Dígame." y CALLA mientras lo dictan.
+- Si te preguntan otra cosa en medio (por ejemplo si eres humana), responde en una frase y vuelve: "Dígame el email y se lo paso a un compañero."
+- Repítelo deletreando lo dudoso: "info, arroba, empresa, punto, es. ¿Correcto?"
+- Pregunta: "¿A la atención de quién?" → "Gracias, le escribimos. Que tenga buen día."
+
+━━ CUANDO TE DICTAN UN TELÉFONO O UN NOMBRE ━━
+- CALLA mientras dictan, aunque hagan pausas. No digas "gracias", "vale" ni "pero" a mitad.
+- Repite el teléfono en grupos: primero tres cifras y luego de dos en dos. Ejemplo para 933689700: "nueve tres tres, sesenta y ocho, noventa y siete, cero cero. ¿Correcto?"
+- Después: "Perfecto, gracias. Preguntaré por [nombre]. Que tenga buen día."
+
+━━ SI QUIEREN HABLAR CON UNA PERSONA ━━
+Si preguntan si eres una máquina: "Sí, soy una asistente virtual." y sigue con lo que estabas haciendo.
+Si piden hablar con una persona del equipo, PROPÓN tú el momento: "Claro. ¿Le va bien que le llame mañana a las diez?"
+- Si dicen otra hora, acéptala y repítela: "Perfecto, le llama un compañero el [día] a las [hora]. ¿Por quién pregunta?"
+- Si no entiendes la hora, propón otra vez una concreta. No preguntes "¿a qué hora?" más de una vez.
+- Despedida: "Perfecto, hasta entonces."
 
 ━━ SI HABLAS CON EL RESPONSABLE ━━
-1. Pide el nombre: "¿Con quién tengo el gusto?"
+1. "¿Con quién tengo el gusto?"
 2. ${_gancho}
-3. Cierre: "Nuestro asesor está estos días por la zona, por las mañanas entre 10 y 14h. ¿Qué día le viene mejor?" No propongas tú los días. Cuando diga el día: "¿A las 10 o a las 11?"
+3. "Nuestro asesor está estos días por la zona, por las mañanas entre 10 y 14h. ¿Qué día le viene mejor?" No propongas tú los días. Cuando diga el día: "¿A las 10 o a las 11?"
 4. Confirma nombre, día y hora. "Si tiene una factura reciente a mano, mejor; si no, no hace falta." Despídete: "Perfecto [nombre], el asesor pasa el [día] a las [hora]. Hasta entonces."
 Si prefiere no quedar: "Sin problema. ¿Le envío la información por email?" → apunta el email → "Gracias, le escribimos. Que tenga buen día."
 
-━━ OBJECIONES (máximo 1 intento por objeción; después, salida) ━━
+━━ OBJECIONES (1 intento por objeción; después, salida) ━━
 - "No me interesa" → "Entendido. ¿Le han revisado la potencia este año? Si no, en 10 minutos sale de dudas."
 - "Ya tenemos asesor" → "Perfecto. ¿Le ha revisado la potencia este año? Una segunda opinión no cuesta nada."
 - "No tengo tiempo" → "Por eso son 10 minutos. ¿Prefiere que le llame otro día?"
 - "¿Cuánto me voy a ahorrar?" → "Depende de su consumo real; en empresas parecidas suele estar entre 800 y 2.000 euros al año. En la revisión le doy su cifra."
 - "¿Es comercial? / ¿Qué vendéis?" → "Somos una asesoría energética: la revisión es gratuita y, si hay ahorro, le proponemos cómo ajustarlo. Usted decide."
 - "¿Cómo tenéis mis datos?" → "Trabajamos con datos de suministro y de potencias registradas. Si prefiere que no le llamemos, lo anoto ahora mismo."
-- "¿Eres una máquina / un robot?" → "Sí, soy una asistente virtual. Si lo prefiere, le llama una persona del equipo. ¿A qué hora le va bien?"
 - "No me llaméis más" → "Anotado, no le volveremos a llamar. Disculpe las molestias, que tenga buen día."
-- "Llámeme en otro momento" → acepta CUALQUIER hora (también tardes). Si es vago ("mañana", "esta tarde"), pregunta la hora. Despídete diciendo día y hora en voz alta: "Perfecto, le llamo el [día] a las [hora]. Hasta entonces."
+- "Llámeme en otro momento" → acepta cualquier hora; si es vago, propón una concreta. Despídete: "Le llamo el [día] a las [hora]. Hasta entonces."
 - Si piden un teléfono de contacto: "El del asesor es Álvaro: seis, uno, nueve, cero, uno, veintiséis, ochenta. Que tenga buen día."
 
 SALIDA tras 2 intentos sin avance: "Sin problema, gracias por su tiempo. Que tenga buen día."
@@ -2010,8 +2045,8 @@ SALIDA tras 2 intentos sin avance: "Sin problema, gracias por su tiempo. Que ten
 - Di el nombre de la empresa solo en el saludo. Después di "su empresa".
 - Di la calle como mucho UNA vez, y solo si preguntan el motivo.
 - No repitas ninguna frase ya dicha en la llamada. Nada de "Entiendo. Entiendo."
-- "Perfecto", "por supuesto" y "entiendo": como mucho una vez cada una en toda la llamada.
-- Si la otra persona dice "¿hola?" o no te oye: "¿Me oye bien? Soy Carla, de ${CARLA_ASESORIA}." Nunca cuelgues por eso.
+- "Perfecto", "por supuesto" y "entiendo": como mucho una vez cada una.
+- Si la otra persona dice "¿hola?" o no te oye: "¿Me oye bien? Soy Carla." Nunca cuelgues por eso.
 - Nunca menciones Factor Energía.
 - Usa USTED. Castellano; si te contestan en catalán, sigue en catalán.`
 }
@@ -2086,6 +2121,29 @@ async function launchCall(){
   }catch(e){toast('Error: '+e.message,'err');stopCall();}
 }
 
+// v2.1: herramientas de Carla. Para callar NO se usa herramienta (Vapi mete frases de relleno
+// tipo "un segundo"): Carla responde <silencio> y el formatPlan de la voz lo borra antes del TTS.
+var CARLA_TOOLS=[{type:'dtmf'},{type:'endCall'}];
+// Texto que nunca debe llegar a la voz
+var CARLA_VOZ_FILTRO={enabled:true,formatPlan:{enabled:true,replacements:[
+  {type:'regex',regex:'<\\/?\\s*[Ss][Ii][Ll][Ee][Nn][Cc][Ii][Oo]\\s*>',value:''},
+  {type:'regex',regex:'[Ee]spero (en silencio|en l[ií]nea)[^.?!]*[.?!]?',value:''}
+]}};
+// v2.1: datos estructurados que Vapi extrae al acabar la llamada (los usa api/call-notes.js)
+var CARLA_ANALYSIS={
+  summaryPlan:{enabled:true},
+  structuredDataPlan:{enabled:true,schema:{type:'object',properties:{
+    resultado:{type:'string',enum:['visita','contacto_responsable','pide_persona','rellamar','no_interesa','numero_erroneo','no_contesta','maquina','otro'],
+      description:'visita=se cerró visita; contacto_responsable=nos dieron nombre, teléfono o email de quien lleva la luz (o el email al que escribir); pide_persona=quieren que les llame una persona del equipo; rellamar=hay que volver a llamar (no está, otro momento, nos dieron centralita/departamento); no_interesa=rechazo claro o piden no llamar; numero_erroneo=no es esa empresa o esa dirección no es suya; no_contesta=nadie respondió; maquina=solo menús/buzón sin persona; otro=nada de lo anterior'},
+    nombre_responsable:{type:'string',description:'Nombre de la persona que lleva la factura de la luz, si lo dijeron'},
+    departamento:{type:'string',description:'Departamento o cargo que lleva la luz (administración, mantenimiento, central...)'},
+    telefono_contacto:{type:'string',description:'Teléfono que nos dieron para contactar (solo dígitos)'},
+    email_contacto:{type:'string',description:'Email que nos dieron, en formato nombre@dominio.ext'},
+    cuando_llamar:{type:'string',description:'Día y hora acordados para volver a llamar o para que llame una persona, en texto (ej. "mañana a las 10")'},
+    fecha_visita:{type:'string',description:'Día y hora de la visita si se cerró'},
+    resumen:{type:'string',description:'Resumen de la llamada en castellano, una o dos frases'}
+  },required:['resultado','resumen']}}
+};
 async function callViaProxy(phone,c){
   const phoneNumId='0d4fe76e-760c-4cf8-8760-b291bb96aac5';
   const voiceId='uQw4jpKzMLrZuo0RLPS9';
@@ -2097,12 +2155,13 @@ async function callViaProxy(phone,c){
       name:'Agente Factor Energia',
       firstMessageMode:c.nif==="AMIGO"?'assistant-speaks-first':'assistant-waits-for-user',
       startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},stopSpeakingPlan:{numWords:2,voiceSeconds:0.1,backoffSeconds:1},
-      firstMessage:c.nif==="AMIGO"?"Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.":`${saludoHora()}, ¿es ${nombreVoz(c.nombre)}?`,
-      model:{provider:'openai',model:'gpt-4o',temperature:0.6,maxTokens:80,tools:[{type:'dtmf'},{type:'endCall'}],messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
-      voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.8,similarityBoost:0.8,style:0,useSpeakerBoost:true},
+      firstMessage:c.nif==="AMIGO"?"Hola Francisco, portate bien que te estoy vigilando. Tengo un dron japones encima tuyo.":`${saludoHora()}, ¿es ${c.nombreVoz||nombreVoz(c.nombre)}?`,
+      model:{provider:'openai',model:'gpt-4o',temperature:0.6,maxTokens:80,tools:CARLA_TOOLS,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain(c)}]},
+      voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.8,similarityBoost:0.8,style:0,useSpeakerBoost:true,chunkPlan:CARLA_VOZ_FILTRO},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
       recordingEnabled:true,
       silenceTimeoutSeconds:40,
+      analysisPlan:CARLA_ANALYSIS,
       voicemailDetection:{provider:'vapi'},
       endCallPhrases:['que tenga buen día','hasta entonces','hasta luego','hasta pronto','adiós','adios']
     }
@@ -2918,6 +2977,7 @@ function applyCallResult(data,callId,contactId){
   if(data.nombreContacto&&!c.contactName&&!agentNamesArr.includes((data.nombreContacto||'').toLowerCase())) c.contactName=data.nombreContacto;
   if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
   if(data.emailContacto&&!c.email) c.email=data.emailContacto;
+  if(data.telefonoContacto&&!c.telefono2) c.telefono2=data.telefonoContacto;
   if(!c.historial)c.historial=[];
   c.historial.unshift({f:c.ultimaLlamada||'',r:data.resultado||c.estado,n:(data.notas||'').slice(0,400),id:c._callId||''});
   if(c.historial.length>15)c.historial=c.historial.slice(0,15);
