@@ -2621,6 +2621,7 @@ function startCampaign(){
     toast('Campaña programada para las '+timeVal,'ok');
     campaignTimer=setTimeout(()=>{
       campaignRunning=true;
+      _campStartTime=Date.now(); // fix: el límite de duración cuenta desde que empieza de verdad
       document.getElementById('camp-title').textContent='Campaña iniciada';
       toast('Campaña iniciada — '+queue.length+' contactos','ok');
       runNextCampaignCall();
@@ -2629,6 +2630,7 @@ function startCampaign(){
     // Immediate start
     if(!confirm('Iniciar campaña "'+fl+'" ahora con '+queue.length+' contactos?')) return;
     campaignQueue=queue;campaignIdx=0;campaignRunning=true;campaignPaused=false;
+    _campMaxMs=parseInt(document.getElementById('camp-duration')?.value||'0')*60*1000; // fix: antes solo se leía en la campaña programada
     _campStartTime=Date.now();
     document.getElementById('camp-bar').classList.add('on');
     ['cls-v','cls-r','cls-nc','cls-ni'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=el.textContent[0]+el.textContent[1]+' 0';});
@@ -3381,7 +3383,7 @@ function toggleCampaignPause(){
 }
 
 function stopCampaign(){
-  campaignRunning=false;campaignPaused=false;_campStartTime=0;
+  campaignRunning=false;campaignPaused=false;_campStartTime=0;_campMaxMs=0;
   if(campaignTimer){clearTimeout(campaignTimer);campaignTimer=null;}
   clearInterval(iv);
   document.getElementById('camp-bar').classList.remove('on');
