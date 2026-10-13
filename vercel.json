@@ -1,8 +1,8 @@
 {
     "functions": {
-          "api/call-notes.js": {
-                  "maxDuration": 120
-          }
+        "api/call-notes.js": {
+            "maxDuration": 120
+        }
     },
-    "ignoreCommand": "git diff HEAD^ HEAD --quiet -- api vercel.json"
+    "ignoreCommand": "git diff --quiet ${VERCEL_GIT_PREVIOUS_SHA:-HEAD^} HEAD -- api vercel.json"
 }
