@@ -261,13 +261,14 @@ export default async function handler(req, res) {
     // ── v2.1: datos estructurados de Vapi (si existen mandan sobre las heurísticas) ──
     const endedAgo = data.endedAt ? (Date.now() - new Date(data.endedAt).getTime()) : 1e9;
     const sd = (data.analysis && data.analysis.structuredData) || null;
-    if (!sd && data.assistant && data.assistant.analysisPlan && endedAgo < 90000) {
+    const lineaFallida = /twilio-failed|failed-to-connect|call\.start\.error|sip-.*failed/i.test(endedReason);
+    if (!sd && !lineaFallida && data.assistant && data.assistant.analysisPlan && endedAgo < 90000) {
       return res.status(200).json({ notas: '', resultado: 'duda', retry: true });
     }
     let sdNombre = null, sdTel = null, sdEmail = null, sdCuando = null, sdVisita = null, sdExtra = '';
     if (sd && sd.resultado) {
       const map = { visita:'visitaOK', contacto_responsable:'rellamar', pide_persona:'rellamar', rellamar:'rellamar',
-        no_interesa:'noInteresa', numero_erroneo:'noInteresa', no_contesta:'noContesta', maquina:'noContesta', otro:'duda' };
+        no_interesa:'noInteresa', central:'noInteresa', numero_erroneo:'noInteresa', no_contesta:'noContesta', maquina:'noInteresa', otro:'duda' };
       if (map[sd.resultado]) resultado = map[sd.resultado];
       const clean = v => (typeof v === 'string' && v.trim() && !/^(n\/a|null|ninguno|no)$/i.test(v.trim())) ? v.trim() : null;
       sdNombre = clean(sd.nombre_responsable);
@@ -278,12 +279,18 @@ export default async function handler(req, res) {
       const dep = clean(sd.departamento);
       if (sd.resultado === 'numero_erroneo') sdExtra += '❌ NÚMERO EQUIVOCADO — no volver a llamar a este teléfono\n';
       if (sd.resultado === 'pide_persona') sdExtra += '🙋 QUIERE HABLAR CON UNA PERSONA — llamar tú' + (sdCuando ? ' (' + sdCuando + ')' : '') + '\n';
+      if (sd.resultado === 'central') sdExtra += '🏢 Lo lleva la central — descartado\n';
+      if (sd.resultado === 'maquina') sdExtra += '🤖 Contestador o menú — colgado\n';
       if (sd.resultado === 'contacto_responsable') sdExtra += '⭐ CONTACTO DEL RESPONSABLE CONSEGUIDO\n';
       if (dep) sdExtra += '🏢 ' + dep + '\n';
       if (sdTel) sdExtra += '📱 ' + sdTel + '\n';
       if (sdCuando && sd.resultado !== 'pide_persona') sdExtra += '🕐 ' + sdCuando + '\n';
       if (clean(sd.resumen)) sdExtra += '📝 ' + clean(sd.resumen) + '\n';
     }
+
+    // v2.2: contestador/menú sin datos estructurados también se descarta
+    if (!sd && /voicemail|machine_/i.test(endedReason)) resultado = 'noInteresa';
+    if (lineaFallida) resultado = 'noContesta';
 
     // ── NOMBRE ───────────────────────────────────────────────────
     const agentNames = ['carla','carlos'];
@@ -332,6 +339,7 @@ export default async function handler(req, res) {
     let notas = `📞 ${now}${duration?' · '+duration+'s':''}\n`;
     notas += `${labels[resultado]}${rellamarHora ? ' — ' + rellamarHora : ''}\n`;
     if (sdExtra) notas += sdExtra;
+    if (lineaFallida) notas += '⚠️ No conecta (fallo de línea)\n';
     if (fechaVisita) notas += `📅 ${fechaVisita}\n`;
     if (nombreContacto) notas += `👤 ${nombreContacto}\n`;
     if (emailContacto) notas += `📧 ${emailContacto}\n`;
@@ -351,7 +359,7 @@ export default async function handler(req, res) {
     if (sdEmail) emailContacto = sdEmail;
     if (sdVisita && !fechaVisita) fechaVisita = sdVisita;
     return res.status(200).json({
-      notas, resultado, nombreContacto, fechaVisita, emailContacto, telefonoContacto: sdTel, recordingUrl, duration, retry: false
+      notas, resultado, nombreContacto, fechaVisita, emailContacto, telefonoContacto: sdTel, lineaFallida, endedReason, recordingUrl, duration, retry: false
     });
 
   } catch (e) {

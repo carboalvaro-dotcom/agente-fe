@@ -1967,18 +1967,17 @@ OBJETIVO DE LA LLAMADA, por orden:
 Un contacto bien apuntado es una llamada GANADA. No arriesgues el contacto por intentar la visita.
 
 ━━ CALLAR ━━
-Cada vez que debas quedarte callada (menú, música, locución, "un momento", "le paso", "no cuelgue", te están pasando la llamada) responde EXACTAMENTE: <silencio>
+Cuando una PERSONA te dice "un momento", "le paso" o "no cuelgue", responde EXACTAMENTE: <silencio>
 Nada más: ni "espero", ni "un momento", ni "gracias". <silencio> no se oye.
-Herramientas: dtmf pulsa una tecla; endCall cuelga. Después de pulsar una tecla, responde <silencio>.
+Herramienta: endCall cuelga la llamada.
 
-━━ MENÚS Y MÁQUINAS ━━
-- Mientras habla una locución o un menú: <silencio>. No hables encima.
-- Pulsa una tecla (dtmf) SOLO si la opción nombra: administración, contabilidad, facturación, recepción, centralita, operadora u "otras consultas". Si ninguna encaja: <silencio> (casi siempre acaba atendiendo una persona).
-- NUNCA pulses para: política de privacidad, aceptar grabación, encuestas, idiomas (salvo "castellano"), clientes, pacientes, número de caso o de expediente.
-- "En breve le atenderemos", "manténgase a la espera", música: <silencio>. Aguanta hasta que conteste alguien.
-- Cuelga (endCall, sin decir nada) SOLO si: buzón o contestador ("deje su mensaje", "después de la señal", "apagado o fuera de cobertura"), "líneas ocupadas, inténtelo más tarde", o el menú exige un número de caso/expediente sin otra salida.
-- Recepcionista automática que pide "nombre o departamento": di solo "Administración". Si repite: "Contabilidad". A la tercera: endCall.
-- Cuando tras un menú o una espera conteste una PERSONA: "Hola, soy Carla. ¿Me dice quién lleva la factura de la luz en la empresa?"
+━━ MÁQUINAS: CUELGA ━━
+Si en lugar de una persona contesta una MÁQUINA, usa endCall INMEDIATAMENTE, sin decir nada:
+- menú o locución ("pulse 1", "si conoce la extensión", "bienvenido a…", "esta llamada puede ser grabada")
+- "en breve le atenderemos", "manténgase a la espera", música de espera
+- contestador o buzón ("deje su mensaje", "después de la señal", "apagado o fuera de cobertura")
+- recepcionista automática que pide "nombre o departamento"
+No pulses teclas ni esperes a que acabe el menú.
 
 ━━ APERTURA (contesta una persona) ━━
 Ya has dicho el saludo ("¿es ${_nom}?"). NO lo repitas NUNCA.
@@ -1994,8 +1993,8 @@ Tu trabajo es salir con un nombre y una vía de contacto. Pregunta de una en una
 2. "¿Me puede pasar con ella?" → si te pasan: <silencio>.
 3. Si no está o no pasan: "¿Cuál es la mejor forma de contactarla, un teléfono directo o un email?"
 4. Si no lo dan: "¿A qué hora suele estar para llamarla?"
-- "Lo lleva la central / las oficinas / administración" → "¿Me facilita el teléfono de la central, o el nombre de quien lo lleva allí?"
-- "Esto es una tienda / un local" → "Entonces, ¿desde dónde se gestionan las facturas? ¿Me da ese contacto?"
+- "Lo lleva la central", "las oficinas centrales", "esto es una tienda/delegación, lo llevan desde central" → "Entendido, muchas gracias. Que tenga buen día." y fin (no pidas el teléfono de la central).
+- "Lo lleva administración" (dentro de la misma empresa) → "¿Cómo se llama la persona de administración que lo lleva?"
 - "Es de alquiler, la luz no la pagamos" → "¿Quién la paga, la propiedad o un administrador? ¿Me puede dar su contacto?"
 - "Ya nos llamaron / lo pasamos a administración" → "Gracias. ¿Con quién habló en administración, para dirigirme a esa persona?"
 - "Lo lleva mantenimiento / compras / otro departamento" → "¿Cómo se llama la persona de [departamento]?" y luego "¿Me puede pasar?"
@@ -2123,7 +2122,7 @@ async function launchCall(){
 
 // v2.1: herramientas de Carla. Para callar NO se usa herramienta (Vapi mete frases de relleno
 // tipo "un segundo"): Carla responde <silencio> y el formatPlan de la voz lo borra antes del TTS.
-var CARLA_TOOLS=[{type:'dtmf'},{type:'endCall'}];
+var CARLA_TOOLS=[{type:'endCall'}]; // v2.2: sin dtmf, en menús cuelga
 // Texto que nunca debe llegar a la voz
 var CARLA_VOZ_FILTRO={enabled:true,formatPlan:{enabled:true,replacements:[
   {type:'regex',regex:'<\\/?\\s*[Ss][Ii][Ll][Ee][Nn][Cc][Ii][Oo]\\s*>',value:''},
@@ -2133,8 +2132,8 @@ var CARLA_VOZ_FILTRO={enabled:true,formatPlan:{enabled:true,replacements:[
 var CARLA_ANALYSIS={
   summaryPlan:{enabled:true},
   structuredDataPlan:{enabled:true,schema:{type:'object',properties:{
-    resultado:{type:'string',enum:['visita','contacto_responsable','pide_persona','rellamar','no_interesa','numero_erroneo','no_contesta','maquina','otro'],
-      description:'visita=se cerró visita; contacto_responsable=nos dieron nombre, teléfono o email de quien lleva la luz (o el email al que escribir); pide_persona=quieren que les llame una persona del equipo; rellamar=hay que volver a llamar (no está, otro momento, nos dieron centralita/departamento); no_interesa=rechazo claro o piden no llamar; numero_erroneo=no es esa empresa o esa dirección no es suya; no_contesta=nadie respondió; maquina=solo menús/buzón sin persona; otro=nada de lo anterior'},
+    resultado:{type:'string',enum:['visita','contacto_responsable','pide_persona','rellamar','no_interesa','central','numero_erroneo','no_contesta','maquina','otro'],
+      description:'visita=se cerró visita; contacto_responsable=nos dieron nombre, teléfono o email de quien lleva la luz (o el email al que escribir); pide_persona=quieren que les llame una persona del equipo; rellamar=hay que volver a llamar (no está, otro momento, nos dieron centralita/departamento); no_interesa=rechazo claro o piden no llamar; central=dicen que la luz se lleva desde la central/oficinas centrales; numero_erroneo=no es esa empresa o esa dirección no es suya; no_contesta=nadie respondió; maquina=contestó un contestador, buzón, menú o locución automática (sin persona); otro=nada de lo anterior'},
     nombre_responsable:{type:'string',description:'Nombre de la persona que lleva la factura de la luz, si lo dijeron'},
     departamento:{type:'string',description:'Departamento o cargo que lleva la luz (administración, mantenimiento, central...)'},
     telefono_contacto:{type:'string',description:'Teléfono que nos dieron para contactar (solo dígitos)'},
@@ -2160,7 +2159,7 @@ async function callViaProxy(phone,c){
       voice:{provider:'11labs',voiceId:voiceId,model:'eleven_turbo_v2_5',stability:0.8,similarityBoost:0.8,style:0,useSpeakerBoost:true,chunkPlan:CARLA_VOZ_FILTRO},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
       recordingEnabled:true,
-      silenceTimeoutSeconds:40,
+      silenceTimeoutSeconds:20, // v2.2: máximo 20 s en espera
       analysisPlan:CARLA_ANALYSIS,
       voicemailDetection:{provider:'vapi'},
       endCallPhrases:['que tenga buen día','hasta entonces','hasta luego','hasta pronto','adiós','adios']
@@ -2980,6 +2979,11 @@ function applyCallResult(data,callId,contactId){
   if(data.fechaVisita&&!c.visitDate) c.visitDate=data.fechaVisita;
   if(data.emailContacto&&!c.email) c.email=data.emailContacto;
   if(data.telefonoContacto&&!c.telefono2) c.telefono2=data.telefonoContacto;
+  // v2.2: si la línea no conecta 2 veces, el teléfono se da por no válido y sale de las campañas
+  if(data.lineaFallida){
+    var _fallos=((c.notas||'').match(/⚠️ No conecta/g)||[]).length; // incluye el de esta llamada
+    if(_fallos>=2&&!(c.notas||'').includes('TELÉFONO NO VÁLIDO')){c.estado='noInteresa';c.notas+='\n❌ TELÉFONO NO VÁLIDO — no conecta ('+_fallos+' intentos)';}
+  }
   if(!c.historial)c.historial=[];
   c.historial.unshift({f:c.ultimaLlamada||'',r:data.resultado||c.estado,n:(data.notas||'').slice(0,400),id:c._callId||''});
   if(c.historial.length>15)c.historial=c.historial.slice(0,15);
