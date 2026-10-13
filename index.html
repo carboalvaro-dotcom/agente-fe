@@ -2991,6 +2991,27 @@ function applyCallResult(data,callId,contactId){
   save();upStats();renderList();
   if(curId===contactId) sel(contactId);
   toast('✓ '+c.nombre+' — '+( data.resultado==='visitaOK'?'VISITA':'analizado'),'ok');
+  // v2.2: si el backend aún es antiguo (no devuelve lineaFallida), el CRM lee la llamada de Vapi directamente
+  if(data.lineaFallida===undefined&&callId) crmV22Fallback(c,callId,contactId);
+}
+async function crmV22Fallback(c,callId,contactId){
+  try{
+    var r=await fetch('https://api.vapi.ai/call/'+callId,{headers:{Authorization:'Bearer '+VAPI_KEY}});
+    if(!r.ok) return;
+    var call=await r.json(), er=call.endedReason||'', sd=(call.analysis&&call.analysis.structuredData)||{};
+    var nota='', est=null;
+    if(/twilio-failed|failed-to-connect|call\.start\.error/i.test(er)){
+      nota='⚠️ No conecta (fallo de línea)';
+      var prev=((c.notas||'').match(/⚠️ No conecta/g)||[]).length;
+      if(prev+1>=2){est='noInteresa';nota+='\n❌ TELÉFONO NO VÁLIDO — no conecta ('+(prev+1)+' intentos)';}
+    }else if(sd.resultado==='maquina'||/voicemail|machine_/i.test(er)){est='noInteresa';nota='🤖 Contestador o menú — colgado';}
+    else if(sd.resultado==='central'){est='noInteresa';nota='🏢 Lo lleva la central — descartado';}
+    if(!nota) return;
+    if(est) c.estado=est;
+    c.notas=(c.notas||'')+'\n'+nota;
+    save();upStats();renderList();
+    if(curId===contactId) sel(contactId);
+  }catch(e){console.log('v22 fallback:',e.message);}
 }
 
 function addCalendarEvent(contacto,cuandoLlamar){
