@@ -308,6 +308,191 @@ body.dark .lp-top{background:var(--s1);border-bottom-color:var(--bd);}
 </style>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
+<script id="fe-guard">
+/* ===== v2.3 PROTECCIÓN: instancia única + backup seguro + campaña en segundo plano ===== */
+var FE_LEASE_MS=10*60*1000;
+var FE_GH_R='carboalvaro-dotcom/agente-fe';
+var _feTok=null;
+function feSetTok(t){if(t)_feTok=t;}
+function feNewId(){return Math.random().toString(36).slice(2,8);}
+var FE_WRITER=(function(){try{var w=sessionStorage.getItem('fe_writer');if(!w){w=feNewId();sessionStorage.setItem('fe_writer',w);}return w;}catch(e){return feNewId();}})();
+var feOwner=false,feReadOnly=false,feLastOwnSha=null,feAcceptedSha=null,_feInitP=null,_feRoTimer=null;
+function feTag(){return ' [w:'+FE_WRITER+']';}
+function feMarkOwnWrite(sha){feOwner=true;if(sha)feLastOwnSha=sha;}
+function feHdr(extra){var h={};if(_feTok)h['Authorization']='token '+_feTok;if(extra)for(var k in extra)h[k]=extra[k];return h;}
+
+/* --- Último commit de crm-data.json (quién escribió y cuándo) --- */
+async function feLastCommit(){
+  var r=await fetch('https://api.github.com/repos/'+FE_GH_R+'/commits?path=crm-data.json&per_page=1',{headers:feHdr(),cache:'no-store'});
+  if(!r.ok) return null;
+  var a=await r.json(); if(!a||!a.length) return null;
+  var msg=a[0].commit.message||'', m=msg.match(/\[w:([a-z0-9]+)\]/);
+  return {sha:a[0].sha,date:Date.parse(a[0].commit.committer.date),writer:m?m[1]:null};
+}
+async function feRemoteData(){
+  var r=await fetch('https://api.github.com/repos/'+FE_GH_R+'/contents/crm-data.json',{headers:feHdr({'Accept':'application/vnd.github.raw'}),cache:'no-store'});
+  if(!r.ok) return null; return await r.json();
+}
+/* "Contactos trabajados": sirve para saber qué copia tiene más avance */
+function feScore(bk){
+  if(!bk) return 0; var n=0;
+  var crm=bk.crm; if(typeof crm==='string'){try{crm=JSON.parse(crm);}catch(e){crm=[];}}
+  (crm||[]).forEach(function(c){n+=(c.llamadas||0)>0?1:0;});
+  ['acc','tal','hot','sup','den'].forEach(function(k){var o=bk[k]||{};Object.keys(o).forEach(function(id){var v=o[id]||{};if((v.llamadas||0)>0||(v.estado&&v.estado!=='sinLlamar'&&v.estado!=='pendiente'))n++;});});
+  return n;
+}
+function feLocalData(){
+  function g(k,d){try{return JSON.parse(localStorage.getItem(k)||d);}catch(e){return JSON.parse(d);}}
+  return {crm:g('fe_crm_v2','[]'),acc:g('fe_acc_v1','{}'),tal:g('fe_tal_v1','{}'),hot:g('fe_hot_v1','{}'),sup:g('fe_sup_v1','{}'),den:g('fe_den_v1','{}')};
+}
+
+/* --- Decide si esta pestaña es la principal --- */
+function feInit(){
+  if(_feInitP) return _feInitP;
+  _feInitP=(async function(){
+    try{
+      var lc=await feLastCommit();
+      if(!lc){feOwner=true;return;}
+      var tk=null;try{tk=sessionStorage.getItem('fe_takeover');sessionStorage.removeItem('fe_takeover');}catch(e){}
+      if(tk){feOwner=true;feAcceptedSha=lc.sha;return;}
+      if(lc.writer===FE_WRITER){feOwner=true;return;}
+      if(feReadOnly) return;
+      if(Date.now()-lc.date<FE_LEASE_MS){feSetReadOnly('active',lc);return;}
+      var bk=await feRemoteData();
+      if(bk&&feScore(bk)>feScore(feLocalData())){feSetReadOnly('stale',lc,bk);return;}
+      feOwner=true;feAcceptedSha=lc.sha;
+    }catch(e){console.log('feInit:',e.message);feOwner=true;}
+  })();
+  return _feInitP;
+}
+/* --- Se llama justo antes de cada backup a GitHub --- */
+async function feCanWrite(tok){
+  feSetTok(tok);
+  if(feReadOnly) return false;
+  if(!feOwner){await feInit();return feOwner&&!feReadOnly;}
+  var lc=null;try{lc=await feLastCommit();}catch(e){return true;}
+  if(!lc) return true;
+  if(lc.writer===FE_WRITER||lc.sha===feLastOwnSha||lc.sha===feAcceptedSha) return true;
+  feSetReadOnly('conflict',lc); return false;
+}
+
+/* --- Modo solo lectura + aviso --- */
+function feSetReadOnly(reason,lc,bk){
+  feReadOnly=true;feOwner=false;
+  try{if(typeof campaignRunning!=='undefined'&&campaignRunning){stopCampaign();if(typeof toast==='function')toast('⛔ Campaña detenida: hay otra copia del CRM abierta','err');}}catch(e){}
+  feShowBanner(reason,lc,bk);
+  if(_feRoTimer) clearInterval(_feRoTimer);
+  _feRoTimer=setInterval(feAutoRecover,60000);
+}
+async function feShowBanner(reason,lc,bk){
+  var b=document.getElementById('fe-ro-banner');
+  if(!b){b=document.createElement('div');b.id='fe-ro-banner';b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:#b42318;color:#fff;padding:12px 16px;font:14px/1.4 -apple-system,system-ui,sans-serif;box-shadow:0 2px 10px rgba(0,0,0,.3)';(document.body||document.documentElement).appendChild(b);}
+  var t={active:'⚠️ Hay otra copia del CRM abierta (otra pestaña, otro navegador o el móvil) guardando datos.',
+         stale:'⚠️ GitHub tiene datos más avanzados que esta pestaña.',
+         conflict:'⚠️ Otra copia del CRM ha guardado datos encima de los de esta pestaña.'}[reason]||'⚠️ Conflicto de datos.';
+  var when=lc&&lc.date?new Date(lc.date).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}):'?';
+  b.innerHTML='<b>'+t+'</b><br>Esta pestaña está en <b>SOLO LECTURA</b>: no guarda en GitHub ni lanza campañas. Cierra las demás copias y elige qué datos conservar.<br><span id="fe-ro-cmp" style="opacity:.9">Comparando datos…</span><div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">'+
+    '<button id="fe-ro-keep" style="padding:6px 10px;border:0;border-radius:6px;cursor:pointer">Mantener los datos de esta pestaña</button>'+
+    '<button id="fe-ro-pull" style="padding:6px 10px;border:0;border-radius:6px;cursor:pointer">Cargar los datos de GitHub</button>'+
+    '<button id="fe-ro-retry" style="padding:6px 10px;border:0;border-radius:6px;cursor:pointer">Reintentar</button></div>';
+  document.getElementById('fe-ro-keep').onclick=feKeepLocal;
+  document.getElementById('fe-ro-pull').onclick=fePullRemote;
+  document.getElementById('fe-ro-retry').onclick=function(){feAutoRecover(true);};
+  try{
+    if(!bk) bk=await feRemoteData();
+    var el=document.getElementById('fe-ro-cmp');
+    if(el) el.textContent='Contactos trabajados — esta pestaña: '+feScore(feLocalData())+' · GitHub (guardado a las '+when+'): '+feScore(bk)+'. Conserva la que tenga más.';
+  }catch(e){}
+}
+function feHideBanner(){var b=document.getElementById('fe-ro-banner');if(b)b.remove();if(_feRoTimer){clearInterval(_feRoTimer);_feRoTimer=null;}}
+async function feKeepLocal(){
+  if(!confirm('Esta pestaña pasa a ser la principal y sus datos se subirán a GitHub, sustituyendo los de allí.\n\nAntes, cierra las otras copias del CRM. ¿Continuar?')) return;
+  var lc=null;try{lc=await feLastCommit();}catch(e){}
+  feReadOnly=false;feOwner=true;feAcceptedSha=lc?lc.sha:null;feHideBanner();
+  try{if(typeof C!=='undefined'&&C.length&&typeof save==='function')save();else if(typeof autoBackupAll==='function')autoBackupAll();}catch(e){}
+  if(typeof toast==='function')toast('✓ Esta pestaña es ahora la principal','ok');
+}
+async function fePullRemote(){
+  if(!confirm('Se cargarán en esta pestaña los datos guardados en GitHub y se recargará la página. Lo que esta pestaña tenga y no esté en GitHub se perderá.\n\n¿Continuar?')) return;
+  try{
+    var bk=await feRemoteData(); if(!bk){alert('No se pudo leer GitHub. Prueba de nuevo.');return;}
+    var crm=bk.crm; if(typeof crm==='string'){try{crm=JSON.parse(crm);}catch(e){}}
+    if(crm&&crm.length) localStorage.setItem('fe_crm_v2',JSON.stringify(crm));
+    ['acc','tal','hot','sup','den'].forEach(function(k){if(bk[k]&&Object.keys(bk[k]).length)localStorage.setItem('fe_'+k+'_v1',JSON.stringify(bk[k]));});
+    localStorage.setItem('fe_crm_v2_ts',Date.now());
+    try{sessionStorage.setItem('fe_takeover','1');}catch(e){}
+    location.reload();
+  }catch(e){alert('Error cargando de GitHub: '+e.message);}
+}
+/* Si la otra copia se cierra y esta tiene los datos al día, se recupera sola */
+async function feAutoRecover(manual){
+  try{
+    var lc=await feLastCommit(); if(!lc) return;
+    var fresh=Date.now()-lc.date<FE_LEASE_MS && lc.writer!==FE_WRITER && lc.sha!==feLastOwnSha;
+    if(fresh){if(manual&&typeof toast==='function')toast('La otra copia sigue guardando datos (último guardado hace '+Math.round((Date.now()-lc.date)/60000)+' min)','err');return;}
+    var bk=await feRemoteData();
+    if(bk&&feScore(bk)>feScore(feLocalData())){if(manual&&typeof toast==='function')toast('GitHub tiene más datos: usa "Cargar los datos de GitHub"','err');return;}
+    feReadOnly=false;feOwner=true;feAcceptedSha=lc.sha;feHideBanner();
+    if(typeof toast==='function')toast('✓ Ya no hay otra copia activa. Esta pestaña vuelve a guardar.','ok');
+  }catch(e){}
+}
+
+/* --- Aviso inmediato entre pestañas del mismo navegador --- */
+var _feBC=null;
+try{
+  _feBC=new BroadcastChannel('fe-crm');
+  _feBC.onmessage=function(e){
+    var d=e.data||{};
+    if(d.t==='hi'){
+      if(d.id===FE_WRITER){_feBC.postMessage({t:'dup',id:d.id});return;}
+      if(feOwner&&!feReadOnly) _feBC.postMessage({t:'owner',to:d.id});
+    }else if(d.t==='dup'&&d.id===FE_WRITER){
+      FE_WRITER=feNewId();try{sessionStorage.setItem('fe_writer',FE_WRITER);}catch(x){}
+    }else if(d.t==='owner'&&d.to===FE_WRITER&&!feOwner){
+      feSetReadOnly('active',{date:Date.now()});
+    }
+  };
+}catch(e){}
+
+window.addEventListener('load',function(){
+  try{if(_feBC)_feBC.postMessage({t:'hi',id:FE_WRITER});}catch(e){}
+  setTimeout(function(){if(_feTok)feInit();},1500);
+});
+
+/* ===== Temporizadores de campaña en un Worker (el navegador no los congela igual que los de la pestaña) ===== */
+var _feW=null,_feWSeq=0,_feWCb={};
+try{
+  _feW=new Worker(URL.createObjectURL(new Blob(["var t={};onmessage=function(e){var d=e.data;if(d.c){clearTimeout(t[d.id]);delete t[d.id];return;}t[d.id]=setTimeout(function(){delete t[d.id];postMessage(d.id);},d.ms);};"],{type:'text/javascript'})));
+  _feW.onmessage=function(e){var f=_feWCb[e.data];delete _feWCb[e.data];if(f){try{f();}catch(x){console.error(x);}}};
+}catch(e){_feW=null;}
+function campSetTimeout(fn,ms){if(!_feW)return setTimeout(fn,ms);var id='w'+(++_feWSeq);_feWCb[id]=fn;_feW.postMessage({id:id,ms:ms});return id;}
+function campClear(id){if(id==null)return;if(typeof id==='string'){delete _feWCb[id];try{if(_feW)_feW.postMessage({c:1,id:id});}catch(e){}}else clearTimeout(id);}
+function campWait(ms,track){return new Promise(function(res){var id=campSetTimeout(res,ms);if(track)campaignTimer=id;});}
+
+/* ===== Pantalla activa + aviso si se oculta la pestaña durante la campaña ===== */
+var _feWake=null,_feHiddenAt=0,_feTitle=null,_feCampWarned=false;
+async function feWakeOn(){try{if('wakeLock' in navigator&&document.visibilityState==='visible'&&!_feWake){_feWake=await navigator.wakeLock.request('screen');_feWake.addEventListener('release',function(){_feWake=null;});}}catch(e){}}
+function feWakeOff(){try{if(_feWake)_feWake.release();}catch(e){}_feWake=null;_feCampWarned=false;if(_feTitle){document.title=_feTitle;_feTitle=null;}}
+function feCampGuard(){
+  if(feReadOnly){try{stopCampaign();}catch(e){}if(typeof toast==='function')toast('⛔ Esta pestaña está en solo lectura: no puede lanzar campañas','err');return false;}
+  feWakeOn();
+  if(!_feCampWarned){_feCampWarned=true;if(typeof toast==='function')toast('Deja esta pestaña visible y el portátil con el cargador mientras dure la campaña','');}
+  return true;
+}
+document.addEventListener('visibilitychange',function(){
+  var running=false;try{running=campaignRunning;}catch(e){}
+  if(!running) return;
+  if(document.visibilityState==='hidden'){
+    _feHiddenAt=Date.now();if(!_feTitle)_feTitle=document.title;document.title='⚠️ CAMPAÑA EN CURSO — vuelve a esta pestaña';
+  }else{
+    if(_feTitle){document.title=_feTitle;_feTitle=null;}
+    feWakeOn();
+    var m=_feHiddenAt?Math.round((Date.now()-_feHiddenAt)/60000):0;_feHiddenAt=0;
+    if(m>=1&&typeof toast==='function')toast('⚠️ La pestaña estuvo oculta '+m+' min. Para que la campaña no se frene, déjala a la vista.','err');
+  }
+});
+</script>
+
 </head>
 <body>
 <div class="tb">
@@ -2591,6 +2776,7 @@ function getCampaignOrder(){
 
 function startCampaign(){
   if(campaignRunning){toast('Campaña ya en curso','');return;}
+  if(feReadOnly){toast('⛔ Esta pestaña está en solo lectura (hay otra copia del CRM abierta)','err');return;}
   const queue=getCampaignOrder();
   const fv=document.getElementById('camp-filter')?.value||'nuevos';
   const fl={'nuevos':'Sin llamar','pendiente':'Pendientes','rellamar':'Rellamar','duda':'Duda','noContesta':'No contesta','todos':'Todos pendientes'}[fv]||fv;
@@ -2618,7 +2804,7 @@ function startCampaign(){
     document.getElementById('camp-title').textContent='Campaña programada para las '+timeVal;
     document.getElementById('camp-sub').textContent='Empieza en '+whenStr+' — '+queue.length+' contactos';
     toast('Campaña programada para las '+timeVal,'ok');
-    campaignTimer=setTimeout(()=>{
+    campaignTimer=campSetTimeout(()=>{
       campaignRunning=true;
       _campStartTime=Date.now(); // fix: el límite de duración cuenta desde que empieza de verdad
       document.getElementById('camp-title').textContent='Campaña iniciada';
@@ -2642,7 +2828,8 @@ function startCampaign(){
 
 async function runNextCampaignCall(){
   if(!campaignRunning) return;
-  if(campaignPaused){campaignTimer=setTimeout(runNextCampaignCall,2000);return;}
+  if(!feCampGuard()) return;
+  if(campaignPaused){campaignTimer=campSetTimeout(runNextCampaignCall,2000);return;}
   // Check duration limit
   if(_campMaxMs>0&&_campStartTime>0&&(Date.now()-_campStartTime)>=_campMaxMs){
     const elapsed=Math.round((Date.now()-_campStartTime)/60000);
@@ -2673,11 +2860,11 @@ async function runNextCampaignCall(){
     // Launch the call via the acc call button
     accLlamar(accId);
     // Wait 60s then move to next (admin calls are manual-review)
-    await new Promise(r=>{campaignTimer=setTimeout(r,60000);});
+    await campWait(60000,true);
     campaignIdx++;updateCampLiveStats();
     if(campaignRunning&&!campaignPaused){
       document.getElementById('camp-sub').textContent='Esperando 45s...';
-      await new Promise(r=>{campaignTimer=setTimeout(r,45000);});
+      await campWait(45000,true);
     }
     runNextCampaignCall();
     return;
@@ -2698,9 +2885,9 @@ async function runNextCampaignCall(){
     try{hotOpen2(hotIdC);}catch(e){}
     window.scrollTo(0,0);
     await hotLlamar(hotIdC);
-    await new Promise(r=>{campaignTimer=setTimeout(r,60000);});
+    await campWait(60000,true);
     campaignIdx++;updateCampLiveStats();
-    if(campaignRunning&&!campaignPaused){document.getElementById('camp-sub').textContent='Esperando 45s...';await new Promise(r=>{campaignTimer=setTimeout(r,45000);});}
+    if(campaignRunning&&!campaignPaused){document.getElementById('camp-sub').textContent='Esperando 45s...';await campWait(45000,true);}
     runNextCampaignCall();return;
   }
   if(typeof id==='string'&&id.startsWith('SUP:')){
@@ -2717,9 +2904,9 @@ async function runNextCampaignCall(){
     try{supOpen2(supIdC);}catch(e){}
     window.scrollTo(0,0);
     await supLlamar(supIdC);
-    await new Promise(r=>{campaignTimer=setTimeout(r,60000);});
+    await campWait(60000,true);
     campaignIdx++;updateCampLiveStats();
-    if(campaignRunning&&!campaignPaused){document.getElementById('camp-sub').textContent='Esperando 45s...';await new Promise(r=>{campaignTimer=setTimeout(r,45000);});}
+    if(campaignRunning&&!campaignPaused){document.getElementById('camp-sub').textContent='Esperando 45s...';await campWait(45000,true);}
     runNextCampaignCall();return;
   }
   // === DEN clinica dental call ===
@@ -2737,9 +2924,9 @@ async function runNextCampaignCall(){
     try{denOpen2(denIdC);}catch(e){}
     window.scrollTo(0,0);
     await denLlamar(denIdC);
-    await new Promise(r=>{campaignTimer=setTimeout(r,60000);});
+    await campWait(60000,true);
     campaignIdx++;updateCampLiveStats();
-    if(campaignRunning&&!campaignPaused){document.getElementById('camp-sub').textContent='Esperando 45s...';await new Promise(r=>{campaignTimer=setTimeout(r,45000);});}
+    if(campaignRunning&&!campaignPaused){document.getElementById('camp-sub').textContent='Esperando 45s...';await campWait(45000,true);}
     runNextCampaignCall();return;
   }
   // === TAL taller call ===
@@ -2756,11 +2943,11 @@ async function runNextCampaignCall(){
     document.getElementById('camp-pct').textContent=pct+'%';
     selTal(talId);window.scrollTo(0,0);
     talLlamar(talId);
-    await new Promise(r=>{campaignTimer=setTimeout(r,60000);});
+    await campWait(60000,true);
     campaignIdx++;updateCampLiveStats();
     if(campaignRunning&&!campaignPaused){
       document.getElementById('camp-sub').textContent='Esperando 45s...';
-      await new Promise(r=>{campaignTimer=setTimeout(r,45000);});
+      await campWait(45000,true);
     }
     runNextCampaignCall();
     return;
@@ -2802,14 +2989,14 @@ async function runNextCampaignCall(){
   campaignIdx++;updateCampLiveStats();
   if(campaignRunning&&!campaignPaused){
     document.getElementById('camp-sub').textContent='Esperando 45s...';
-    await new Promise(r=>{campaignTimer=setTimeout(r,45000);});
+    await campWait(45000,true);
   }
   runNextCampaignCall();
 }
 
 async function waitForCallEnd(callId,contactId){
   // Wait 15s first for call to end + Vapi to process
-  await new Promise(r=>setTimeout(r,15000));
+  await campWait(15000);
   // Then poll backend every 8s, max 20 attempts (160s)
   for(let i=0;i<20;i++){
     if(!campaignRunning&&i>0) return;
@@ -2817,14 +3004,14 @@ async function waitForCallEnd(callId,contactId){
       const r=await fetch(BACKEND_URL,{method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({callId})});
-      if(!r.ok){await new Promise(r=>setTimeout(r,8000));continue;}
+      if(!r.ok){await campWait(8000);continue;}
       const data=await r.json();
       // retry:true means Vapi hasn't processed yet - wait more
-      if(data.retry){await new Promise(r=>setTimeout(r,10000));continue;}
+      if(data.retry){await campWait(10000);continue;}
       // Got result
       applyCallResult(data,callId,contactId);
       return;
-    }catch(e){await new Promise(r=>setTimeout(r,8000));}
+    }catch(e){await campWait(8000);}
   }
   endCall(contactId,'duda');
 }
@@ -3403,13 +3590,14 @@ function showCampaignSummary(){
 function toggleCampaignPause(){
   campaignPaused=!campaignPaused;
   const btn=document.getElementById('camp-pause-btn');
-  if(campaignPaused){btn.textContent='▶ Reanudar';document.getElementById('camp-title').textContent='Campaña pausada';if(campaignTimer){clearTimeout(campaignTimer);campaignTimer=null;}toast('Campaña pausada','');}
+  if(campaignPaused){btn.textContent='▶ Reanudar';document.getElementById('camp-title').textContent='Campaña pausada';if(campaignTimer){campClear(campaignTimer);campaignTimer=null;}toast('Campaña pausada','');}
   else{btn.textContent='⏸ Pausar';document.getElementById('camp-title').textContent='Campaña reanudada';toast('Campaña reanudada','ok');runNextCampaignCall();}
 }
 
 function stopCampaign(){
+  try{feWakeOff();}catch(e){}
   campaignRunning=false;campaignPaused=false;_campStartTime=0;_campMaxMs=0;
-  if(campaignTimer){clearTimeout(campaignTimer);campaignTimer=null;}
+  if(campaignTimer){campClear(campaignTimer);campaignTimer=null;}
   clearInterval(iv);
   document.getElementById('camp-bar').classList.remove('on');
   document.getElementById('cban').classList.remove('on');
@@ -3655,6 +3843,7 @@ async function syncToGitHub(data){
   try{
     var GH_T=['ghp_sqxSv','9Qy5eh49X','IcNJaSY6B','AbjmVpz2FpJRY'].join('');
     var GH_R='carboalvaro-dotcom/agente-fe';
+    if(!(await feCanWrite(GH_T))){return;}
     var saveData={crm:data,
       acc:JSON.parse(localStorage.getItem('fe_acc_v1')||'{}'),
       tal:JSON.parse(localStorage.getItem('fe_tal_v1')||'{}'),
@@ -3665,11 +3854,12 @@ async function syncToGitHub(data){
     var _content=btoa(unescape(encodeURIComponent(JSON.stringify(saveData))));
     var _sha_d=null;
     try{var _ck=await fetch('https://api.github.com/repos/'+GH_R+'/contents/crm-data.json',{headers:{'Authorization':'token '+GH_T}});if(_ck.ok){var _ckf=await _ck.json();_sha_d=_ckf.sha;}}catch(_e){}
-    var _pl={message:'backup CRM '+new Date().toISOString().slice(0,16),content:_content};
+    var _pl={message:'backup CRM '+new Date().toISOString().slice(0,16)+feTag(),content:_content};
     if(_sha_d)_pl.sha=_sha_d;
     var r=await fetch('https://api.github.com/repos/'+GH_R+'/contents/crm-data.json',{method:'PUT',headers:{'Authorization':'token '+GH_T,'Content-Type':'application/json'},body:JSON.stringify(_pl)});
     if(r.ok){
       var result=await r.json();
+      feMarkOwnWrite(result.commit&&result.commit.sha);
       if(result.commit&&result.commit.sha){_currentSha=result.commit.sha;_lastGhSha=result.commit.sha;}
       _lastLocalSave=Date.now();
       var syncEl=document.getElementById('sync-status');
@@ -3687,9 +3877,10 @@ function autoBackupAll(){
     var GH_R='carboalvaro-dotcom/agente-fe';
     var d={crm:[],acc:JSON.parse(localStorage.getItem('fe_acc_v1')||'{}'),tal:JSON.parse(localStorage.getItem('fe_tal_v1')||'{}'),sup:JSON.parse(localStorage.getItem('fe_sup_v1')||'{}'),den:JSON.parse(localStorage.getItem('fe_den_v1')||'{}'),_savedAt:new Date().toISOString()};
     var c=btoa(unescape(encodeURIComponent(JSON.stringify(d))));
-    fetch('https://api.github.com/repos/'+GH_R+'/contents/crm-data.json',{headers:{'Authorization':'token '+GH_T}})
+    feCanWrite(GH_T).then(function(ok){if(!ok)throw new Error('solo lectura');return fetch('https://api.github.com/repos/'+GH_R+'/contents/crm-data.json',{headers:{'Authorization':'token '+GH_T}});})
     .then(function(r){return r.ok?r.json():null;})
-    .then(function(f){var pl={message:'auto-backup '+new Date().toISOString().slice(0,16),content:c};if(f&&f.sha)pl.sha=f.sha;return fetch('https://api.github.com/repos/'+GH_R+'/contents/crm-data.json',{method:'PUT',headers:{'Authorization':'token '+GH_T,'Content-Type':'application/json'},body:JSON.stringify(pl)});})
+    .then(function(f){var pl={message:'auto-backup '+new Date().toISOString().slice(0,16)+feTag(),content:c};if(f&&f.sha)pl.sha=f.sha;return fetch('https://api.github.com/repos/'+GH_R+'/contents/crm-data.json',{method:'PUT',headers:{'Authorization':'token '+GH_T,'Content-Type':'application/json'},body:JSON.stringify(pl)});})
+    .then(function(r){return r&&r.ok?r.json():null;}).then(function(jx){if(jx&&jx.commit)feMarkOwnWrite(jx.commit.sha);})
     .catch(function(e){console.log('autoBackup:',e.message);});
   }
 }
@@ -3725,6 +3916,7 @@ initDark();
 (async function(){
   var GH_T=['ghp_sqxSv','9Qy5eh49X','IcNJaSY6B','AbjmVpz2FpJRY'].join('');
   var GH_R='carboalvaro-dotcom/agente-fe';
+  try{feSetTok(GH_T);}catch(e){}
   var sup=Object.keys(JSON.parse(localStorage.getItem('fe_sup_v1')||'{}')).length;
   var den=Object.keys(JSON.parse(localStorage.getItem('fe_den_v1')||'{}')).length;
   var tal=Object.keys(JSON.parse(localStorage.getItem('fe_tal_v1')||'{}')).length;
