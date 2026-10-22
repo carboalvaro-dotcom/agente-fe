@@ -2209,6 +2209,7 @@ Tu trabajo es salir con un nombre y una vía de contacto. Pregunta de una en una
 2. "¿Me puede pasar con ella?" → si te pasan: <silencio>.
 3. Si no está o no pasan: "¿Cuál es la mejor forma de contactarla, un teléfono directo o un email?"
 4. Si no lo dan: "¿A qué hora suele estar para llamarla?"
+5. Antes de despedirte, si no tienes contacto: "Si le va bien, la persona que lo lleva puede mandarnos la factura por WhatsApp al seis, uno, ocho, sesenta y tres, cero, tres, treinta y dos y le hacemos el estudio gratis."
 - "Lo lleva la central", "las oficinas centrales", "esto es una tienda/delegación, lo llevan desde central" → "Entendido, muchas gracias. Que tenga buen día." y fin (no pidas el teléfono de la central).
 - "Lo lleva administración" (dentro de la misma empresa) → "¿Cómo se llama la persona de administración que lo lleva?"
 - "Es de alquiler, la luz no la pagamos" → "¿Quién la paga, la propiedad o un administrador? ¿Me puede dar su contacto?"
@@ -2247,7 +2248,11 @@ Si piden hablar con una persona del equipo, PROPÓN tú el momento: "Claro. ¿Le
 2. ${_gancho}
 3. "Nuestro asesor está estos días por la zona, por las mañanas entre 10 y 14h. ¿Qué día le viene mejor?" No propongas tú los días. Cuando diga el día: "¿A las 10 o a las 11?"
 4. Confirma nombre, día y hora. "Si tiene una factura reciente a mano, mejor; si no, no hace falta." Despídete: "Perfecto [nombre], el asesor pasa el [día] a las [hora]. Hasta entonces."
-Si prefiere no quedar: "Sin problema. ¿Le envío la información por email?" → apunta el email → "Gracias, le escribimos. Que tenga buen día."
+Prioridad: SIEMPRE intenta primero la visita. Solo si no quiere visita, ofrece el WhatsApp:
+"Sin problema. Puede mandarnos una foto de la factura por WhatsApp al seis, uno, ocho, sesenta y tres, cero, tres, treinta y dos y le preparamos el estudio gratis. ¿O prefiere darme un móvil y le escribimos nosotros por WhatsApp?"
+- Si da un móvil: repítelo en grupos y confirma: "Perfecto, le escribimos hoy por WhatsApp desde Luzink. Que tenga buen día."
+- Si prefiere mandarla él: repite el número despacio una vez más y despídete.
+- Si no quiere WhatsApp: "¿Le envío la información por email?" → apunta el email → "Gracias, le escribimos. Que tenga buen día."
 
 ━━ OBJECIONES (1 intento por objeción; después, salida) ━━
 - "No me interesa" → "Entendido. ¿Le han revisado la potencia este año? Si no, en 10 minutos sale de dudas."
@@ -2258,7 +2263,7 @@ Si prefiere no quedar: "Sin problema. ¿Le envío la información por email?" �
 - "¿Cómo tenéis mis datos?" → "Trabajamos con datos de suministro y de potencias registradas. Si prefiere que no le llamemos, lo anoto ahora mismo."
 - "No me llaméis más" → "Anotado, no le volveremos a llamar. Disculpe las molestias, que tenga buen día."
 - "Llámeme en otro momento" → acepta cualquier hora; si es vago, propón una concreta. Despídete: "Le llamo el [día] a las [hora]. Hasta entonces."
-- Si piden un teléfono de contacto: "El del asesor es Álvaro: seis, uno, nueve, cero, uno, veintiséis, ochenta. Que tenga buen día."
+- Si piden un teléfono de contacto: "El de Luzink es el seis, uno, ocho, sesenta y tres, cero, tres, treinta y dos; también tiene WhatsApp. Que tenga buen día."
 
 SALIDA tras 2 intentos sin avance: "Sin problema, gracias por su tiempo. Que tenga buen día."
 
@@ -2366,6 +2371,7 @@ var CARLA_ANALYSIS={
     departamento:{type:'string',description:'Departamento o cargo que lleva la luz (administración, mantenimiento, central...)'},
     telefono_contacto:{type:'string',description:'Teléfono que nos dieron para contactar (solo dígitos)'},
     email_contacto:{type:'string',description:'Email que nos dieron, en formato nombre@dominio.ext'},
+    whatsapp:{type:'string',description:'Móvil que nos dieron para escribirles por WhatsApp (solo dígitos), o "enviaran_factura" si dijeron que nos mandarán la factura ellos'},
     cuando_llamar:{type:'string',description:'Día y hora acordados para volver a llamar o para que llame una persona, en texto (ej. "mañana a las 10")'},
     fecha_visita:{type:'string',description:'Día y hora de la visita si se cerró'},
     empresa_que_contesta:{type:'string',description:'Nombre del negocio con el que se presentan al descolgar, si lo dicen'},
@@ -4628,7 +4634,7 @@ async function talLlamar(id){
     +'- NUNCA repitas el nombre del negocio despu\u00e9s de la primera apertura\n'
     +'- NUNCA digas Buenos d\u00edas (ya se dijo al inicio)\n'
     +'- Castellano, trato de usted, m\u00e1ximo 2 frases por turno\n'
-    +'- Tel\u00e9fono si lo piden: seiscientos diecinueve cero doce seiscientos ochenta\n'
+    +'- Tel\u00e9fono si lo piden: seiscientos dieciocho, sesenta y tres, cero, tres, treinta y dos\n'
     +'- No insistir m\u00e1s de 2 veces si no hay inter\u00e9s\n'
     +'- Buz\u00f3n de voz: colgar inmediatamente sin dejar mensaje\n'
     +'- Si preguntan cu\u00e1nto es el desajuste o cu\u00e1nto pueden ahorrar: responde exactamente: "Cada punto de potencia mal ajustado puede estar costando alrededor de cien euros al a\u00f1o. Con una revisi\u00f3n gratuita de 10 minutos le decimos exactamente cu\u00e1nto es en su caso."';
@@ -4917,7 +4923,7 @@ async function supLlamar(id){
     +'- NUNCA repitas el nombre del establecimiento despu\u00e9s de la primera apertura\n'
     +'- NUNCA digas Buenos d\u00edas (ya se dijo al inicio)\n'
     +'- Castellano, trato de usted, m\u00e1ximo 2 frases por turno\n'
-    +'- Tel\u00e9fono si lo piden: seiscientos diecinueve cero doce seiscientos ochenta\n'
+    +'- Tel\u00e9fono si lo piden: seiscientos dieciocho, sesenta y tres, cero, tres, treinta y dos\n'
     +'- No insistir m\u00e1s de 2 veces si no hay inter\u00e9s\n'
     +'- Buz\u00f3n de voz: colgar inmediatamente sin dejar mensaje\n'
     +'- Si preguntan cu\u00e1nto es el desajuste o cu\u00e1nto pueden ahorrar: responde exactamente: "Cada punto de potencia mal ajustado puede estar costando alrededor de cien euros al a\u00f1o. Con una revisi\u00f3n gratuita de 10 minutos le decimos exactamente cu\u00e1nto es en su caso."';
@@ -5203,7 +5209,7 @@ async function hotLlamar(id){
     +'- NUNCA repitas el nombre del negocio despu\u00e9s de la primera apertura\n'
     +'- NUNCA digas Buenos d\u00edas (ya se dijo al inicio)\n'
     +'- Castellano, trato de usted, m\u00e1ximo 2 frases por turno\n'
-    +'- Tel\u00e9fono si lo piden: seiscientos diecinueve cero doce seiscientos ochenta\n'
+    +'- Tel\u00e9fono si lo piden: seiscientos dieciocho, sesenta y tres, cero, tres, treinta y dos\n'
     +'- No insistir m\u00e1s de 2 veces si no hay inter\u00e9s\n'
     +'- Buz\u00f3n de voz: colgar inmediatamente sin dejar mensaje\n'
     +'- Si preguntan cu\u00e1nto es el desajuste o cu\u00e1nto pueden ahorrar: responde exactamente: "Cada punto de potencia mal ajustado puede estar costando alrededor de cien euros al a\u00f1o. Con una revisi\u00f3n gratuita de 10 minutos le decimos exactamente cu\u00e1nto es en su caso."';
@@ -5483,7 +5489,7 @@ async function denLlamar(id){
     +'- NUNCA repitas el nombre del negocio despu\u00e9s de la primera apertura\n'
     +'- NUNCA digas Buenos d\u00edas (ya se dijo al inicio)\n'
     +'- Castellano, trato de usted, m\u00e1ximo 2 frases por turno\n'
-    +'- Tel\u00e9fono si lo piden: seiscientos diecinueve cero doce seiscientos ochenta\n'
+    +'- Tel\u00e9fono si lo piden: seiscientos dieciocho, sesenta y tres, cero, tres, treinta y dos\n'
     +'- No insistir m\u00e1s de 2 veces si no hay inter\u00e9s\n'
     +'- Buz\u00f3n de voz: colgar inmediatamente sin dejar mensaje\n'
     +'- Si preguntan cu\u00e1nto es el desajuste o cu\u00e1nto pueden ahorrar: responde exactamente: "Cada punto de potencia mal ajustado puede estar costando alrededor de cien euros al a\u00f1o. Con una revisi\u00f3n gratuita de 10 minutos le decimos exactamente cu\u00e1nto es en su caso."';
