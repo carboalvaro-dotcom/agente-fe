@@ -4667,8 +4667,8 @@ async function talLlamar(id){
     if(rd.id){
       talSt[id]._callId=rd.id;talSave();
       toast('\uD83D\uDCDE Llamando a '+t.nombre,'ok');
-      window._sectorActiveCallId=rd.id;window._sectorActiveId=id;window._sectorActivePrefix='DEN';
-      pollCallStatus(rd.id,'DEN:'+id);
+      window._sectorActiveCallId=rd.id;window._sectorActiveId=id;window._sectorActivePrefix='TAL';
+      pollCallStatus(rd.id,'TAL:'+id);
     }else{
       document.getElementById('cban').classList.remove('on');
       clearInterval(iv);
@@ -5548,6 +5548,15 @@ window.selMob=function(id,el){
 
 (function dn(){var l=document.getElementById('den-list');if(l){denRenderList();}else{setTimeout(dn,300);}})();
 
+
+// v2.7: corrige resultados de Talleres/Hoteles/Súper guardados por error en Salud (bug TAL→DEN)
+(function feFixCrossSector(){try{var moved=0;
+  [['tal_',talSt,talSave],['hot_',hotSt,hotSave],['sup_',supSt,supSave]].forEach(function(a){var n=0;
+    Object.keys(denSt).forEach(function(k){if(k.indexOf(a[0])===0){a[1][k]=Object.assign({},a[1][k]||{},denSt[k]);delete denSt[k];n++;}});
+    if(n){a[2]();moved+=n;}});
+  if(moved){denSave();try{talRenderList();hotRenderList();supRenderList();denRenderList();}catch(e){}
+    setTimeout(function(){if(typeof toast==='function')toast('✓ '+moved+' resultados recolocados en su sector','ok');},2500);}
+}catch(e){console.log('feFixCrossSector',e.message);}})();
 </script>
 <div id="camp-float">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
