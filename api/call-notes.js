@@ -288,6 +288,19 @@ export default async function handler(req, res) {
       if (clean(sd.resumen)) sdExtra += '📝 ' + clean(sd.resumen) + '\n';
     }
 
+    // v3.1: si una persona contesta y CUELGA sin dar nombre, hora ni datos → No interesa (no es duda).
+    //       "Duda" queda solo para conversaciones largas sin resultado claro, para revisión manual.
+    const userHablo = /(^|\n)\s*user:/i.test(rawTranscript);
+    const sinDatos = !sdNombre && !sdTel && !sdCuando && !sdVisita && !(sd && sd.rellamar_fecha_hora);
+    if (endedReason === 'customer-ended-call' && userHablo && sinDatos &&
+        (resultado === 'duda' || resultado === 'noContesta') &&
+        !(sd && ['rellamar','pide_persona','contacto_responsable','visita'].includes(sd.resultado))) {
+      if (duration === null || duration <= 45) {
+        resultado = 'noInteresa';
+        sdExtra += '📵 Colgó sin interés\n';
+      }
+    }
+
     // v2.2: contestador/menú sin datos estructurados también se descarta
     if (!sd && /voicemail|machine_/i.test(endedReason)) resultado = 'noInteresa';
     if (lineaFallida) resultado = 'noContesta';
