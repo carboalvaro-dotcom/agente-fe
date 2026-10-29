@@ -2389,14 +2389,14 @@ Los emails NO son nuestro objetivo: no los pidas.
 ━━ EL PRIMER TURNO ES TUYO ━━
 Todavía NO has dicho nada. Escucha lo primero que suena al descolgar y decide:
 1. Habla una PERSONA (aunque solo diga "¿diga?", "dígame", "¿sí?", "hola" o el nombre del negocio): di EXACTAMENTE y completo tu saludo: "${(window._carlaAp&&window._carlaAp.t)||carlaSaludo()}"
-2. Es una GRABACIÓN DE ESPERA o centralita que te pide esperar ("en breve le atenderemos", "enseguida le atendemos", "no se retire", "manténgase a la espera", "su llamada es muy importante", "bienvenido a…" seguido de espera, "esta llamada puede ser grabada", música): responde EXACTAMENTE: <silencio>. Sigue respondiendo <silencio> a cada mensaje grabado. Cuando por fin conteste una PERSONA, di tu saludo completo (punto 1).
+2. Es una GRABACIÓN DE ESPERA o centralita que te pide esperar ("en breve le atenderemos", "enseguida le atendemos", "no se retire", "manténgase a la espera", "su llamada es muy importante", "bienvenido a…" seguido de espera, "esta llamada puede ser grabada", música, y TAMBIÉN EN CATALÁN: "en breus moments", "us atendrem", "atendrem la seva trucada", "no es retiri", "benvinguts", "gràcies per trucar"): responde EXACTAMENTE: <silencio>. NUNCA te despidas ni cuelgues ante una grabación de espera: espera a la persona.\nSi contesta una ASISTENTE VIRTUAL que pregunta "¿en qué puedo ayudarle?": di "Con la persona que lleva la factura de la luz, por favor." y espera. Sigue respondiendo <silencio> a cada mensaje grabado. Cuando por fin conteste una PERSONA, di tu saludo completo (punto 1).
 3. Es un MENÚ que solo ofrece marcar opciones ("pulse 1", "marque 2") sin opción de esperar, un CONTESTADOR o un BUZÓN ("deje su mensaje", "después de la señal", "no está disponible"): usa endCall sin decir nada.
 Si el menú dice "o espere / manténgase a la espera", es el caso 2: <silencio>.
 
 ━━ CALLAR ━━
 Cuando una PERSONA te dice "un momento", "le paso" o "no cuelgue": responde EXACTAMENTE: <silencio>. Cuando conteste la persona a la que te pasan, vuelve a decir tu saludo completo.
 Nada más: ni "espero", ni "un momento", ni "gracias". <silencio> no se oye.
-Herramienta: endCall cuelga la llamada.
+Herramienta: endCall cuelga la llamada. Despídete UNA sola vez ("Gracias, que tenga buen día.") y no repitas la despedida.
 
 ━━ APERTURA (ya has saludado y habla una persona) ━━
 Tu saludo ya dicho fue: "${(window._carlaAp&&window._carlaAp.t)||carlaSaludo()}". NO lo repitas (salvo al pasarte con otra persona).
@@ -2567,8 +2567,8 @@ var CARLA_APERTURAS={
   C:function(h){return h+', soy Carla, de Luz Ink. Una pregunta rápida: ¿la potencia de la luz se la revisaron este año?';}
 };
 function carlaPick(){
-  var keys=['A','B','C'],i=0;
-  try{i=parseInt(localStorage.getItem('fe_ab_idx')||'0',10)||0;localStorage.setItem('fe_ab_idx',String((i+1)%keys.length));}catch(e){i=Math.floor(Math.random()*3);}
+  var keys=['A','B'],i=0; // v3.5: C descartada (0 de 9)
+  try{i=parseInt(localStorage.getItem('fe_ab_idx')||'0',10)||0;localStorage.setItem('fe_ab_idx',String((i+1)%keys.length));}catch(e){i=Math.floor(Math.random()*2);}
   var v=keys[i%keys.length];
   window._carlaAp={v:v,t:CARLA_APERTURAS[v](saludoHora())};
   return '';
@@ -2577,6 +2577,7 @@ var CARLA_BUZON={provider:'vapi',backoffPlan:{startAtSeconds:1.5,frequencySecond
 var CARLA_FIN=['que tenga buen día','hasta entonces','hasta luego','hasta pronto'];
 // Texto que nunca debe llegar a la voz
 var CARLA_VOZ_FILTRO={enabled:true,formatPlan:{enabled:true,replacements:[
+  {type:'regex',regex:'[Ll]uz\\s*[Ii]nk',value:'Luz Ínk'},
   {type:'regex',regex:'<\\/?\\s*[Ss][Ii][Ll][Ee][Nn][Cc][Ii][Oo]\\s*>',value:''},
   {type:'regex',regex:'[Ee]spero (en silencio|en l[ií]nea)[^.?!]*[.?!]?',value:''}
 ]}};
@@ -4880,7 +4881,6 @@ async function talLlamar(id){
         tools:CARLA_TOOLS,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain({nombre:t.nombre,direccion:t.direccion,contactName:((talSt[id]||{}).contacto||'')})}]},
       voice:{provider:'11labs',voiceId:'uQw4jpKzMLrZuo0RLPS9',model:'eleven_turbo_v2_5',stability:0.8,similarityBoost:0.8,style:0,useSpeakerBoost:true,chunkPlan:CARLA_VOZ_FILTRO},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
-      endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
       recordingEnabled:true,
       silenceTimeoutSeconds:20,
       analysisPlan:carlaAnalysis(),voicemailDetection:CARLA_BUZON,endCallPhrases:CARLA_FIN,metadata:{apertura:(window._carlaAp||{}).v||''}
@@ -5170,7 +5170,6 @@ async function supLlamar(id){
         tools:CARLA_TOOLS,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain({nombre:t.nombre,direccion:t.direccion,contactName:((supSt[id]||{}).contacto||'')})}]},
       voice:{provider:'11labs',voiceId:'uQw4jpKzMLrZuo0RLPS9',model:'eleven_turbo_v2_5',stability:0.8,similarityBoost:0.8,style:0,useSpeakerBoost:true,chunkPlan:CARLA_VOZ_FILTRO},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
-      endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
       recordingEnabled:true,
       silenceTimeoutSeconds:20,
       analysisPlan:carlaAnalysis(),voicemailDetection:CARLA_BUZON,endCallPhrases:CARLA_FIN,metadata:{apertura:(window._carlaAp||{}).v||''}
@@ -5457,7 +5456,6 @@ async function hotLlamar(id){
         tools:CARLA_TOOLS,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain({nombre:t.nombre,direccion:t.direccion,contactName:((hotSt[id]||{}).contacto||'')})}]},
       voice:{provider:'11labs',voiceId:'uQw4jpKzMLrZuo0RLPS9',model:'eleven_turbo_v2_5',stability:0.8,similarityBoost:0.8,style:0,useSpeakerBoost:true,chunkPlan:CARLA_VOZ_FILTRO},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
-      endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
       recordingEnabled:true,
       silenceTimeoutSeconds:20,
       analysisPlan:carlaAnalysis(),voicemailDetection:CARLA_BUZON,endCallPhrases:CARLA_FIN,metadata:{apertura:(window._carlaAp||{}).v||''}
@@ -5738,7 +5736,6 @@ async function denLlamar(id){
         tools:CARLA_TOOLS,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain({nombre:t.nombre,direccion:t.direccion,contactName:((denSt[id]||{}).contacto||'')})}]},
       voice:{provider:'11labs',voiceId:'uQw4jpKzMLrZuo0RLPS9',model:'eleven_turbo_v2_5',stability:0.8,similarityBoost:0.8,style:0,useSpeakerBoost:true,chunkPlan:CARLA_VOZ_FILTRO},
       transcriber:{provider:'deepgram',model:'nova-2',language:'es'},
-      endCallMessage:'Muchas gracias por su tiempo. Hasta pronto.',
       recordingEnabled:true,
       silenceTimeoutSeconds:20,
       analysisPlan:carlaAnalysis(),voicemailDetection:CARLA_BUZON,endCallPhrases:CARLA_FIN,metadata:{apertura:(window._carlaAp||{}).v||''}
