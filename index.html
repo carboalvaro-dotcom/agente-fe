@@ -3,6 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
+<script id="fe-buscar">
+/* v3.4: buscador global — con texto busca en TODO (ignora filtros de estado/municipio/fechas), por nombre, teléfono (con o sin espacios), calle, municipio, CP, tipo o contacto */
+function feNorm(x){return String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
+function feQ(){var e=document.getElementById('sq');return e?feNorm(e.value).trim():'';}
+function feHit(t,st){var q=feQ();if(!q)return true;st=st||{};
+  var qd=q.replace(/\D/g,'');
+  if(qd.length>=4&&q.replace(/[\d\s+().-]/g,'')===''){return String(t.telefono||'').replace(/\D/g,'').indexOf(qd.replace(/^34(?=\d{9}$)/,''))>=0;}
+  var txt=feNorm([t.nombre,t.municipio,t.cp,t.tipo,t.cadena,t.direccion,t.sector,t.telefono,st.contacto,t.contacto].join(' '));
+  return q.split(/\s+/).every(function(w){return txt.indexOf(w)>=0;});}
+</script>
 <script>
 // Run immediately before CSS renders to avoid flash
 (function(){
@@ -610,7 +620,7 @@ document.addEventListener('visibilitychange',function(){
   <div class="lp">
     <div class="lp-top">
       <button id="btn-compact" onclick="toggleCompact()" title="Vista compacta / normal" style="background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:4px 8px;cursor:pointer;font-size:11px;color:var(--mt);flex-shrink:0;font-weight:500" aria-label="Vista compacta">Vista</button>
-      <input class="lp-search" type="text" id="sq" placeholder="🔍  Buscar empresa, calle, sector..." oninput="renderList();accRenderList();try{talRenderList();}catch(e){}try{supRenderList();}catch(e){}try{denRenderList();}catch(e){};">
+      <input class="lp-search" type="text" id="sq" placeholder="🔍  Buscar empresa, calle, sector..." oninput="renderList();accRenderList();try{talRenderList();}catch(e){}try{supRenderList();}catch(e){}try{denRenderList();}catch(e){}try{hotRenderList();}catch(e){};">
       <div class="lp-filters">
         <button class="ftab on" onclick="setF('todos',this)">Todos</button>
         <button class="ftab" onclick="setF('prioritario',this)">⚡ PRO</button>
@@ -2103,13 +2113,14 @@ function setF(f,el){
 function renderList(){
   const q=(document.getElementById('sq').value||'').toLowerCase();
   let list=C;
-  if(curF==='prioritario') list=list.filter(c=>isPRO(c));
+  if(feQ()){list=C.filter(function(c){return feHit(c);});}
+  else if(curF==='prioritario') list=list.filter(c=>isPRO(c));
   else if(curF==='llamadas') list=list.filter(c=>(c.llamadas||0)>0);
   else if(curF==='duda') list=list.filter(c=>c.estado==='duda');
   else if(curF!=='todos') list=list.filter(c=>c.estado===curF);
   var _d=document.getElementById('fecha-desde')?.value;
   var _h=document.getElementById('fecha-hasta')?.value;
-  if(_d||_h){list=list.filter(function(c){
+  if((_d||_h)&&!feQ()){list=list.filter(function(c){
     if(!c.ultimaLlamada||c.ultimaLlamada.length<10)return false;
     var p=c.ultimaLlamada.split(/[/,: ]/);
     var cd=p[2]+'-'+p[1]+'-'+p[0];
@@ -2117,7 +2128,7 @@ function renderList(){
     if(_h&&cd>_h)return false;
     return true;
   });}
-  if(q) list=list.filter(c=>
+  if(q&&!feQ()) list=list.filter(c=>
     c.nombre.toLowerCase().includes(q)||
     (c.telefono||'').includes(q)||
     c.direccion.toLowerCase().includes(q)||
@@ -4309,7 +4320,7 @@ function accRenderList(){
     if(curF==='prioritario'&&!(a.totalCups>=50))return false;
     // Filtro buscador
     var _q=(document.getElementById('sq')?.value||'').toLowerCase().trim();
-    if(_q){
+    if(_q){ return feHit(a,accSt[a.id]);
       var _txt=(a.nombre+' '+(a.zona||'')+' '+(a.provincia||'')).toLowerCase();
       if(!_txt.includes(_q))return false;
     }
@@ -4644,6 +4655,7 @@ function talRenderList(){
   var dD=document.getElementById('fecha-desde')?.value||'';
   var dH=document.getElementById('fecha-hasta')?.value||'';
   var filtered=TAL.talleres.filter(function(t){
+    if(feQ())return feHit(t,talSt[t.id]);
     if(muniF==='__nuevo'){if(!t.nuevo)return false;}else if(muniF&&t.municipio!==muniF)return false;
     if(tipoF&&t.tipo!==tipoF)return false;
     if(dD||dH){
@@ -4926,6 +4938,7 @@ function supRenderList(){
   var dD=document.getElementById('fecha-desde')?.value||'';
   var dH=document.getElementById('fecha-hasta')?.value||'';
   var filtered=SUP.supers.filter(function(t){
+    if(feQ())return feHit(t,supSt[t.id]);
     if(muniF==='__nuevo'){if(!t.nuevo)return false;}else if(muniF&&t.municipio!==muniF)return false;
     if(tipoF&&t.cadena!==tipoF)return false;
     if(dD||dH){
@@ -5217,6 +5230,7 @@ function hotRenderList(){
   var dD=document.getElementById('fecha-desde')?.value||'';
   var dH=document.getElementById('fecha-hasta')?.value||'';
   var filtered=HOT.hoteles.filter(function(t){
+    if(feQ())return feHit(t,hotSt[t.id]);
     if(muniF==='__nuevo'){if(!t.nuevo)return false;}else if(muniF&&t.municipio!==muniF)return false;
     if(tipoF&&t.tipo!==tipoF)return false;
     if(dD||dH){
@@ -5499,6 +5513,7 @@ function denRenderList(){
   var dD=document.getElementById('fecha-desde')?.value||'';
   var dH=document.getElementById('fecha-hasta')?.value||'';
   var filtered=DEN.clinicas.filter(function(t){
+    if(feQ())return feHit(t,denSt[t.id]);
     if(muniF==='__nuevo'){if(!t.nuevo)return false;}else if(muniF&&t.municipio!==muniF)return false;
     if(tipoF&&t.tipo!==tipoF)return false;
     if(dD||dH){
