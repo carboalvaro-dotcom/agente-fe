@@ -2541,7 +2541,7 @@ async function launchCall(){
     toast('✓ Llamada lanzada al '+phone,'ok');
     const callId=resultado?.id||c._callId;
     if(callId){pollCallStatus(callId,curId);}
-  }catch(e){toast('Error: '+e.message,'err');stopCall();}
+  }catch(e){window._callInProgress=false;toast('Error: '+e.message,'err');stopCall();}
 }
 
 // v2.1: herramientas de Carla. Para callar NO se usa herramienta (Vapi mete frases de relleno
@@ -2599,7 +2599,7 @@ async function callViaProxy(phone,c){
   const elKey='sk_57942fe62398a4deae03f454de30e8229192223181dbaa59';
   const payload={
     phoneNumberId:phoneNumId,
-    customer:{number:phone,name:c.nombre},
+    customer:{number:phone,name:String(c.nombre||'').slice(0,40)},
     assistant:{
       name:'Agente Factor Energia',
       firstMessageMode:c.nif==="AMIGO"?'assistant-speaks-first':'assistant-waits-for-user',
@@ -4512,7 +4512,7 @@ async function accLlamar(id){
     +'- Detecta y guarda el nombre del contacto si te lo dicen';
   var payload={
     phoneNumberId:'0d4fe76e-760c-4cf8-8760-b291bb96aac5',
-    customer:{number:phone,name:a.nombre},
+    customer:{number:phone,name:String(a.nombre||'').slice(0,40)},
     assistant:{
       name:'Agente Factor Energia',
       firstMessageMode:'assistant-speaks-first',
@@ -4554,7 +4554,7 @@ async function accLlamar(id){
       pollCallStatus(callId,'ACC:'+id);
     }
   }catch(e){
-    toast('Error: '+e.message,'err');
+    window._callInProgress=false;toast('Error: '+e.message,'err');
     clearInterval(iv);
     document.getElementById('cban').classList.remove('on');
   }
@@ -4807,7 +4807,7 @@ async function talLlamar(id){
   if(window._callInProgress){toast('Ya hay una llamada en curso','err');return;}
   window._callInProgress=true;
   var t=TAL.talleres.find(function(x){return x.id===id;});
-  if(!t||!t.telefono){toast('Sin teléfono','err');return;}
+  if(!t||!t.telefono){window._callInProgress=false;toast('Sin teléfono','err');return;}
   var phone='+34'+t.telefono.replace(/\D/g,'');
   var nb=t.nombre.replace(/S\.L\.L?\.?|S\.A\.U?\.?|S\.L\.U?\.?|S\.A?\.?|C\.B\.?/gi,'').trim();
   if(!talSt[id])talSt[id]={};
@@ -4857,7 +4857,7 @@ async function talLlamar(id){
     +'- Si preguntan cu\u00e1nto es el desajuste o cu\u00e1nto pueden ahorrar: responde exactamente: "Cada punto de potencia mal ajustado puede estar costando alrededor de cien euros al a\u00f1o. Con una revisi\u00f3n gratuita de 10 minutos le decimos exactamente cu\u00e1nto es en su caso."';
   var payload={
     phoneNumberId:'0d4fe76e-760c-4cf8-8760-b291bb96aac5',
-    customer:{number:phone,name:t.nombre},
+    customer:{number:phone,name:String(t.nombre||'').slice(0,40)},
     assistant:{
       name:'CARLA - Factor Energia',
       firstMessageMode:'assistant-waits-for-user',
@@ -4889,12 +4889,12 @@ async function talLlamar(id){
     }else{
       document.getElementById('cban').classList.remove('on');
       clearInterval(iv);
-      toast('Error al llamar: '+(rd.message||JSON.stringify(rd)),'err');
+      window._callInProgress=false;toast('Error al llamar: '+(rd.message||JSON.stringify(rd)),'err');
     }
   }catch(e){
     document.getElementById('cban').classList.remove('on');
     clearInterval(iv);
-    toast('Error: '+e.message,'err');
+    window._callInProgress=false;toast('Error: '+e.message,'err');
   }
 }
 
@@ -5099,7 +5099,7 @@ async function supLlamar(id){
   if(window._callInProgress){toast('Ya hay una llamada en curso','err');return;}
   window._callInProgress=true;
   var t=SUP.supers.find(function(x){return x.id===id;});
-  if(!t||!t.telefono){toast('Sin teléfono','err');return;}
+  if(!t||!t.telefono){window._callInProgress=false;toast('Sin teléfono','err');return;}
   var phone='+34'+t.telefono.replace(/\D/g,'');
   var nb=t.nombre.replace(/S\.L\.L?\.?|S\.A\.U?\.?|S\.L\.U?\.?|S\.A?\.?|C\.B\.?/gi,'').trim();
   if(!supSt[id])supSt[id]={};
@@ -5146,7 +5146,7 @@ async function supLlamar(id){
     +'- Si preguntan cu\u00e1nto es el desajuste o cu\u00e1nto pueden ahorrar: responde exactamente: "Cada punto de potencia mal ajustado puede estar costando alrededor de cien euros al a\u00f1o. Con una revisi\u00f3n gratuita de 10 minutos le decimos exactamente cu\u00e1nto es en su caso."';
   var payload={
     phoneNumberId:'0d4fe76e-760c-4cf8-8760-b291bb96aac5',
-    customer:{number:phone,name:t.nombre},
+    customer:{number:phone,name:String(t.nombre||'').slice(0,40)},
     assistant:{
       name:'CARLA - Factor Energia',
       firstMessageMode:'assistant-waits-for-user',
@@ -5178,12 +5178,12 @@ async function supLlamar(id){
     }else{
       document.getElementById('cban').classList.remove('on');
       clearInterval(iv);
-      toast('Error al llamar: '+(rd.message||JSON.stringify(rd)),'err');
+      window._callInProgress=false;toast('Error al llamar: '+(rd.message||JSON.stringify(rd)),'err');
     }
   }catch(e){
     document.getElementById('cban').classList.remove('on');
     clearInterval(iv);
-    toast('Error: '+e.message,'err');
+    window._callInProgress=false;toast('Error: '+e.message,'err');
   }
 }
 
@@ -5380,7 +5380,7 @@ async function hotLlamar(id){
   if(window._callInProgress){toast('Ya hay una llamada en curso','err');return;}
   window._callInProgress=true;
   var t=HOT.hoteles.find(function(x){return x.id===id;});
-  if(!t||!t.telefono){toast('Sin teléfono','err');return;}
+  if(!t||!t.telefono){window._callInProgress=false;toast('Sin teléfono','err');return;}
   var phone='+34'+t.telefono.replace(/\D/g,'');
   var nb=t.nombre.replace(/S\.L\.L?\.?|S\.A\.U?\.?|S\.L\.U?\.?|S\.A?\.?|C\.B\.?/gi,'').trim();
   if(!hotSt[id])hotSt[id]={};
@@ -5432,7 +5432,7 @@ async function hotLlamar(id){
     +'- Si preguntan cu\u00e1nto es el desajuste o cu\u00e1nto pueden ahorrar: responde exactamente: "Cada punto de potencia mal ajustado puede estar costando alrededor de cien euros al a\u00f1o. Con una revisi\u00f3n gratuita de 10 minutos le decimos exactamente cu\u00e1nto es en su caso."';
   var payload={
     phoneNumberId:'0d4fe76e-760c-4cf8-8760-b291bb96aac5',
-    customer:{number:phone,name:t.nombre},
+    customer:{number:phone,name:String(t.nombre||'').slice(0,40)},
     assistant:{
       name:'CARLA - Factor Energia',
       firstMessageMode:'assistant-waits-for-user',
@@ -5464,12 +5464,12 @@ async function hotLlamar(id){
     }else{
       document.getElementById('cban').classList.remove('on');
       clearInterval(iv);
-      toast('Error al llamar: '+(rd.message||JSON.stringify(rd)),'err');
+      window._callInProgress=false;toast('Error al llamar: '+(rd.message||JSON.stringify(rd)),'err');
     }
   }catch(e){
     document.getElementById('cban').classList.remove('on');
     clearInterval(iv);
-    toast('Error: '+e.message,'err');
+    window._callInProgress=false;toast('Error: '+e.message,'err');
   }
 }
 
@@ -5662,7 +5662,7 @@ async function denLlamar(id){
   if(window._callInProgress){toast('Ya hay una llamada en curso','err');return;}
   window._callInProgress=true;
   var t=DEN.clinicas.find(function(x){return x.id===id;});
-  if(!t||!t.telefono){toast('Sin teléfono','err');return;}
+  if(!t||!t.telefono){window._callInProgress=false;toast('Sin teléfono','err');return;}
   var phone='+34'+t.telefono.replace(/\D/g,'');
   var nb=t.nombre.replace(/S\.L\.L?\.?|S\.A\.U?\.?|S\.L\.U?\.?|S\.A?\.?|C\.B\.?/gi,'').trim();
   if(!denSt[id])denSt[id]={};
@@ -5712,7 +5712,7 @@ async function denLlamar(id){
     +'- Si preguntan cu\u00e1nto es el desajuste o cu\u00e1nto pueden ahorrar: responde exactamente: "Cada punto de potencia mal ajustado puede estar costando alrededor de cien euros al a\u00f1o. Con una revisi\u00f3n gratuita de 10 minutos le decimos exactamente cu\u00e1nto es en su caso."';
   var payload={
     phoneNumberId:'0d4fe76e-760c-4cf8-8760-b291bb96aac5',
-    customer:{number:phone,name:t.nombre},
+    customer:{number:phone,name:String(t.nombre||'').slice(0,40)},
     assistant:{
       name:'CARLA - Factor Energia',
       firstMessageMode:'assistant-waits-for-user',
@@ -5744,12 +5744,12 @@ async function denLlamar(id){
     }else{
       document.getElementById('cban').classList.remove('on');
       clearInterval(iv);
-      toast('Error al llamar: '+(rd.message||JSON.stringify(rd)),'err');
+      window._callInProgress=false;toast('Error al llamar: '+(rd.message||JSON.stringify(rd)),'err');
     }
   }catch(e){
     document.getElementById('cban').classList.remove('on');
     clearInterval(iv);
-    toast('Error: '+e.message,'err');
+    window._callInProgress=false;toast('Error: '+e.message,'err');
   }
 }
 
