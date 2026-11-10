@@ -2586,6 +2586,7 @@ var CARLA_FIN=['que tenga buen día','hasta entonces','hasta luego','hasta pront
 // Texto que nunca debe llegar a la voz
 var CARLA_VOZ_FILTRO={enabled:true,formatPlan:{enabled:true,replacements:[
   {type:'regex',regex:'[Ll]uz\\s*[Ii]nk',value:'Luz Ínk'},
+  {type:'regex',regex:'^\\s*[Aa]di[oó]s\\s*[,.!]*\\s*$',value:''},
   {type:'regex',regex:'<\\/?\\s*[Ss][Ii][Ll][Ee][Nn][Cc][Ii][Oo]\\s*>',value:''},
   {type:'regex',regex:'[Ee]spero (en silencio|en l[ií]nea)[^.?!]*[.?!]?',value:''}
 ]}};
@@ -4537,7 +4538,7 @@ async function accLlamar(id){
       name:'Agente Factor Energia',
       firstMessageMode:'assistant-speaks-first',
       startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},
-      stopSpeakingPlan:{numWords:2,voiceSeconds:0.2,backoffSeconds:1},
+      stopSpeakingPlan:{numWords:3,voiceSeconds:0.2,backoffSeconds:1},
       firstMessage:apertura,
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,
         messages:[{role:'system',content:systemPrompt}]},
@@ -4883,7 +4884,7 @@ async function talLlamar(id){
       name:'CARLA - Factor Energia',
       firstMessageMode:'assistant-waits-for-user',
       startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},
-      stopSpeakingPlan:{numWords:2,voiceSeconds:0.2,backoffSeconds:1},
+      stopSpeakingPlan:{numWords:3,voiceSeconds:0.2,backoffSeconds:1},
       firstMessage:carlaPick(),
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,
         tools:CARLA_TOOLS,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain({nombre:t.nombre,direccion:t.direccion,contactName:((talSt[id]||{}).contacto||'')})}]},
@@ -5172,7 +5173,7 @@ async function supLlamar(id){
       name:'CARLA - Factor Energia',
       firstMessageMode:'assistant-waits-for-user',
       startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},
-      stopSpeakingPlan:{numWords:2,voiceSeconds:0.2,backoffSeconds:1},
+      stopSpeakingPlan:{numWords:3,voiceSeconds:0.2,backoffSeconds:1},
       firstMessage:carlaPick(),
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,
         tools:CARLA_TOOLS,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain({nombre:t.nombre,direccion:t.direccion,contactName:((supSt[id]||{}).contacto||'')})}]},
@@ -5458,7 +5459,7 @@ async function hotLlamar(id){
       name:'CARLA - Factor Energia',
       firstMessageMode:'assistant-waits-for-user',
       startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},
-      stopSpeakingPlan:{numWords:2,voiceSeconds:0.2,backoffSeconds:1},
+      stopSpeakingPlan:{numWords:3,voiceSeconds:0.2,backoffSeconds:1},
       firstMessage:carlaPick(),
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,
         tools:CARLA_TOOLS,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain({nombre:t.nombre,direccion:t.direccion,contactName:((hotSt[id]||{}).contacto||'')})}]},
@@ -5738,7 +5739,7 @@ async function denLlamar(id){
       name:'CARLA - Factor Energia',
       firstMessageMode:'assistant-waits-for-user',
       startSpeakingPlan:{waitSeconds:0.4,smartEndpointingEnabled:true},
-      stopSpeakingPlan:{numWords:2,voiceSeconds:0.2,backoffSeconds:1},
+      stopSpeakingPlan:{numWords:3,voiceSeconds:0.2,backoffSeconds:1},
       firstMessage:carlaPick(),
       model:{provider:'openai',model:'gpt-4o',temperature:0.4,maxTokens:150,
         tools:CARLA_TOOLS,messages:[{role:'system',content:'CRITICO: Habla SIEMPRE en castellano espanol.\n\n'+buildPlain({nombre:t.nombre,direccion:t.direccion,contactName:((denSt[id]||{}).contacto||'')})}]},
@@ -5923,6 +5924,31 @@ window.selMob=function(id,el){
       }
     },2500);
   });
+})();
+</script>
+<script id="fe-rellamar-hora">
+/* v3.7: la campaña no vuelve a llamar a un contacto con rellamada programada antes de su hora (margen 15 min) */
+(function(){
+  function bloqueados(){
+    var m={},now=Date.now();
+    try{JSON.parse(localStorage.getItem('fe_alarmas_v1')||'[]').forEach(function(a){
+      if(a.done||!a.contactId) return;
+      if(a.ms-15*60000>now){var k=String(a.contactId);if(!m[k]||m[k]<a.ms)m[k]=a.ms;}
+    });}catch(e){}
+    return m;
+  }
+  window.feRellamarBloqueados=bloqueados;
+  window.addEventListener('load',function(){setTimeout(function(){
+    var _o=window.getCampaignOrder;
+    if(typeof _o!=='function'||_o._feRH) return;
+    window.getCampaignOrder=function(){
+      var q=_o.apply(this,arguments)||[],b=bloqueados(),out=[],skip=0;
+      q.forEach(function(id){if(b[String(id)])skip++;else out.push(id);});
+      if(skip&&typeof toast==='function') toast('⏰ '+skip+' contacto'+(skip>1?'s':'')+' con rellamada programada se saltan hasta su hora','ok');
+      return out;
+    };
+    window.getCampaignOrder._feRH=1;
+  },3000);});
 })();
 </script>
 </body>
