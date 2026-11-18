@@ -6077,13 +6077,14 @@ window.selMob=function(id,el){
   var MUNI={'08390':'Montgat','08391':'Tiana','08911':'Badalona','08912':'Badalona','08913':'Badalona','08914':'Badalona','08915':'Badalona','08916':'Badalona','08917':'Badalona','08918':'Badalona','08930':'Sant Adrià de Besòs','08921':'Santa Coloma de Gramenet','08922':'Santa Coloma de Gramenet','08923':'Santa Coloma de Gramenet','08924':'Santa Coloma de Gramenet','08320':'El Masnou','08329':'Teià','08328':'Alella','08330':'Premià de Mar','08338':'Premià de Dalt','08339':'Premià de Dalt','08340':'Vilassar de Mar','08348':'Cabrils','08310':'Argentona','08301':'Mataró','08302':'Mataró','08303':'Mataró','08304':'Mataró','08350':'Arenys de Mar','08110':'Montcada i Reixac'};
   var ORDEN=['Montgat','Tiana','Badalona','Sant Adrià de Besòs','Santa Coloma de Gramenet','El Masnou','Teià','Alella','Premià de Mar','Premià de Dalt','Vilassar de Mar','Cabrils','Argentona','Mataró','Arenys de Mar','Montcada i Reixac','Barcelona'];
   function muni(cp){return MUNI[cp]||(/^080/.test(cp)?'Barcelona':(typeof CP_NAMES!=='undefined'&&CP_NAMES[cp])||'Otros');}
-  function pend(c){return !c.estado||c.estado==='pendiente'||c.estado==='sinLlamar';}
+  function pend(c){return c.estado==='pendiente'&&!((c.llamadas||0)>0);}
+  function usable(c){return c.nif!=='AMIGO'&&c.nif!=='TEST'&&c.telefono&&String(c.telefono).replace(/\D/g,'').length>=9;}
   window.feOrdenarCP=function(){
     var sel=document.getElementById('camp-cp'); if(!sel||typeof C==='undefined'||!C.length) return;
     var cur=sel.value, sect=[];
     Array.prototype.forEach.call(sel.querySelectorAll('option'),function(o){ if(!/^\d{5}$/.test(o.value)) sect.push({v:o.value,t:o.textContent}); });
     var g={};
-    C.forEach(function(c){ if(!c.cp||c.id===999) return; var m=muni(c.cp); g[m]=g[m]||{}; var x=g[m][c.cp]=g[m][c.cp]||{t:0,p:0}; x.t++; if(pend(c)) x.p++; });
+    C.forEach(function(c){ if(!c.cp||c.id===999||!usable(c)) return; var m=muni(c.cp); g[m]=g[m]||{}; var x=g[m][c.cp]=g[m][c.cp]||{t:0,p:0}; x.t++; if(pend(c)) x.p++; });
     var ms=Object.keys(g).sort(function(a,b){var ia=ORDEN.indexOf(a),ib=ORDEN.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)||a.localeCompare(b);});
     var st='style="color:#000"', h='';
     sect.forEach(function(o){h+='<option value="'+o.v+'" '+st+'>'+o.t+'</option>';});
