@@ -6071,5 +6071,33 @@ window.selMob=function(id,el){
   },3000);});
 })();
 </script>
+<script id="fe-cp-orden">
+/* v4.0: desplegable de campaña ordenado por zona y CP, con nº de contactos sin llamar */
+(function(){
+  var MUNI={'08390':'Montgat','08391':'Tiana','08911':'Badalona','08912':'Badalona','08913':'Badalona','08914':'Badalona','08915':'Badalona','08916':'Badalona','08917':'Badalona','08918':'Badalona','08930':'Sant Adrià de Besòs','08921':'Santa Coloma de Gramenet','08922':'Santa Coloma de Gramenet','08923':'Santa Coloma de Gramenet','08924':'Santa Coloma de Gramenet','08320':'El Masnou','08329':'Teià','08328':'Alella','08330':'Premià de Mar','08338':'Premià de Dalt','08339':'Premià de Dalt','08340':'Vilassar de Mar','08348':'Cabrils','08310':'Argentona','08301':'Mataró','08302':'Mataró','08303':'Mataró','08304':'Mataró','08350':'Arenys de Mar','08110':'Montcada i Reixac'};
+  var ORDEN=['Montgat','Tiana','Badalona','Sant Adrià de Besòs','Santa Coloma de Gramenet','El Masnou','Teià','Alella','Premià de Mar','Premià de Dalt','Vilassar de Mar','Cabrils','Argentona','Mataró','Arenys de Mar','Montcada i Reixac','Barcelona'];
+  function muni(cp){return MUNI[cp]||(/^080/.test(cp)?'Barcelona':(typeof CP_NAMES!=='undefined'&&CP_NAMES[cp])||'Otros');}
+  function pend(c){return !c.estado||c.estado==='pendiente'||c.estado==='sinLlamar';}
+  window.feOrdenarCP=function(){
+    var sel=document.getElementById('camp-cp'); if(!sel||typeof C==='undefined'||!C.length) return;
+    var cur=sel.value, sect=[];
+    Array.prototype.forEach.call(sel.querySelectorAll('option'),function(o){ if(!/^\d{5}$/.test(o.value)) sect.push({v:o.value,t:o.textContent}); });
+    var g={};
+    C.forEach(function(c){ if(!c.cp||c.id===999) return; var m=muni(c.cp); g[m]=g[m]||{}; var x=g[m][c.cp]=g[m][c.cp]||{t:0,p:0}; x.t++; if(pend(c)) x.p++; });
+    var ms=Object.keys(g).sort(function(a,b){var ia=ORDEN.indexOf(a),ib=ORDEN.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)||a.localeCompare(b);});
+    var st='style="color:#000"', h='';
+    sect.forEach(function(o){h+='<option value="'+o.v+'" '+st+'>'+o.t+'</option>';});
+    ms.forEach(function(m){
+      var tp=0,tt=0; Object.keys(g[m]).forEach(function(cp){tp+=g[m][cp].p;tt+=g[m][cp].t;});
+      h+='<optgroup label="📍 '+m+' — '+tp+' sin llamar de '+tt+'" style="color:#000">';
+      Object.keys(g[m]).sort().forEach(function(cp){var x=g[m][cp];h+='<option value="'+cp+'" '+st+'>'+cp+' '+m+' · '+x.p+' sin llamar / '+x.t+'</option>';});
+      h+='</optgroup>';
+    });
+    sel.innerHTML=h; sel.value=cur; if(sel.value!==cur) sel.value='';
+    try{ Object.keys(g).forEach(function(m){Object.keys(g[m]).forEach(function(cp){ if(typeof CP_NAMES!=='undefined'&&(!CP_NAMES[cp]||/^Barcelona \d/.test(CP_NAMES[cp]))) CP_NAMES[cp]=m; });}); }catch(e){}
+  };
+  window.addEventListener('load',function(){setTimeout(feOrdenarCP,1200);setInterval(function(){var s=document.getElementById('camp-cp');if(s&&document.activeElement!==s)feOrdenarCP();},60000);});
+})();
+</script>
 </body>
 </html>
